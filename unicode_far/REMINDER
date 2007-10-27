@@ -1,0 +1,149 @@
+<DN_EDITCHANGE> и </DN_EDITCHANGE>
+   
+   Т.к. диалоговое АПИ было изменено, то... в "юзеровскую" процедуру обработки
+   для события DN_EDITCHANGE вместо FarDialogItem (Param2) передается указатель
+   на элемент DialogItemEx.
+
+   Это привело к тому, что в 1.80 оторвался механизм назначения клавиш (заметил 
+   здесь, возможно и в другим местах так же, где юзается combobox) - невозможно 
+   выбрать клавишу из списка.
+
+   Для решения проблемы в файлах macro.cpp и dialog.cpp внесены комменты и 
+   изменения между тэгами  <DN_EDITCHANGE> и </DN_EDITCHANGE>
+   В KeyMacro::AssignMacroDlgProc напрямую работаем с элементом DlgEdit.
+
+   Если кусок кода в dialog.cpp, обрабатывающий DN_EDITCHANGE будет переделан 
+   (например, как в SendDlgMessageAnsi, с применением Dialog::ConvertItemEx), 
+   то нужно "вернуть" кусок кода в macro.cpp (для обеспечения работы с 
+   FarDialogItem)
+
+   svs 10.01.2007 14:19:09 +0300
+
+
+PROJECT_DI_MEMOEDIT
+   
+   В usermenu.cpp, по мере развертывания DI_MEMOEDIT, изменять код.
+
+   svs 23.01.2007 18:11:09 +0300
+
+
+DIF_SEPARATORUSER
+
+   0. DI_TEXT & DI_VTEXT с флагом DIF_SEPARATORUSER должны:
+      а) рисовать сеператор по указанным координатам
+      б) в DlgItem.Mask содержится набор байтов, описывающих сепаратор
+
+   1. Переделка.
+
+      void DrawLine(int Length,int Type);
+      #define ShowUserSeparator(Length,Type,BoxSymbols) DrawLine(Length,Type)
+      у DrawLine должен быть параметр - массив байтов
+
+   2. Вместо прямого юзания кодов - использовать эти коды:
+      а) переделать их как именованные константы
+      б) они (константы) являются индексами в BoxSymbolsA
+
+      Константы... вот такое проходит или нет?
+
+      // X - block elements - у него укзан код в OEM
+      // V - vert, H - Horiz
+      // 1 - одинарная, 2 - двойная линия
+      // C - крест
+      // L - left, R - right
+      // B - bottom, T - top
+      //
+      enum BOX_DEF_SYMBOLS{
+        BS_X_B0,          // 0xB0
+        BS_X_B1,          // 0xB1
+        BS_X_B2,          // 0xB2
+        BS_V1,            // 0xB3
+        BS_R_H1V1,        // 0xB4
+        BS_R_H2V1,        // 0xB5
+        BS_R_H1V2,        // 0xB6
+        BS_RT_H1V2,       // 0xB7
+        BS_RT_H2V1,       // 0xB8
+        BS_R_H2V2,        // 0xB9
+        BS_V2,            // 0xBA
+        BS_RT_H2V2,       // 0xBB
+        BS_RB_H2V2,       // 0xBC
+        BS_RB_H1V2,       // 0xBD
+        BS_RB_H2V1,       // 0xBE
+        BS_RT_H1V1,       // 0xBF
+        BS_LB_H1V1,       // 0xС0
+        BS_B_H1V1,        // 0xС1
+        BS_T_H1V1,        // 0xС2
+        BS_L_H1V1,        // 0xС3
+        BS_H1,            // 0xС4
+        BS_C_H1V1,        // 0xС5
+        BS_L_H2V1,        // 0xС6
+        BS_L_H1V2,        // 0xС7
+        BS_LB_H2V2,       // 0xС8
+        BS_LT_H2V2,       // 0xС9
+        BS_B_H2V2,        // 0xСA
+        BS_T_H2V2,        // 0xСB
+        BS_L_H2V2,        // 0xСC
+        BS_H2,            // 0xСD
+        BS_C_H2V2,        // 0xСE
+        BS_B_H2V1,        // 0xСF
+        BS_B_H1V2,        // 0xD0
+        BS_T_H2V1,        // 0xD1
+        BS_T_H1V2,        // 0xD2
+        BS_LB_H1V2,       // 0xD3
+        BS_LB_H2V1,       // 0xD4
+        BS_LT_H2V1,       // 0xD5
+        BS_LT_H1V2,       // 0xD6
+        BS_C_H1V2,        // 0xD7
+        BS_C_H2V1,        // 0xD8
+        BS_RB_H1V1,       // 0xD9
+        BS_LT_H1V1,       // 0xDA
+        BS_X_DB,          // 0xDB
+        BS_X_DC,          // 0xDC
+        BS_X_DD,          // 0xDD
+        BS_X_DE,          // 0xDE
+        BS_X_DF,          // 0xDF
+      };
+
+   svs 26.01.2007 15:52:00 +0300
+
+SetConsoleTitle & Macro
+
+   С этим надо что-то делать, т.к. реально макрос не выставляет заголовок консоли.
+   Если его выставлять - получим чрезмерное мелькание.
+   Возможно нужно эмулировать... функции установки и получения заголовка консоли
+   и если выполняется макрос - то...
+
+   svs 26.01.2007 16:02:00 +0300
+
+
+Editor:Save bookmarks
+   Mantis#0000327: [X] Save bookmarks не работает без [X] Save file position 
+   Если второе будет независимым, то в config.cpp::EditorConfig() убрать строку:
+     Dlg.SetAutomation(ID_EC_SAVEPOSITION,ID_EC_SAVEBOOKMARKS,...
+   тоже самое и в config.cpp::ViewerConfig():
+     Dlg.SetAutomation(ID_VC_SAVEPOSITION,ID_VC_SAVEBOOKMARKS,...
+   а так же убрать флаги DIF_AUTOMATION в обоих контролах, ответственных за
+   "Save file position"
+   и убрать строки
+    
+    if(!Opt.ViOpt.SaveViewerPos)
+      CfgDlg[ID_VC_SAVEBOOKMARKS].Flags |= DIF_DISABLE;
+
+    if(!EdOpt.SavePos)
+      CfgDlg[ID_EC_SAVEBOOKMARKS].Flags |= DIF_DISABLE;
+
+
+   svs 09.09.2007 18:18:00 +0300
+
+
+IsWordDiv: editor.cpp & strmix.cpp
+
+    В editor.cpp во всех подобных кусках кода:
+
+      if (IsSpace(Str[CurPos-1]) ||
+          IsWordDiv(NULL,EdOpt.strWordDiv,Str[CurPos-1])) //BUGBUG
+          //IsWordDiv((AnsiText || UseDecodeTable)?&TableSet:NULL,EdOpt.strWordDiv,Str[CurPos-1])) //BUGBUG
+
+    для первого параметра IsWordDiv() вместо NULL поставить "правильное" значение,
+    когда ОНО устаканится...
+
+   svs 11.10.2007 11:44:09 +0300

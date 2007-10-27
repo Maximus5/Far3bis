@@ -1,0 +1,7 @@
+NAME = FARCmds
+SRCS = FARCmds.cpp
+DOCS = FARCmdsEng.hlf FARCmdsRus.hlf FARCmdsEng.lng FARCmdsRus.lng
+
+include ../makefile_gcc_def_inc
+
+include ../makefile_gcc_target_inc

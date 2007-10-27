@@ -1,0 +1,150 @@
+#ifndef __HELP_HPP__
+#define __HELP_HPP__
+/*
+help.hpp
+
+Помощь
+*/
+/*
+Copyright (c) 1996 Eugene Roshal
+Copyright (c) 2000 Far Group
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. The name of the authors may not be used to endorse or promote products
+   derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#include "frame.hpp"
+#include "keybar.hpp"
+#include "farconst.hpp"
+#include "unicodestring.hpp"
+
+class CallBackStack;
+
+#define HELPMODE_CLICKOUTSIDE  0x20000000 // было нажатие мыши вне хелпа?
+
+struct StackHelpData
+{
+  DWORD Flags;                  // флаги
+  int   TopStr;                 // номер верхней видимой строки темы
+  int   CurX,CurY;              // координаты (???)
+
+  string strHelpMask;           // значение маски
+  string strHelpPath;           // путь к хелпам
+  string strHelpTopic;         // текущий топик
+  string strSelTopic;          // выделенный топик (???)
+};
+
+enum HELPDOCUMENTSHELPTYPE{
+  HIDX_PLUGINS,                 // Индекс плагинов
+  HIDX_DOCUMS,                  // Индекс документов
+};
+
+enum {
+  FHELPOBJ_ERRCANNOTOPENHELP  = 0x80000000,
+};
+
+class Help:public Frame
+{
+  private:
+    BOOL  ErrorHelp;            // TRUE - ошибка! Например - нет такого топика
+    SaveScreen *TopScreen;      // область сохранения под хелпом
+    KeyBar      HelpKeyBar;     // кейбар
+    CallBackStack *Stack;       // стек возврата
+    string  strFullHelpPathName;
+
+    struct StackHelpData StackData;
+    wchar_t *HelpData;             // "хелп" в памяти.
+    int   StrCount;             // количество строк в теме
+    int   FixCount;             // количество строк непрокручиваемой области
+    int   FixSize;              // Размер непрокручиваемой области
+    int   TopicFound;           // TRUE - топик найден
+    int   IsNewTopic;           // это новый топик?
+    int   MouseDown;
+
+    string strCtrlColorChar;    // CtrlColorChar - опция! для спецсимвола-
+                                //   символа - для атрибутов
+    int   CurColor;             // CurColor - текущий цвет отрисовки
+    int   CtrlTabSize;          // CtrlTabSize - опция! размер табуляции
+
+    int   PrevMacroMode;        // предыдущий режим макроса
+
+    string strCurPluginContents; // помним PluginContents (для отображения в заголовке)
+
+    DWORD LastStartPos;
+    DWORD StartPos;
+
+    string strCtrlStartPosChar;
+
+#if defined(WORK_HELP_FIND)
+  private:
+    DWORD LastSearchPos;
+    unsigned char LastSearchStr[SEARCHSTRINGBUFSIZE];
+    int LastSearchCase,LastSearchWholeWords,LastSearchReverse;
+
+  private:
+    int Search(int Next);
+    void KeepInitParameters();
+#endif
+
+  private:
+    virtual void DisplayObject();
+    int  ReadHelp(const wchar_t *Mask=NULL);
+    void AddLine(const wchar_t *Line);
+    void AddTitle(const wchar_t *Title);
+    void HighlightsCorrection(wchar_t *Str);
+    void FastShow();
+    void DrawWindowFrame();
+    void OutString(const wchar_t *Str);
+    int  StringLen(const wchar_t *Str);
+    void CorrectPosition();
+    int  IsReferencePresent();
+    void MoveToReference(int Forward,int CurScreen);
+    void ReadDocumentsHelp(int TypeIndex);
+    int  JumpTopic(const wchar_t *JumpTopic=NULL);
+
+  public:
+    Help(const wchar_t *Topic,const wchar_t *Mask=NULL,DWORD Flags=0);
+    virtual ~Help();
+
+  public:
+    virtual void Hide();
+    virtual int  ProcessKey(int Key);
+    virtual int  ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent);
+    virtual void InitKeyBar(void);
+    BOOL GetError() {return ErrorHelp;}
+    virtual void SetScreenPosition();
+    virtual void OnChangeFocus(int focus); // вызывается при смене фокуса
+    virtual void ResizeConsole();
+
+    virtual int  FastHide(); // Введена для нужд CtrlAltShift
+
+    virtual const wchar_t *GetTypeName() {return L"[Help]";}
+    virtual int GetTypeAndName(string &strType, string &strName);
+    virtual int GetType() { return MODALTYPE_HELP; }
+
+    virtual __int64 VMProcess(int OpCode,void *vParam,__int64 iParam);
+
+    static string &MkTopic(INT_PTR PluginNumber,const wchar_t *HelpTopic,string &strTopic);
+};
+
+#endif  // __HELP_HPP__

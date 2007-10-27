@@ -1,0 +1,196 @@
+OBJDIR = ./GCC/obj
+REOBJDIR = .\/GCC\/obj\/
+EXEDIR = ./GCC
+EXENAME = Far.exe
+EXEFULLNAME = $(EXEDIR)/$(EXENAME)
+DEF = far.def
+
+SRCS = 	cddrv.cpp \
+	CFileMask.cpp \
+	chgmmode.cpp \
+	chgprior.cpp \
+	clipboard.cpp \
+	cmdline.cpp \
+	cmem.cpp \
+	config.cpp \
+	constitle.cpp \
+	copy.cpp \
+	ctrlobj.cpp \
+	cvtname.cpp \
+	del.cpp \
+	delete.cpp \
+	dialog.cpp \
+	dizlist.cpp \
+	dlgedit.cpp \
+	edit.cpp \
+	editor.cpp \
+	eject.cpp \
+	execute.cpp \
+	farexcpt.cpp \
+	farqueue.cpp \
+	farrtl.cpp \
+	farwinapi.cpp \
+	ffolders.cpp \
+	fileattr.cpp \
+	fileedit.cpp \
+	filefilter.cpp \
+	filefilterparams.cpp \
+	filelist.cpp \
+	FileMasksProcessor.cpp \
+	FileMasksWithExclude.cpp \
+	fileowner.cpp \
+	filepanels.cpp \
+	filestr.cpp \
+	filetype.cpp \
+	fileview.cpp \
+	findfile.cpp \
+	flink.cpp \
+	flmodes.cpp \
+	flplugin.cpp \
+	flshow.cpp \
+	flupdate.cpp \
+	fnparce.cpp \
+	foldtree.cpp \
+	frame.cpp \
+	gettable.cpp \
+	global.cpp \
+	grabber.cpp \
+	help.cpp \
+	hilight.cpp \
+	history.cpp \
+	hmenu.cpp \
+	hotplug.cpp \
+	infolist.cpp \
+	interf.cpp \
+	iswind.cpp \
+	keybar.cpp \
+	keyboard.cpp \
+	language.cpp \
+	local.cpp \
+	lockscrn.cpp \
+	macro.cpp \
+	main.cpp \
+	manager.cpp \
+	menubar.cpp \
+	message.cpp \
+	mix.cpp \
+	mkdir.cpp \
+	mktemp.c \
+	modal.cpp \
+	namelist.cpp \
+	new.cpp \
+	options.cpp \
+	palette.cpp \
+	panel.cpp \
+	plist.cpp \
+	plognmn.cpp \
+	plugapi.cpp \
+	plugins.cpp \
+	PluginA.cpp \
+	PluginW.cpp \
+	poscache.cpp \
+	print.cpp \
+	qsortex.c \
+	qsort.c \
+	qview.cpp \
+	rdrwdsk.cpp \
+	RefreshFrameManager.cpp \
+	registry.cpp \
+	savefpos.cpp \
+	savescr.cpp \
+	scantree.cpp \
+	scrbuf.cpp \
+	scrobj.cpp \
+	scrsaver.cpp \
+	setattr.cpp \
+	setcolor.cpp \
+	stddlg.cpp \
+	strdup.c \
+	strftime.cpp \
+	strmix.cpp \
+	strncpy.c \
+	syntax.cpp \
+	TVMStack.cpp \
+	syslog.cpp \
+	treelist.cpp \
+	udlist.cpp \
+	UnicodeString.cpp \
+	usermenu.cpp \
+	viewer.cpp \
+	vmenu.cpp \
+	xlat.cpp
+
+
+CXX = g++
+CC = gcc
+RM = rm -f
+CP = cp -f
+M4 = m4 -P
+MV = mv -f
+MKDIR = mkdir -p
+WINDRES = windres
+DEFINES = -D USE_WFUNC -D FAR_ALPHA_VERSION -D USE_WFUNC_ALW -D USE_WFUNC_IN
+#DEFINES = -D FAR_MSVCRT -D USE_WFUNC -D FAR_ALPHA_VERSION -D USE_WFUNC_ALW -D USE_WFUNC_IN
+CCFLAGS = -Os $(DEFINES) -funsigned-char -fomit-frame-pointer -fno-exceptions -fno-rtti -Wno-deprecated
+CFLAGS = -Os $(DEFINES) -funsigned-char -fomit-frame-pointer -fno-exceptions
+LNKFLAGS = -s -lmpr -lwinspool
+
+OBJS = $(patsubst %.cpp,$(OBJDIR)/%.o,$(filter %.cpp,$(SRCS))) $(patsubst %.c,$(OBJDIR)/%.o,$(filter %.c,$(SRCS))) $(OBJDIR)/far.rc.o
+DEPS = $(patsubst %.cpp,$(OBJDIR)/%.d,$(filter %.cpp,$(SRCS))) $(patsubst %.c,$(OBJDIR)/%.d,$(filter %.c,$(SRCS)))
+MAP = $(patsubst %.exe,%.map,$(EXEFULLNAME))
+
+all: lng $(EXEFULLNAME)
+
+$(OBJDIR)/%.d: %.c
+	@echo making depends for $<
+	@$(MKDIR) $(OBJDIR)
+	@$(SHELL) -ec '$(CC) -c -MM $(CFLAGS) $< \
+                | sed '\''s/\($*\)\.o[ :]*/$(REOBJDIR)\1.o $(REOBJDIR)\1.d: /g'\'' > $@; [ -s $@ ] || $(RM) $@'
+
+$(OBJDIR)/%.d: %.cpp
+	@echo making depends for $<
+	@$(MKDIR) $(OBJDIR)
+	@$(SHELL) -ec '$(CXX) -c -MM $(CCFLAGS) $< \
+                | sed '\''s/\($*\)\.o[ :]*/$(REOBJDIR)\1.o $(REOBJDIR)\1.d: /g'\'' > $@; [ -s $@ ] || $(RM) $@'
+
+$(OBJDIR)/%.o: %.c
+	@echo compiling $<
+	@$(MKDIR) $(OBJDIR)
+	@$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJDIR)/%.o: %.cpp
+	@echo compiling $<
+	@$(MKDIR) $(OBJDIR)
+	@$(CXX) $(CCFLAGS) -c -o $@ $<
+
+$(OBJDIR)/far.rc.o: far.rc far.ico
+	@$(MKDIR) $(OBJDIR)
+	@$(WINDRES) -i $< -o $@
+
+Far.exe.manifest: Far.exe.manifest.m4 farversion.m4 vbuild.m4
+	@tools/m4 -P Far.exe.manifest.m4 > Far.exe.manifest
+
+far.rc: far.rc.m4 farversion.m4 vbuild.m4 res.hpp Far.exe.manifest
+	@tools/m4 -P far.rc.m4 > far.rc
+
+copyright.inc: copyright.inc.m4 farversion.m4 vbuild.m4
+	@tools/m4 -P copyright.inc.m4 | tools/gawk -f ./scripts/enc.awk > copyright.inc
+
+farversion.inc: farversion.inc.m4 farversion.m4 vbuild.m4
+	@tools/m4 -P farversion.inc.m4 > farversion.inc
+
+lng:
+	@tools/lng.generator.exe -nc -i lang.ini farlang.templ
+	@$(MKDIR) $(EXEDIR)
+	@$(CP) FarEng.lng $(EXEDIR)
+	@$(CP) FarRus.lng $(EXEDIR)
+	@tools/gawk -f ./scripts/mkhlf.awk FarEng.hlf.m4 | tools/m4 -P > $(EXEDIR)/FarEng.hlf
+	@tools/gawk -f ./scripts/mkhlf.awk FarRus.hlf.m4 | tools/m4 -P > $(EXEDIR)/FarRus.hlf
+
+$(EXEFULLNAME): $(OBJS) $(DEF)
+	@echo linking $@
+	@$(MKDIR) $(EXEDIR)
+	@$(CXX) -o $(EXENAME) $(OBJS) $(LNKFLAGS) -Xlinker -Map -Xlinker $(MAP)
+	@$(MV) $(EXENAME) $(EXEDIR)
+
+-include $(DEPS)

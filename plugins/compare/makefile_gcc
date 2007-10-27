@@ -1,0 +1,7 @@
+NAME = Compare
+SRCS = compare.cpp
+DOCS = CmpEng.hlf CmpRus.hlf CompEng.lng CompRus.lng
+
+include ../makefile_gcc_def_inc
+
+include ../makefile_gcc_target_inc

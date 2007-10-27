@@ -1,0 +1,36 @@
+NAME = MultiArc
+SRCS = MultiArc.cpp \
+arccfg.cpp \
+arccmd.cpp \
+arcget.cpp \
+ArcMix.cpp \
+ArcPlg.cpp \
+ArcProc.cpp \
+arcput.cpp \
+arcread.cpp \
+arcreg.cpp \
+global.cpp
+DOCS = arceng.hlf arcrus.hlf arceng.lng arcrus.lng
+
+USERCPP = -D_FAR_USE_FARFINDDATA
+
+include ../makefile_gcc_def_inc
+
+include ../makefile_gcc_target_inc
+
+all: fmt
+
+$(RES): multiarcversion.hpp
+
+fmt:
+	$(MAKE) -f makefile_gcc_libpcre
+	$(MAKE) -f makefile_gcc_fmt FMT=Custom
+	$(MAKE) -f makefile_gcc_fmt FMT=Ace
+	$(MAKE) -f makefile_gcc_fmt FMT=Arc
+	$(MAKE) -f makefile_gcc_fmt FMT=Arj
+	$(MAKE) -f makefile_gcc_fmt FMT=Cab
+	$(MAKE) -f makefile_gcc_fmt FMT=Ha
+	$(MAKE) -f makefile_gcc_fmt FMT=Lzh
+	$(MAKE) -f makefile_gcc_fmt FMT=Rar
+	$(MAKE) -f makefile_gcc_fmt FMT=TarGz
+	$(MAKE) -f makefile_gcc_fmt FMT=Zip

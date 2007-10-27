@@ -1,0 +1,16 @@
+NAME = Network
+SRCS = Network.cpp \
+NetCfg.cpp \
+NetClass.cpp \
+NetCommon.cpp \
+NetFavorites.cpp \
+NetMix.cpp \
+NetNT.cpp \
+NetReg.cpp
+DOCS = NetEng.hlf NetRus.hlf NetEng.lng NetRus.lng
+
+USERLIBS = -lmpr
+
+include ../makefile_gcc_def_inc
+
+include ../makefile_gcc_target_inc

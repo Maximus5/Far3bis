@@ -1,0 +1,7 @@
+NAME = EditCase
+SRCS = EditCase.cpp
+DOCS = ECaseEng.hlf ECaseRus.hlf ECaseEng.lng ECaseRus.lng
+
+include ../makefile_gcc_def_inc
+
+include ../makefile_gcc_target_inc

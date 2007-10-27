@@ -1,0 +1,40 @@
+NAME = MultiArc
+LINK_OBJS = $(OBJDIR)\MultiArc.obj \
+$(OBJDIR)\ArcCfg.obj \
+$(OBJDIR)\ArcCmd.obj \
+$(OBJDIR)\ArcGet.obj \
+$(OBJDIR)\ArcMix.obj \
+$(OBJDIR)\ArcPlg.obj \
+$(OBJDIR)\ArcProc.obj \
+$(OBJDIR)\ArcPut.obj \
+$(OBJDIR)\ArcRead.obj \
+$(OBJDIR)\ArcReg.obj \
+$(OBJDIR)\global.obj
+
+!IF "$(CPU)" == "AMD64"
+USERCPP = /D_FAR_USE_FARFINDDATA
+!ELSE
+USERCPP = /D_FAR_USE_FARFINDDATA /Zp1
+!ENDIF
+
+include ..\makefile_vc_def_inc
+
+include ..\makefile_vc_target_inc
+
+ALL: fmt
+
+$(RES): multiarcversion.hpp
+
+fmt:
+	$(MAKE) /f makefile_vc_libpcre
+	$(MAKE) /f makefile_vc_fmt FMT=Custom
+	$(MAKE) /f makefile_vc_fmt FMT=Ace
+	$(MAKE) /f makefile_vc_fmt FMT=Arc
+	$(MAKE) /f makefile_vc_fmt FMT=Arj
+	$(MAKE) /f makefile_vc_fmt FMT=Cab
+	$(MAKE) /f makefile_vc_fmt FMT=Ha
+	$(MAKE) /f makefile_vc_fmt FMT=Lzh
+	$(MAKE) /f makefile_vc_fmt FMT=Rar
+	$(MAKE) /f makefile_vc_fmt FMT=TarGz
+	$(MAKE) /f makefile_vc_fmt FMT=Zip
+	@copy /Y Custom.ini $(OUTDIR)\Formats

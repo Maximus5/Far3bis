@@ -1,0 +1,129 @@
+!IF "$(CPU)" == "AMD64"
+OBJDIR = obj.64.vc
+DLLNAME = libCRT64.lib
+MASM = ml64
+!ELSE
+OBJDIR = obj.32.vc
+DLLNAME = libCRT.lib
+MASM = ml
+!ENDIF
+OBJDIRW = $(OBJDIR)\wide
+OUTDIR = ..
+
+!ifndef VC7
+VC8OPT=/GS- /D_CRT_SECURE_NO_DEPRECATE
+!endif
+
+LINK_OBJS = $(OBJDIR)\delete.obj \
+$(OBJDIR)\delete_array.obj \
+$(OBJDIR)\free.obj \
+$(OBJDIR)\i64toa.obj \
+$(OBJDIRW)\i64toa.obj \
+$(OBJDIR)\malloc.obj \
+$(OBJDIR)\memchr.obj \
+$(OBJDIR)\memcmp.obj \
+$(OBJDIR)\memcpy.obj \
+$(OBJDIR)\memicmp.obj \
+$(OBJDIR)\memmove.obj \
+$(OBJDIR)\memset.obj \
+$(OBJDIRW)\memset.obj \
+$(OBJDIR)\new.obj \
+$(OBJDIR)\new_array.obj \
+$(OBJDIR)\realloc.obj \
+$(OBJDIR)\strchr.obj \
+$(OBJDIRW)\strchr.obj \
+$(OBJDIR)\strcpy.obj \
+$(OBJDIRW)\strcpy.obj \
+$(OBJDIR)\strcspn.obj \
+$(OBJDIR)\strdup.obj \
+$(OBJDIRW)\strdup.obj \
+$(OBJDIR)\stricmp.obj \
+$(OBJDIRW)\stricmp.obj \
+$(OBJDIR)\strncat.obj \
+$(OBJDIRW)\strncat.obj \
+$(OBJDIR)\strncmp.obj \
+$(OBJDIRW)\strncmp.obj \
+$(OBJDIR)\strpbrk.obj \
+$(OBJDIR)\strncpy.obj \
+$(OBJDIRW)\strncpy.obj \
+$(OBJDIR)\strrchr.obj \
+$(OBJDIRW)\strrchr.obj \
+$(OBJDIR)\strstr.obj \
+$(OBJDIRW)\strstr.obj \
+$(OBJDIR)\strtok.obj \
+$(OBJDIRW)\strtok.obj \
+$(OBJDIR)\strtol.obj \
+$(OBJDIRW)\strtol.obj \
+$(OBJDIR)\aliases.obj
+
+CPP_BASE=/nologo /c /Gy /J /Gr /GR- $(VC8OPT) /EHs-c- /LD /Oi /Oy /O2 /W3
+!IF "$(CPU)" == "AMD64"
+CPP_PROJ=$(CPP_BASE) /Zp8 /Wp64
+!ELSE
+CPP_PROJ=$(CPP_BASE)
+!ENDIF
+
+LINK_FLAGS=/nologo /nodefaultlib /out:"$(OUTDIR)\$(DLLNAME)"
+
+ALL: $(OBJDIRW) $(OUTDIR)\$(DLLNAME)
+
+$(OUTDIR)\$(DLLNAME) : $(LINK_OBJS)
+	lib @<<
+	$(LINK_FLAGS) $(LINK_OBJS)
+<<
+
+.cpp{$(OBJDIR)}.obj::
+	cl @<<
+	$(CPP_PROJ) /Fo"$(OBJDIR)\\" $<
+<<
+
+.cpp{$(OBJDIRW)}.obj::
+	cl @<<
+	$(CPP_PROJ) /DUNICODE /D_UNICODE /Fo"$(OBJDIRW)\\" $<
+<<
+
+.asm{$(OBJDIR)}.obj:
+	$(MASM) /nologo /coff /c /Fo$@ $<
+
+
+$(OBJDIR)\delete.obj: delete.cpp crt.hpp
+$(OBJDIR)\delete_array.obj: delete_array.cpp crt.hpp
+$(OBJDIR)\free.obj: free.cpp crt.hpp
+$(OBJDIR)\i64toa.obj: i64toa.cpp crt.hpp
+$(OBJDIRW)\i64toa.obj: i64toa.cpp crt.hpp
+$(OBJDIR)\malloc.obj: malloc.cpp crt.hpp
+$(OBJDIR)\memchr.obj: memchr.cpp crt.hpp
+$(OBJDIR)\memcmp.obj: memcmp.cpp crt.hpp
+$(OBJDIR)\memcpy.obj: memcpy.cpp crt.hpp
+$(OBJDIR)\memicmp.obj: memicmp.cpp crt.hpp
+$(OBJDIR)\memmove.obj: memmove.cpp crt.hpp
+$(OBJDIR)\memset.obj: memset.cpp crt.hpp
+$(OBJDIR)\new.obj: new.cpp crt.hpp crt.hpp
+$(OBJDIR)\new_array.obj: new_array.cpp crt.hpp
+$(OBJDIR)\realloc.obj: realloc.cpp crt.hpp
+$(OBJDIR)\strchr.obj: strchr.cpp crt.hpp
+$(OBJDIRW)\strchr.obj: strchr.cpp crt.hpp
+$(OBJDIR)\strcspn.obj: strcspn.cpp crt.hpp
+$(OBJDIR)\strdup.obj: strdup.cpp crt.hpp
+$(OBJDIRW)\strdup.obj: strdup.cpp crt.hpp
+$(OBJDIR)\stricmp.obj: stricmp.cpp crt.hpp
+$(OBJDIRW)\stricmp.obj: stricmp.cpp crt.hpp
+$(OBJDIR)\strncat.obj: strncat.cpp crt.hpp
+$(OBJDIRW)\strncat.obj: strncat.cpp crt.hpp
+$(OBJDIR)\strncmp.obj: strncmp.cpp crt.hpp
+$(OBJDIRW)\strncmp.obj: strncmp.cpp crt.hpp
+$(OBJDIR)\strpbrk.obj: strpbrk.cpp crt.hpp
+$(OBJDIR)\strncpy.obj: strncpy.cpp crt.hpp
+$(OBJDIRW)\strncpy.obj: strncpy.cpp crt.hpp
+$(OBJDIR)\strrchr.obj: strrchr.cpp crt.hpp
+$(OBJDIRW)\strrchr.obj: strrchr.cpp crt.hpp
+$(OBJDIR)\strstr.obj: strstr.cpp crt.hpp
+$(OBJDIRW)\strstr.obj: strstr.cpp crt.hpp
+$(OBJDIR)\strtok.obj: strtok.cpp crt.hpp
+$(OBJDIRW)\strtok.obj: strtok.cpp crt.hpp
+$(OBJDIR)\strtol.obj: strtol.cpp crt.hpp
+$(OBJDIRW)\strtol.obj: strtol.cpp crt.hpp
+
+$(OBJDIRW):
+	@if not exist "$(OBJDIR)\$(NULL)" mkdir "$(OBJDIR)"
+	@if not exist "$(OBJDIRW)\$(NULL)" mkdir "$(OBJDIRW)"

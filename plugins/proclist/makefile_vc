@@ -1,0 +1,26 @@
+NAME = Proclist
+LINK_OBJS = $(OBJDIR)\fileio.obj \
+$(OBJDIR)\handles.obj \
+$(OBJDIR)\PCFG.OBJ \
+$(OBJDIR)\Pclass.obj \
+$(OBJDIR)\perfthread.obj \
+$(OBJDIR)\PLIST95.OBJ \
+$(OBJDIR)\Plistnt.obj \
+$(OBJDIR)\Pmix.obj \
+$(OBJDIR)\preg.obj \
+$(OBJDIR)\WMI.obj \
+$(OBJDIR)\Proclist.obj
+
+USERCPP = /I".\WMI" -D"_WIN32_DCOM"
+
+!IF "$(CPU)" != "AMD64"
+NEEDENTRY = 1
+!IF !defined(ULINK) && !defined(WIDE)
+EXCLUDECRT = 1
+NEEDDEFLIB = 1
+!ENDIF
+!ENDIF
+
+include ..\makefile_vc_def_inc
+
+include ..\makefile_vc_target_inc

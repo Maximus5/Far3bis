@@ -1,0 +1,7 @@
+NAME = HlfViewer
+SRCS = HlfViewer.cpp
+DOCS = HlfViewerEng.hlf HlfViewerRus.hlf HlfViewerEng.lng HlfViewerRus.lng
+
+include ../makefile_gcc_def_inc
+
+include ../makefile_gcc_target_inc

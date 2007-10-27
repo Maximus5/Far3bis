@@ -1,0 +1,16 @@
+NAME = EMenu
+LINK_OBJS = $(OBJDIR)\EMenu.obj \
+$(OBJDIR)\auto_sz.obj \
+$(OBJDIR)\FarMenu.obj \
+$(OBJDIR)\MenuDlg.obj \
+$(OBJDIR)\OleThread.obj \
+$(OBJDIR)\Pidl.obj \
+$(OBJDIR)\Plugin.obj
+
+NEEDENTRY = 1
+
+include ..\makefile_vc_def_inc
+
+include ..\makefile_vc_target_inc
+
+$(RES): resource.h

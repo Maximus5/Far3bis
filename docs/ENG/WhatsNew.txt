@@ -1,0 +1,509 @@
+                    The FAR File and Archive Manager
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    What's new in the latest version
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[!] Important
+[+] New
+[*] Changes
+[-] Fixed error
+
+---------------------------------------------------------------------------
+FAR 1.71 alpha 4 (build 2273) (Oct 12 2007)
+---------------------------------------------------------------------------
+
+[!] For elimination of effects of Vista virtualization technology the
+    manifest file has been added
+
+[!] When setting folder attributes for FAT and FAT32 file systems, date and
+    time will be set only then system has support it.
+
+[!] PluginAPI was adjusted for 64bit compatibility.
+
+[!] API: В структуре PluginPanelItem вместо WIN32_FIND_DATA используется
+    структура FAR_FIND_DATA. Вместо макроса _FAR_USE_FARFINDDATA необходимо
+    использовать _FAR_USE_WIN32_FIND_DATA.
+
+[+] Новая таблица кодировки Bulgarian MIC.
+
+[+] API: Добавлена команда VCTL_SETMODE.
+
+[+] Окно поиска папки (Alt-F10 в панелях и в диалоге копирования) можно
+    "распахивать" с помощью F5.
+
+[+] Добавлена поддержка колеса мыши в окне поиска папок.
+
+[+] Macro: Help.FileName, Help.Topic, Help.SelTopic.
+
+[+] Macro: [A|P]Panel.ColumnCount
+
+[+] Macro: новые функции waitkey(), eval()
+
+[+] Добавлена обработка области функциональных клавиш для диалога "Поиска папок"
+    (Alt-F10)
+
+[+] API: Для элемента DI_VTEXT добавлена обработка флагов: DIF_CENTERGROUP,
+    DIF_SEPARATOR, DIF_SEPARATOR2, DIF_SHOWAMPERSAND.
+
+[+] Добавлено правило TechInfo#75, которое позволяет управлять поведением
+    стрелок влево/вправо (как на основной, так и на дополнительной клавиатуре)
+    в панелях.
+
+[+] В панелях символ '^' после буквы режима сортировки показывает включенный режим
+    "Помеченные файлы вперед" ("Show selected first")
+
+[+] API: Новый флаг DIF_NOTCVTUSERCONTROL - не конвертировать символы
+    виртуального буфера элемента DI_USERCONTROL.
+
+[+] Добавлено правило TechInfo#76, позволяющее "обходить" ограничения при
+    работе с каталогами, в именах которых содержатся символы, некорректно
+    преобразованные из ANSI в OEM.
+
+[+] Добавлено правило TechInfo#77, позволяющее переопределять подписи к
+    функциональным клавишам без правки LNG-файлов.
+
+[+] Редактор нормально обрабатывает файлы, в которых строки заканчиваются
+    последовательностью <CR><CR><LF>
+
+[+] Macro: Параметр "Sequence" может так же иметь тип REG_MULTI_SZ.
+
+[+] API: Флаг KSFLAGS_REG_MULTI_SZ.
+
+[+] Macro: новые функции asc(), chr()
+
+[+] Macro: Различаются Enter на основной клавиатуре и Enter на цифровой (NumEnter)
+
+[+] Macro: Различаются Del на основной клавиатуре и Del на цифровой (NumDel).
+    При включенном NumLock клавиша называется Decimal.
+
+[+] Macro: добавлена функция Panel.SetPosIdx - позиционирование
+    на файловой панели по индексу.
+
+[+] Macro: новая функция gethotkey()
+
+[+] API: добавлены команды DM_GETEDITPOSITION и DM_SETEDITPOSITION - управление
+    позицией строки в строках ввода в диалогах.
+
+[+] В панелях добавлена комбинация клавиш Ctrl-Shift-Numpad5:
+    "Восстановить высоту панелей по умолчанию"
+
+[+] API: Теперь при открытом DI_COMBOBOX в диалоговую процедуру посылаются
+    события DN_KEY или DN_MOUSEEVENT. Управлять этим поведением можно с помощью
+    сообщений DM_SETCOMBOBOXEVENT и DM_GETCOMBOBOXEVENT.
+
+[+] Комбинация Ctrl-Shift-B в редакторе и программе просмотра показывает или
+    скрывает статусную строку.
+
+[+] Macro: Добавлена константа "MacroArea" - возвращает имя текущей макрообласти.
+
+[*] API: Член структуры ViewerMode.TypeWrap переименован в ViewerMode.WordWrap.
+
+[*] Изменена логика загрузки плагинов. Модуль проверяется на принадлежность
+    к плагинам до загрузки.
+
+[*] В TechInfo #63 убрано ограничение на максимальный размер читаемых данных.
+
+[*] На активной панели плагина не допускается создание нового файла без имени
+    (по Shift-F4).
+
+[*] При процессе удаления каталога в Корзину производится проверка наличия
+    символических связей. Если символические связи присутствуют, они
+    разрываются.
+
+[*] В редакторе изменено поведение для комбинаций клавиш Ctrl-Shift-PgDn и
+    Ctrl-Shift-PgUp. Теперь вертикальная позиция курсора не меняется.
+
+[*] Macro: Изменены названия сочетаний клавиш с модификаторами:
+    вместо `:` теперь `;`, а вместо `"` теперь `'`. Это относится
+    ко всем комбинациям модификаторов, кроме одиночного Shift.
+
+[*] Macro: Bof/Eof/Empty/Selected в панелях типа QView/Info/Tree возвращают
+    значения для этих типов панелей. Для обычных панелей возвращают значения
+    из командной строки.
+
+[-] "Залипание" кейбара при вызове и выходе из диалога поиска папок.
+
+[-] Падение FAR при старте, если запомненный каталог отсутствовал.
+
+[-] Macro: fexist() всегда возвращал 1, даже если файл/каталог отсутствовал.
+
+[-] В Windows Vista в редактор попадал мусор при нажатии на Enter.
+
+[-] API: Неправильная ширина DIF_SEPARATOR для диалогов без рамки.
+
+[-] FindFile: Зацикливается поиск при поиске подстроки на файле больше 2Gb.
+
+[-] Cтрока префиксов плагина больше не ограничена 512 символами.
+
+[-] Функция уничтожения файлов (Wipe) не работала с файлами больше 2Gb.
+
+[-] Editor: В процессе работы функции отката (Undo) некорректно
+    восстанавливались окончания строк.
+
+[-] Editor: При удалении пустой строки или соединении двух строк при помощи Del
+    или BackSpace выставлялись неправильные символы конца строки для "новой"
+    строки.
+
+[-] В некоторых случаях вместо нового файла (Shift-F4 Ctrl-Y) в редакторе
+    открывался предыдущий редактируемый файл.
+
+[-] Неправильная отрисовка окна поиска папок: Alt-F10 F1 F5 F5 Esc.
+
+[-] Пропадало содержимое дерева папок, если процесс перечитывания каталогов
+    прерывался.
+
+[-] При копировании файла, расположенного в корне диска, уничтожалось его
+    содержимое, если в качестве приемника указывался тот же диск (например,
+    файл "C:\a.txt" копируем в "C:").
+
+[-] Переименование каталогов в панели дерева папок приводило к падению FAR.
+
+[-] Ужесточена проверка на наличие hotplug устройства. Проверяем, не ждет ли
+    устройство извлечения.
+
+[-] Метасимвол "!$!" создавал список длинных имён вместо коротких.
+
+[-] API: Не посылался EE_CLOSE для "?New File?".
+
+[-] API: неправильная цветовая отрисовка диалога сообщения при использование
+    флага FMSG_WARNING в функции Message без кнопок.
+
+[-] API: В обработчике DefDlgProc для события DN_BTNCLICK не учитывался флаг
+    DIF_BTNNOCLOSE.
+
+[-] API: Некорректная отрисовка элемента DI_TEXT для сочетания условий:
+    DIF_CENTERTEXT + DIF_SEPARATOR + X1 не равен "-1"
+
+[-] Зависание FAR при указании нескольких ключей ком.строки /v и /e
+
+[-] Неправильное отображение свободного места на дисках большого объема.
+
+[-] API: После вызова EditorControl(ECTL_SELECT) с установленным значением
+    поля BlockStartLine = -1, последующий вызов ECTL_GETINFO так же возвращал
+    -1 в поле BlockStartLine.
+
+[-] Некорректно выставлялась переменная среды FARLANG.
+
+[-] Для новых файлов не работала функция "Позиционирование на текущий файл
+    без выхода" (Ctrl-F10)
+
+[-] Убрана ошибка "переполнения" в расчетах времени/скорости при копировании
+
+[-] Macro: Не воспринимались переменные начинающиеся с цифр (например, %3DO)
+
+[-] Macro: Некорректная прорисовка интерфейса при вызове из макроса функции
+    "Ссылки на папки".
+
+[-] API: DM_LISTGETCURPOS возвращал неправильное значение после открытия
+    ComboBox`а, навигации по списку с последующим отказом от выбора
+    (нажали Esc).
+
+[-] Macro: не работали конструкции Eof/Bof/etc в программе просмотра.
+
+[-] Не работал автоматический скроллинг в панели быстрого просмотра.
+
+[-] Macro: макросы, назначенные на Модификаторы+Decimal записывались, но не
+    воспроизводились.
+
+[-] В программе просмотра некорректно работал механизм истории (Mantis#0000310)
+
+[-] API: Если плагин для списка отключал реакцию слежения за курсором мыши
+    (LMRT_NEVER), то в диалоговую процедуру не приходило событие DN_MOUSECLICK
+    для двойного клика мыши (Mantis#0000309)
+
+[-] При System/UseNumPad = 0 не работала точка на цифровой клавиатуре
+
+[-] Двойное обновление панели после команды cd any_path
+
+[-] В редакторе после последовательности Ctrl-U Ctrl-C Ctrl-Y не работало
+    повторное выделение строки и копирования в Буфер Обмена (Ctrl-C).
+
+[-] API: некорректная отрисовка диалога после закрытия в случае, если
+    фокусным элементом был комбинированный список.
+
+[-] Macro: Если пункт меню не содержит горячую клавишу, то GetHotkey()
+    возвращает "0" вместо ""
+
+[-] Macro: $SelWord выделяет лишнее знакоместо в конце строки
+
+[-] Macro: В панелях быстрого просмотра и информации не работали некоторые переменные:
+    ItemCount, CurPos, Selected, Bof, Eof всегда 0; Empty всегда 1.
+
+[-] Некорректно работала функция переключения языка в XLat-трансляции и макрокоманде
+    $KbdSwitch.
+
+[-] Editor: Некорректное отображение экрана редактора при выключенной опции
+    "Курсор за пределами строки" ("Cursor beyond end of line")
+
+[-] Не сохранялось значение опции "Lock editing of read-only files" в локальных
+    настройках редактора (Alt-Shift-F9)
+
+[-] В панелях в окне быстрого поиска невозможно было ввести символ ']'.
+
+
+TempPanel - build 31
+~~~~~~~~~~~~~~~~~~~~
+
+[-] Элементы файла-списка вида \\.\cdrom0 и т.д. отображаются как файлы, а не
+    как каталоги.
+
+[-] Различные исправления в диалоге конфигурации.
+
+[-] Различные падения с [x] Any item on panel.
+
+FARCmds - build 22
+~~~~~~~~~~~~~~~~~~
+
+[-] При отключенной опции "View/edit empty files" после команд view:filename
+    или edit:filename удалялся пустой файл.
+
+[-] Не создавался новый файл при вызове edit:filename.
+
+[-] Дублированные горячие клавиши в диалоге настройки плагина.
+
+[-] Некорректная обработка кавычек в командных строках, направляющих вывод
+    результатов в программу просмотра и редактор.
+
+FTP - version 2.3
+~~~~~~~~~~~~~~~~~
+
+[+] Ограниченная поддержка UTF-8 (настраивается в свойствах учётной записи).
+
+[-] Не корректная обработка ftp-ссылок содержащих национальные символы.
+
+[-] Не копировались файлы содержащие символ '%' с FTP сервера.
+
+[-] Проблемы с копированием когда путь назначения являлся UNC путём.
+
+EMenu - build 13
+~~~~~~~~~~~~~~~~
+
+[+] В некоторых случаях показывает текст для самоотрисовывающихся пунктов.
+
+ProcList - build 134
+~~~~~~~~~~~~~~~~~~~~
+
+[+] 32-х битные процессы помечаются атрибутом "только для чтения" в Win64.
+
+MultiArc's ZIP.FMT 1.28
+~~~~~~~~~~~~~~~~~~~~~~~
+
+[-] Более корректное опознание zip архивов.
+
+
+---------------------------------------------------------------------------
+FAR 1.71 alpha 3 (build 2126) (15.09.2006)
+---------------------------------------------------------------------------
+
+[!] When setting folder attributes for FAT and FAT32 file systems, date and
+    time will not be set.
+
+[!] Macro: fexist() and fattr() no longer work with the panels, to work with
+    the panels new functions were added: panel.fexist() and panel.fattr().
+
+[+] New special symbols added "!=\" and "!=/" to represent the current path
+    considering symbolic links.
+
+[+] TechInfo#74 - allows to set the console window title format for file
+    execution.
+
+[+] API: New function FSF.snprintf.
+
+[+] FindFile: Symbolic links can now be searched using the filter.
+
+[*] Macro: "AltShift/" and "AltShift-" replace "AltShift?" and "AltShift_"
+    correspondingly.
+
+[*] Macro: fexist() understands file mask symbols '*' and '?'.
+
+[*] Macro: If the name contains '*' or '?' then fattr() will return the
+    attributes of the first found file.
+
+[*] API: ACTL_KEYMACRO::MCMD_SAVEALL can now work while a macro is executing
+    (FARCmds: "macro:save" now works from inside a macro command).
+
+[-] CtrlAltShift did not hide the panels in fifth panel mode.
+
+[-] Macro: The variables ItemCount and CurPos returned wrong values in the
+    Viewer for files bigger than 4GB.
+
+[-] The "CD" command was processed incorrectly if the '/' character was present
+    in the path.
+
+[-] The path for the passive panel was not always set when executing programs
+    in Windows 9x.
+
+[-] SUBST-disk info was incorrectly displayed in Windows 9x.
+
+[-] Incorrect processing of mixed relative paths (containing ".." and ".").
+
+[-] Selected files on the passive panel were not moved to the start of the list
+    after comparing folders (the "Show selected first" panel option is on).
+
+[-] Macro: Variable names starting with underscore were ignored.
+
+[-] Macro: [A|P]Panel.UNCPath added the '\' symbol to the end of the path.
+
+---------------------------------------------------------------------------
+FAR 1.71 alpha 2 (build 2112) (29.06.2006)
+---------------------------------------------------------------------------
+
+[!] Macro: Far.Title now returns the full console title.
+
+[+] Added "Del removes blocks in edit controls" to dialog settings.
+
+[+] Errors in the folder creation process (F7) can be skipped when the
+    "Process multiple names" option is set.
+
+[+] TechInfo#73 - allows to define file extensions for batch files.
+
+[*] Macro command Title in the viewer and editor returns the title that is
+    specified in the status bar.
+
+[-] Wrong selection of found text in the viewer.
+
+[-] Incorrect sorting of strings differing only in length when "numeric sort"
+    is on.
+
+[-] Wrong positioning in Quick view after canceling the search dialog.
+
+[-] The Quick view panel was overlapping the search progress bar when
+    searching.
+
+[-] Rare crash while creating folders (F7).
+
+[-] Wrong console window title for the files/folders move operation.
+
+[-] Instead of opening the folder in Explorer (using Shift-Enter)
+    an attempt was made to run an executable file of the same name.
+
+TempPanel - build 29
+~~~~~~~~~~~~~~~~~~~~
+
+[-] The "any elements in panel" mode did not work correctly.
+
+MultiArc's ARJ.FMT 1.20
+~~~~~~~~~~~~~~~~~~~~~~~
+
+[-] Incorrect handling of rare ARJ archives.
+
+---------------------------------------------------------------------------
+FAR 1.71 alpha 1 (build 2104) (25.05.2006)
+---------------------------------------------------------------------------
+
+[!] Command line prompt format has been extended with new commands.
+
+[!] Macro: The '*' and '/' keys from the numpad are now called "Multiply" and
+    "Divide". Those names will be used in macros instead of the symbols.
+
+[+] When a non-existing file from the edit history is selected (by Enter),
+    a prompt to create this file is shown.
+
+[+] Macro-function "N=sleep(N)".
+
+[+] Macro-constant "Far.Height".
+
+[+] Macro-constant "Far.Title".
+
+[+] Macro-constant "Title".
+
+[+] Macro-constant "Drv.ShowPos".
+
+[+] Macro-constant "Drv.ShowMode".
+
+[+] Additional mode for displaying disk size (Ctrl-5) in disks menu -
+    a Windows Explorer like mode. On by default.
+
+[+] A mode for displaying parameters of network drives (Ctrl-9) in disks menu.
+    Off by default.
+
+[+] TechInfo#72 - allows to save plugin paths to the folders history.
+
+[+] The Shift-Del hotkey in the disks menu allows to prepare a USB-disk
+    for safe removal.
+
+[+] Added a new command "Hotplug devices list" to the "Commands" (F9) menu
+    that allows to remove hotplug devices.
+
+[*] Some updates to the command line help (for far /?).
+
+[*] Text of the wipe (Alt-Del) dialogs has changed.
+
+[-] Incorrect handling of environment variables in CD and CHDIR commands.
+
+[-] TechInfo#8 did not work.
+
+[-] Incorrect handling of environment variables and relative paths in FAR
+    command line switches.
+
+[-] FAR crashed when started if the the value of "HistoryCount" (TechInfo#52)
+    was smaller than the number of items in the history.
+
+[-] Fixed the behaviour of Ctrl-Enter on non-existing items of edit/view
+    history.
+
+[-] The name of the "new" file ("?New File?") was sometimes added to the
+    history (Shift-F4 Del Enter Esc).
+
+[-] Incorrect processing of plugin paths in folders history.
+
+[-] Paths of DriveLetter: type did not work for the passive panel when
+    executing programs in Windows9x.
+
+[-] Incorrect processing of command line commands that contained non OEM
+    characters.
+
+[-] Macro: [A|P]Panel.UNCPath returned '\' at the end.
+
+[-] The fsplit macro functions was adding the plugin prefix to the file name
+    when called from plugin's root folder.
+
+[-] Incorrect processing of Dead-keys.
+
+[-] FAR could crash if the tab size was changed while viewing a file.
+
+[-] FAR could crash when opened as "far /e" with the clock set to visible.
+
+[-] The screen was not redrawn correctly after calling the Editor or the Viewer
+    functions with the ?F_IMMEDIATERETURN flag set.
+
+[-] Calling ECTL_SAVEFILE from EE_READ for an existing file caused a wrong
+    message of file being changed by an external application to be displayed.
+
+[-] The "Screens" menu (F12) could have been shown incorrectly in a very wide
+    console window.
+
+[-] Incorrect positioning on a folder with national characters in its name when
+    executing "FAR . Shift-Enter".
+
+MultiArc - build 181
+~~~~~~~~~~~~~~~~~~~~
+
+[-] Saving and restoring of user defined command line switches in the archiving
+    dialog did not work correctly.
+
+[-] RAR.FMT: when using unrar.dll the archive password was passed to it in the
+    wrong encoding.
+
+Network - build 35
+~~~~~~~~~~~~~~~~~~
+
+[+] Plug-in accepts environment variables specified in the form of
+    %VARIABLENAME% in the command line.
+
+[*] Cosmetic changes to the password input dialog.
+
+[-] Fixed the following wrong behaviour: when the plug-in has been opened
+    from a network directory and the user pressed Ctrl+PgUp from the
+    Network providers list or tried to go up one level by any other way,
+    they would have been confused because the current directory was a network
+    one.
+
+TempPanel - build 28
+~~~~~~~~~~~~~~~~~~~~
+
+[*] The plugin is now preloaded to memory when FAR is started so its functions
+    may be used in other plugins.
+
+
+                                     [FAR manager development group]
