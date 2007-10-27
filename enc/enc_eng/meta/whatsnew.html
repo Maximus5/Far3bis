@@ -1,0 +1,261 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>What's new in Programming FAR plugins - Encyclopedia for Developers?</title>
+<meta http-equiv="Content-Type" Content="text/html; charset=Windows-1251">
+<link rel="stylesheet" type="text/css" href="../styles/styles.css">
+<script language="javascript" src='links.js' type="text/javascript"></script>
+</head>
+<body>
+
+<h1>What's new in Programming FAR plugins - Encyclopedia for Developers 1.71 SR2273?</h1>
+<div class=navbar>
+<a href="index.html">main</a>
+</div>
+
+<h3>12 октября 2007 г.</h3>
+<ul>
+  <li>Macro: Добавлена константа "<a href="macro/macrocmd/states.html#MacroArea">MacroArea</a>" - возвращает имя текущей макрообласти.
+    <br><br>
+
+  <li>Macro: Bof/Eof/Empty/Selected в панелях типа QView/Info/Tree возвращают значения для этих типов панелей. Для обычных панелей возвращают значения из командной строки.
+    <br><br>
+</ul>
+
+<h3>13 сентября 2007 г.</h3>
+<ul>
+  <li>Теперь при открытом DI_COMBOBOX в диалоговую процедуру посылаются
+    события DN_KEY или DN_MOUSEEVENT. Управлять этим поведением можно с помощью
+    сообщений <a href="dialogapi/dmsg/dm_setcomboboxevent.html">DM_SETCOMBOBOXEVENT</a> и <a href="dialogapi/dmsg/dm_getcomboboxevent.html">DM_GETCOMBOBOXEVENT</a>.
+    <br><br>
+</ul>
+
+
+<h3>30 августа 2007 г.</h3>
+<ul>
+  <li>Bug: Macro: Если пункт меню не содержит горячую клавишу, то <a href="macro/macrocmd/functions.html">GetHotkey()</a> возвращает "0" вместо ""
+    <br><br>
+
+  <li>Macro: Добавлена команда <a href="macro/macrocmd/selword.html">$SelWord</a> - выделяет слово.
+    <br><br>
+
+  <li>Bug: Macro: В панелях быстрого просмотра и информации не работали некоторые переменные: ItemCount, CurPos, Selected, Bof, Eof всегда 0; Empty всегда 1.
+    <br><br>
+
+</ul>
+
+<h3>7 августа 2007 г.</h3>
+<ul>
+  <li>Bug: Если плагин для списка отключал реакцию слежения за курсором мыши
+    (<a href="dialogapi/dmsg/dm_listsetmousereaction.html#LMRT_NEVER">LMRT_NEVER</a>), то в диалоговую процедуру не приходило событие DN_MOUSECLICK
+    для двойного клика мыши (Mantis#0000309)
+    <br><br>
+
+  <li>В структуре <a href="structures/pluginpanelitem.html">PluginPanelItem</a> вместо <a href="winapi/win32_find_data.html">WIN32_FIND_DATA</a> используется
+    структура <a href="defs/far_find_data.html">FAR_FIND_DATA</a>. Вместо макроса _FAR_USE_FARFINDDATA необходимо
+    использовать <a href="defs/_far_use_win32_find_data.html">_FAR_USE_WIN32_FIND_DATA</a>.
+    <br><br>
+
+</ul>
+
+<h3>23 июля 2007 г.</h3>
+<ul>
+  <li>Добавлены команды <a href="dialogapi/dmsg/dm_geteditposition.html">DM_GETEDITPOSITION</a> и <a href="dialogapi/dmsg/dm_seteditposition.html">DM_SETEDITPOSITION</a> - управление позицией строки в строках ввода в диалогах.
+    <br><br>
+
+</ul>
+
+<h3>5 июля 2007 г.</h3>
+<ul>
+  <li>Macro: добавлена функция <a href="macro/macrocmd/functions.html#gethotkey">gethotkey</a>.
+    <br><br>
+
+  <li>Macro: Не воспринимались переменные начинающиеся с цифр (например, %3DO).
+    <br><br>
+
+  <li>Bug: <a href="dialogapi/dmsg/dm_listgetcurpos.html">DM_LISTGETCURPOS</a> возвращал неправильное значение после открытия ComboBox`а, навигации по списку с последующим отказом от выбора (нажали Esc).
+    <br><br>
+
+</ul>
+
+
+<h3>31 мая 2007 г.</h3>
+<ul>
+  <li>Macro: добавлена функция <a href="macro/macrocmd/functions.html#panel.setposidx">Panel.SetPosIdx</a> - позиционирование на файловой панели по индексу.
+    <br><br>
+
+</ul>
+
+<h3>10 мая 2007 г.</h3>
+<ul>
+  <li>Macro: новые функции <a href="macro/macrocmd/functions.html#asc">asc()</a> и
+     <a href="macro/macrocmd/functions.html#chr">chr</a>.
+    <br><br>
+
+</ul>
+
+<h3>23 марта 2007 г.</h3>
+<ul>
+  <li>Макросы в реестре могут иметь тип REG_MULTI_SZ.
+    <br><br>
+  <li>Добавлен флаг <a href="structures/actlkeymacro.html#KSFLAGS_REG_MULTI_SZ">KSFLAGS_REG_MULTI_SZ</a>.
+    <br><br>
+
+</ul>
+
+<h3>14 марта 2007 г.</h3>
+<ul>
+  <li>После вызова <a href="service_functions/editorcontrol.html#ECTL_SELECT">EditorControl(ECTL_SELECT)</a> с установленным значением
+      поля <a href="structures/editorselect.html">BlockStartLine</a> = -1, последующий вызов
+      <a href="service_functions/editorcontrol.html#ECTL_GETINFO">ECTL_GETINFO</a> так же возвращал -1 в поле <a href="structures/editorinfo.html">BlockStartLine</a>.
+    <br><br>
+
+</ul>
+
+<h3>13 марта 2007 г.</h3>
+<ul>
+  <li>Macro: новые функции <a href="macro/macrocmd/functions.html#waitkey">waitkey()</a> и
+     <a href="macro/macrocmd/functions.html#eval">eval</a>.
+    <br><br>
+
+</ul>
+
+<h3>20 февраля 2007 г.</h3>
+<ul>
+  <li>Добавлен флаг <a href="dialogapi/flags/dif_notcvtusercontrol.html">DIF_NOTCVTUSERCONTROL</a> для <a href="dialogapi/controls/di_usercontrol.html">DI_USERCONTROL</a>.
+    <br><br>
+
+</ul>
+<h3>7 февраля 2007 г.</h3>
+<ul>
+  <li>Macro: новые слова <a href="macro/macrocmd/states.html#APanel.ColumnCount">APanel.ColumnCount</a> и
+     <a href="macro/macrocmd/states.html#PPanel.ColumnCount">PPanel.ColumnCount</a>.
+    <br><br>
+
+</ul>
+
+<h3>25 января 2007 г.</h3>
+<ul>
+  <li>Для элемента <a href="dialogapi/controls/di_vtext.html">DI_VTEXT</a> добавлена обработка флагов: DIF_CENTERGROUP, DIF_SEPARATOR, DIF_SEPARATOR2, DIF_SHOWAMPERSAND.
+    <br><br>
+
+  <li>В обработчике <a href="dialogapi/defdlgproc.html">DefDlgProc</a> для события <a href="dialogapi/dmsg/dn_btnclick.html">DN_BTNCLICK</a> не учитывался флаг <a href="dialogapi/flags/dif_btnnoclose.html">DIF_BTNNOCLOSE</a>.
+    <br><br>
+
+  <li>Некорректная отрисовка элемента <a href="dialogapi/controls/di_text.html">DI_TEXT</a> для сочетания условий: DIF_CENTERTEXT + DIF_SEPARATOR + X1 не равен "-1"
+    <br><br>
+
+</ul>
+
+
+<h3>24 января 2007 г.</h3>
+<ul>
+  <li>Ужесточение правил, касаемых координат X2 и Y2 в элементах диалогов. Y2 указывать всегда, а не 0.
+    <br><br>
+
+</ul>
+
+<h3>18 января 2007 г.</h3>
+<ul>
+  <li>Не посылался <a href="exported_functions/processeditorevent.html#EE_CLOSE">EE_CLOSE</a> для "?New File?".
+    <br><br>
+
+  <li>Неправильная цветовая отрисовка диалога сообщения при использование флага FMSG_WARNING в функции <a href="service_functions/message.html">Messag</a> без кнопок.
+    <br><br>
+</ul>
+
+<h3>December 27 2006</h3>
+<ul>
+  <li>Macro: New states <a href="macro/macrocmd/states.html#Help.FileName">Help.FileName</a>,
+     <a href="macro/macrocmd/states.html#Help.Topic">Help.Topic</a> and
+     <a href="macro/macrocmd/states.html#Help.SelTopic">Help.SelTopic</a>.
+    <br><br>
+
+  <li>The command <a href="service_functions/advcontrol.html#ACTL_GETWINDOWINFO">ACTL_GETWINDOWINFO</a> now fills the Name field for help windows
+      - contains the full path to the HLF file.
+    <br><br>
+</ul>
+
+<h3>December 01 2006</h3>
+<ul>
+  <li>Viewer API: Structure member <a href="structures/viewermode.html">ViewerMode</a>.TypeWrap renamed to ViewerMode.WordWrap
+    <br><br>
+
+  <li>Viewer API: Added command <a href="service_functions/viewercontrol.html#VCTL_SETMODE">VCTL_SETMODE</a>.
+    <br><br>
+</ul>
+
+
+<h3>November 23 2006</h3>
+<ul>
+  <li>Macro: <a href="macro/macrocmd/akey.html">$AKey</a>.
+    <br><br>
+</ul>
+
+<h3>November 21 2006</h3>
+<ul>
+  <li>Bringing the API to 64bit compatibility:
+     <ul>
+     <li>DlgProc: long Param2 -> LONG_PTR Param2 and returns LONG_PTR instead of long
+     <li>SendDlgMessage: long Param2 -> LONG_PTR Param2 and returns LONG_PTR instead of long
+     <li>DefDlgProc: long Param2 -> LONG_PTR Param2 and returns LONG_PTR instead of long
+     <li>DialogEx: long Param -> LONG_PTR Param
+     <li>FarMenuItemEx: DWORD UserData -> DWORD_PTR UserData
+     <li>PluginPanelItem: DWORD UserData -> DWORD_PTR UserData
+     <li>AdvControl: returns INT_PTR instead of int
+     <li>OpenPlugin: int Item -> INT_PTR Item
+     </ul>
+    <br><br>
+</ul>
+
+<h3>September 20 2006</h3>
+<ul>
+  <li>Macro: <a href="macro/macrocmd/functions.html#fexist">fexist()</a> understands file mask symbols '*' and '?'.
+    <br><br>
+
+  <li>Macro: If the name contains '*' or '?', then <a href="macro/macrocmd/functions.html#fattr">fattr()</a> will return the attributes of the first found file.
+    <br><br>
+
+  <li>Macro: fexist() and fattr() no longer work with the panels, to work with the panels new functions were added: <a href="macro/macrocmd/functions.html#panel.fexist">panel.fexist()</a> and <a href="macro/macrocmd/functions.html#panel.fattr">panel.fattr()</a>.
+    <br><br>
+
+</ul>
+
+<h3>August 25 2006</h3>
+<ul>
+  <li>Corrected the description of the <a href="dialogapi/dmsg/dn_btnclick.html">DN_BTNCLICK</a> event for <a href="dialogapi/controls/di_radiobutton.html">DI_RADIOBUTTON</a>.
+    <br><br>
+</ul>
+
+<h3>July 29</h3>
+<ul>
+  <li>New function: <a href="fsf/snprintf.html">FSF.snprintf</a>.
+    <br><br>
+</ul>
+
+<h3>June 20 2006</h3>
+<ul>
+<li>Macro function "<a href="macro/macrocmd/functions.html#sleep">N=sleep(N)</a>".
+    <br><br>
+
+<li>Macro constant "<a href="macro/macrocmd/states.html#Far.Height">Far.Height</a>".
+    <br><br>
+
+<li>Macro constant "<a href="macro/macrocmd/states.html#Far.Title">Far.Title</a>".
+    <br><br>
+
+<li>Macro constant "<a href="macro/macrocmd/states.html#Title">Title</a>".
+    <br><br>
+
+<li>Macro constant "<a href="macro/macrocmd/states.html#Drv.ShowPos">Drv.ShowPos</a>".
+    <br><br>
+
+<li>Macro constant "<a href="macro/macrocmd/states.html#Drv.ShowMode">Drv.ShowMode</a>".
+    <br><br>
+</ul>
+
+<a href="history.html">long History</a>,
+<a href="historyapi.html">API history</a>
+
+</body>
+</html>
