@@ -23,26 +23,26 @@ warn = logging.warn
 
 
 
-def make_chm_lang(lang):
-  """@param lang : either 'rus' or 'eng'"""
-  if lang not in ['rus', 'eng']: raise Exception("Invalid parameter")
-  lang_code = lang[0:2]
+def make_chm_lang(src, dst, lang):
+  """@param src : source path to get unfiltered meta files from
+     @param dst : output dir
+     @param lang : two-letter language code
+  """
+  # todo: make recursive copy without ,svn
 
   log("------------------------------------")
-  log("preparing %s " % lang_code)
+  log("preparing %s " % lang)
 
-  command = "svn export ../enc_%s %s/%s" % (lang, DEST_CHM, lang_code)
+  command = 'svn export %s %s' % (src, dst)
   subprocess.call(command)
 
-  chm_lang_dir = join(DEST_CHM, lang_code)
-  makedirs(join(chm_lang_dir, "html"))
-  makedirs(join(DEST_CHM, lang_code, "distr_chm_plugins"+lang[0]))
-  # makedirs(join(DEST_CHM, lang_code, "meta"))
+  makedirs(join(dst, "html"))
+  makedirs(join(dst, "distr_chm_%s" % lang))
 
 
   # build empty directory tree
-  chm_meta_dir = join(chm_lang_dir, "meta")
-  chm_html_dir = join(chm_lang_dir, "html")
+  chm_meta_dir = join(dst, "meta")
+  chm_html_dir = join(dst, "html")
   for root, dirs, files in walk(chm_meta_dir):
     for d in dirs: 
       #print join(root.replace(chm_meta_dir, chm_html_dir), d)
@@ -85,7 +85,7 @@ href=JavaScript:link$id.Click()>\g<linkend>
   # indexes are extracted from <h1> and <a name="">..</a>
   # articles are not included in index
 
-  index_filename = join(chm_lang_dir, "plugins%s.hhk" % lang[0])
+  index_filename = join(dst, "plugins%s.hhk" % lang[0])
   match_h1 = re.compile("<h1>(?P<title>.*?)</h1>", re.I)
   match_aname = re.compile(r'<a.+?name\s*=\s*(?P<quote>[\'\"])(.+?)(?P=quote).*?>(.+?)</a>', re.I)
   strip_re = re.compile(r'&quot;|[/<>\'"]', re.I)
@@ -173,13 +173,25 @@ href=JavaScript:link$id.Click()>\g<linkend>
 
 
 
+
+#: for future cmdline params
+#  if lang not in ['rus', 'eng']: raise Exception("Invalid parameter")
+#  lang_code = lang[0:2]
+
+#: todo international two-letter language markup
+languages = ['eng', 'rus']
+src_dirs = [join(ENCROOT, "enc_%s" % l) for l in languages]
+dest_dirs = [join(DEST, "chm_%s" % l[0:2]) for l in languages]
+
 log("preparing CHM build")
 log("-- cleaning build dir")
-if isdir(DEST_CHM): shutil.rmtree(DEST_CHM)
+for d in dest_dirs:
+  if isdir(d): shutil.rmtree(d)
 
 log("-- making directory tree")
-makedirs(DEST_CHM)
+if not isdir(DEST): makedirs(DEST)
 
-make_chm_lang("rus")
-make_chm_lang("eng")
+for index, lang in enumerate(languages):
+   make_chm_lang(src_dirs[index], dest_dirs[index], lang[0:2])
+#   print src_dirs[index], dest_dirs[index], lang[0:2]
 

@@ -1,8 +1,10 @@
 
-from os.path import join, dirname
+from os.path import join, dirname, normpath
 
-DEST            = join(dirname(__file__), "..", "build")
-DEST_CHM        = join(DEST, "chm")
+ENCROOT   = normpath(join(dirname(__file__), ".."))
+DEST      = join(ENCROOT, "build")
+
+#print DEST
 
 #DEST_INET       = join(DEST, "inet")
 #DEST_INET_RU    = join(DEST_INET, "ru")
