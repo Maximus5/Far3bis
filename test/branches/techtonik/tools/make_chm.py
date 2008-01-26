@@ -22,7 +22,7 @@ log = logging.info
 warn = logging.warn
 
 
-
+# todo - filter into separate proc, add feedback/report error link for output pages
 def make_chm_lang(src, dst, lang):
   """@param src : source path to get unfiltered meta files from
      @param dst : output dir

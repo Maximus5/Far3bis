@@ -5,7 +5,7 @@
    image files (.gif) are also ignored.
 
    Example:
-      untranslated.py ../enc_enc
+      untranslated.py ../enc_eng
 """
 
 import codecs
