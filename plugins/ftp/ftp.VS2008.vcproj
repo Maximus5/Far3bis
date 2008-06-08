@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="custom"
-	ProjectGUID="{9CF69DBB-650D-4423-8FD2-D291A71B6CC9}"
-	RootNamespace="MultiArc"
+	Name="ftp"
+	ProjectGUID="{8DB0251E-F83F-4626-A50D-4F3295FA8753}"
+	RootNamespace="ftp"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -21,8 +21,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(ProjectDir)\debug.32.vc\Formats"
-			IntermediateDirectory="$(OutDir)\obj\custom"
+			OutputDirectory="$(ProjectDir)\debug.32.vc"
+			IntermediateDirectory="$(OutDir)\obj"
 			ConfigurationType="2"
 			CharacterSet="0"
 			>
@@ -44,9 +44,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\common\ascii;..\common;.\libpcre"
-				PreprocessorDefinitions="DEBUG;CRT_SECURE_NO_WARNINGS;CRT_NONSTDC_NO_WARNINGS;WIN32_WINNT=0x0502;_INC_CTYPE;D_FAR_USE_FARFINDDATA"
+				AdditionalIncludeDirectories="..\common;..\common\ascii;.\FStdLib"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FTP_EXPORTS;__HEAP_MEMORY__;_CRT_SECURE_NO_WARNINGS;__FILELOG__"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="0"
@@ -56,101 +55,8 @@
 				BufferSecurityCheck="false"
 				DefaultCharIsUnsigned="true"
 				RuntimeTypeInfo="false"
-				UsePrecompiledHeader="0"
-				WarningLevel="3"
-				DebugInformationFormat="4"
-				CallingConvention="1"
-				DisableSpecificWarnings="4985;4996"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="libCRT.lib chkstk.obj kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib uuid.lib mpr.lib version.lib oleaut32.lib wbemuuid.lib libpcre.lib"
-				OutputFile="$(OutDir)\$(ProjectName).fmt"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\common;.\libpcre"
-				GenerateManifest="false"
-				IgnoreAllDefaultLibraries="true"
-				ModuleDefinitionFile="custom.vc.def"
-				GenerateDebugInformation="true"
-				GenerateMapFile="true"
-				SubSystem="2"
-				LinkTimeCodeGeneration="0"
-				ResourceOnlyDLL="true"
-				MergeSections=".rdata=.text"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-				EmbedManifest="false"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine="copy /Y .\custom.ini &quot;$(OutDir)&quot;\"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Debug|x64"
-			OutputDirectory="$(ProjectDir)\debug.64.vc\Formats"
-			IntermediateDirectory="$(OutDir)\obj\custom"
-			ConfigurationType="2"
-			CharacterSet="0"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				TargetEnvironment="3"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\common\ascii;..\common;.\libpcre"
-				PreprocessorDefinitions="DEBUG;CRT_SECURE_NO_WARNINGS;CRT_NONSTDC_NO_WARNINGS;WIN32_WINNT=0x0502;_INC_CTYPE;D_FAR_USE_FARFINDDATA"
-				StringPooling="true"
-				MinimalRebuild="true"
-				ExceptionHandling="0"
-				BasicRuntimeChecks="0"
-				RuntimeLibrary="1"
-				StructMemberAlignment="4"
-				BufferSecurityCheck="false"
-				DefaultCharIsUnsigned="true"
-				RuntimeTypeInfo="false"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="1"
+				PrecompiledHeaderThrough="all_far.h"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 				CallingConvention="1"
@@ -167,117 +73,18 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libCRT64.lib chkstk.obj kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib uuid.lib mpr.lib version.lib oleaut32.lib wbemuuid.lib libpcre.lib"
-				OutputFile="$(OutDir)\$(ProjectName).fmt"
+				AdditionalDependencies="FARStdlib.lib Ws2_32.lib Winmm.lib"
+				OutputFile="$(OutDir)\FarFtp.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\common;.\libpcre"
+				AdditionalLibraryDirectories=".\FStdLib\FARStdlib\debug.32.vc"
 				GenerateManifest="false"
-				IgnoreAllDefaultLibraries="true"
-				ModuleDefinitionFile="custom.vc.def"
+				IgnoreAllDefaultLibraries="false"
+				ModuleDefinitionFile="FarFtp.vc.def"
 				GenerateDebugInformation="true"
 				GenerateMapFile="true"
 				SubSystem="2"
 				LinkTimeCodeGeneration="0"
-				ResourceOnlyDLL="true"
-				MergeSections=".rdata=.text"
-				TargetMachine="17"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-				EmbedManifest="false"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine="copy /Y .\custom.ini &quot;$(OutDir)&quot;\"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="$(ProjectDir)\final.32.vc\Formats"
-			IntermediateDirectory="$(OutDir)\obj\custom"
-			ConfigurationType="2"
-			CharacterSet="0"
-			WholeProgramOptimization="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="1"
-				EnableIntrinsicFunctions="true"
-				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\common\ascii;..\common;.\libpcre"
-				PreprocessorDefinitions="NDEBUG;CRT_SECURE_NO_WARNINGS;CRT_NONSTDC_NO_WARNINGS;WIN32_WINNT=0x0502;_INC_CTYPE;D_FAR_USE_FARFINDDATA"
-				StringPooling="true"
-				MinimalRebuild="false"
-				ExceptionHandling="0"
-				BasicRuntimeChecks="0"
-				RuntimeLibrary="0"
-				StructMemberAlignment="1"
-				BufferSecurityCheck="false"
-				EnableFunctionLevelLinking="true"
-				DefaultCharIsUnsigned="true"
-				RuntimeTypeInfo="false"
-				UsePrecompiledHeader="0"
-				WarningLevel="3"
-				DebugInformationFormat="0"
-				CallingConvention="1"
-				DisableSpecificWarnings="4985;4996"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="libCRT.lib chkstk.obj kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib uuid.lib mpr.lib version.lib oleaut32.lib wbemuuid.lib libpcre.lib"
-				OutputFile="$(OutDir)\$(ProjectName).fmt"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\common;.\libpcre"
-				GenerateManifest="false"
-				IgnoreAllDefaultLibraries="true"
-				ModuleDefinitionFile="custom.vc.def"
-				GenerateDebugInformation="false"
-				GenerateMapFile="true"
-				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				OptimizeForWindows98="0"
-				LinkTimeCodeGeneration="0"
-				ResourceOnlyDLL="true"
+				ResourceOnlyDLL="false"
 				MergeSections=".rdata=.text"
 				TargetMachine="1"
 			/>
@@ -302,16 +109,15 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy /Y .\custom.ini &quot;$(OutDir)&quot;\"
+				CommandLine="copy /Y .\*.lng &quot;$(OutDir)&quot;\&#x0D;&#x0A;copy /Y .\*.hlf &quot;$(OutDir)&quot;\&#x0D;&#x0A;copy /Y .\*.reg &quot;$(OutDir)&quot;\&#x0D;&#x0A;copy /Y .\*.txt &quot;$(OutDir)&quot;\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
-			Name="Release|x64"
-			OutputDirectory="$(ProjectDir)\final.64.vc\Formats"
-			IntermediateDirectory="$(OutDir)\obj\custom"
+			Name="Debug|x64"
+			OutputDirectory="$(ProjectDir)\debug.64.vc"
+			IntermediateDirectory="$(OutDir)\obj"
 			ConfigurationType="2"
 			CharacterSet="0"
-			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -331,24 +137,22 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="1"
-				EnableIntrinsicFunctions="true"
-				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\common\ascii;..\common;.\libpcre"
-				PreprocessorDefinitions="NDEBUG;CRT_SECURE_NO_WARNINGS;CRT_NONSTDC_NO_WARNINGS;WIN32_WINNT=0x0502;_INC_CTYPE;D_FAR_USE_FARFINDDATA"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\common;..\common\ascii;.\FStdLib"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FTP_EXPORTS;__HEAP_MEMORY__;_CRT_SECURE_NO_WARNINGS;__FILELOG__"
 				StringPooling="true"
-				MinimalRebuild="false"
+				MinimalRebuild="true"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="0"
-				RuntimeLibrary="0"
+				RuntimeLibrary="1"
 				StructMemberAlignment="4"
 				BufferSecurityCheck="false"
-				EnableFunctionLevelLinking="true"
 				DefaultCharIsUnsigned="true"
 				RuntimeTypeInfo="false"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="1"
+				PrecompiledHeaderThrough="all_far.h"
 				WarningLevel="3"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 				CallingConvention="1"
 				DisableSpecificWarnings="4985;4996"
 			/>
@@ -363,21 +167,18 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libCRT64.lib chkstk.obj kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib uuid.lib mpr.lib version.lib oleaut32.lib wbemuuid.lib libpcre.lib"
-				OutputFile="$(OutDir)\$(ProjectName).fmt"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\common;.\libpcre"
+				AdditionalDependencies="FARStdlib.lib Ws2_32.lib Winmm.lib"
+				OutputFile="$(OutDir)\FarFtp.dll"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories=".\FStdLib\FARStdlib\debug.64.vc"
 				GenerateManifest="false"
-				IgnoreAllDefaultLibraries="true"
-				ModuleDefinitionFile="custom.vc.def"
-				GenerateDebugInformation="false"
+				IgnoreAllDefaultLibraries="false"
+				ModuleDefinitionFile="FarFtp.vc.def"
+				GenerateDebugInformation="true"
 				GenerateMapFile="true"
 				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				OptimizeForWindows98="0"
 				LinkTimeCodeGeneration="0"
-				ResourceOnlyDLL="true"
+				ResourceOnlyDLL="false"
 				MergeSections=".rdata=.text"
 				TargetMachine="17"
 			/>
@@ -402,7 +203,204 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy /Y .\custom.ini &quot;$(OutDir)&quot;\"
+				CommandLine="copy /Y .\*.lng &quot;$(OutDir)&quot;\&#x0D;&#x0A;copy /Y .\*.hlf &quot;$(OutDir)&quot;\&#x0D;&#x0A;copy /Y .\*.reg &quot;$(OutDir)&quot;\&#x0D;&#x0A;copy /Y .\*.txt &quot;$(OutDir)&quot;\&#x0D;&#x0A;"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="$(ProjectDir)\final.32.vc"
+			IntermediateDirectory="$(OutDir)\obj"
+			ConfigurationType="2"
+			CharacterSet="0"
+			WholeProgramOptimization="0"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="1"
+				EnableIntrinsicFunctions="false"
+				AdditionalIncludeDirectories="..\common;..\common\ascii;.\FStdLib"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;FTP_EXPORTS;__HEAP_MEMORY__;_CRT_SECURE_NO_WARNINGS"
+				StringPooling="true"
+				ExceptionHandling="0"
+				BasicRuntimeChecks="0"
+				RuntimeLibrary="0"
+				StructMemberAlignment="1"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="true"
+				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
+				UsePrecompiledHeader="1"
+				PrecompiledHeaderThrough="all_far.h"
+				WarningLevel="3"
+				DebugInformationFormat="3"
+				CallingConvention="1"
+				DisableSpecificWarnings="4985;4996"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				IgnoreImportLibrary="true"
+				AdditionalDependencies="FARStdlib.lib Ws2_32.lib Winmm.lib"
+				OutputFile="$(OutDir)\FarFtp.dll"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories=".\FStdLib\FARStdlib\final.32.vc"
+				GenerateManifest="false"
+				IgnoreAllDefaultLibraries="false"
+				ModuleDefinitionFile="FarFtp.vc.def"
+				GenerateDebugInformation="false"
+				GenerateMapFile="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="0"
+				ResourceOnlyDLL="false"
+				MergeSections=".rdata=.text"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+				EmbedManifest="false"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="copy /Y .\*.lng &quot;$(OutDir)&quot;\&#x0D;&#x0A;copy /Y .\*.hlf &quot;$(OutDir)&quot;\&#x0D;&#x0A;copy /Y .\*.reg &quot;$(OutDir)&quot;\&#x0D;&#x0A;copy /Y .\*.txt &quot;$(OutDir)&quot;\&#x0D;&#x0A;"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|x64"
+			OutputDirectory="$(ProjectDir)\final.64.vc"
+			IntermediateDirectory="$(OutDir)\obj"
+			ConfigurationType="2"
+			CharacterSet="0"
+			WholeProgramOptimization="0"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="1"
+				EnableIntrinsicFunctions="false"
+				AdditionalIncludeDirectories="..\common;..\common\ascii;.\FStdLib"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;FTP_EXPORTS;__HEAP_MEMORY__;_CRT_SECURE_NO_WARNINGS"
+				StringPooling="true"
+				ExceptionHandling="0"
+				BasicRuntimeChecks="0"
+				RuntimeLibrary="0"
+				StructMemberAlignment="4"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="true"
+				DefaultCharIsUnsigned="true"
+				RuntimeTypeInfo="false"
+				UsePrecompiledHeader="1"
+				PrecompiledHeaderThrough="all_far.h"
+				WarningLevel="3"
+				DebugInformationFormat="3"
+				CallingConvention="1"
+				DisableSpecificWarnings="4985;4996"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				IgnoreImportLibrary="true"
+				AdditionalDependencies="FARStdlib.lib Ws2_32.lib Winmm.lib"
+				OutputFile="$(OutDir)\FarFtp.dll"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories=".\FStdLib\FARStdlib\final.64.vc"
+				GenerateManifest="false"
+				IgnoreAllDefaultLibraries="false"
+				ModuleDefinitionFile="FarFtp.vc.def"
+				GenerateDebugInformation="false"
+				GenerateMapFile="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="0"
+				ResourceOnlyDLL="false"
+				MergeSections=".rdata=.text"
+				TargetMachine="17"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+				EmbedManifest="false"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="copy /Y .\*.lng &quot;$(OutDir)&quot;\&#x0D;&#x0A;copy /Y .\*.hlf &quot;$(OutDir)&quot;\&#x0D;&#x0A;copy /Y .\*.reg &quot;$(OutDir)&quot;\&#x0D;&#x0A;copy /Y .\*.txt &quot;$(OutDir)&quot;\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -415,11 +413,167 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\custom.cpp"
+				RelativePath=".\FarFtp.vc.def"
 				>
 			</File>
 			<File
-				RelativePath=".\custom.vc.def"
+				RelativePath=".\ftp_AskOver.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Cfg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_CmdLine.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_cnDownload.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_cnInit.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_cnUpload.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Connect.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_ConnectCmds.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_ConnectIO.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_ConnectMain.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_ConnectNB.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_ConnectSock.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_DeleteFile.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_EnumHost.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Event.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_FAR.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_FGet.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_FileList.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_FPut.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Ftp.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_FtpAPI.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_FTPBlock.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_FTPConnect.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_FtpDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_FTPHost.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_fUtils.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_GetOpenInfo.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_HGet.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_HPut.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_JM.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Key.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_MakeDir.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Mem.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Mix.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Plugin.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Queque.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_SetDir.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Shortcut.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_sock.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Url.cpp"
 				>
 			</File>
 		</Filter>
@@ -428,6 +582,42 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\ftp_Cfg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Connect.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Ftp.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_FtpAPI.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Int.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_JM.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_Plugins.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_pwd.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ftp_var.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -435,7 +625,7 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\custom.rc"
+				RelativePath=".\FarFtp.rc"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -472,13 +662,45 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="ini"
+			Name="Language Files"
 			>
 			<File
-				RelativePath=".\custom.ini"
+				RelativePath=".\FtpEng.lng"
+				>
+			</File>
+			<File
+				RelativePath=".\FtpRus.lng"
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Help Files"
+			>
+			<File
+				RelativePath=".\FtpEng.hlf"
+				>
+			</File>
+			<File
+				RelativePath=".\FtpRus.hlf"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Reg Files"
+			>
+			<File
+				RelativePath=".\TechInfo.reg"
+				>
+			</File>
+			<File
+				RelativePath=".\TechInfo_rus.reg"
+				>
+			</File>
+		</Filter>
+		<File
+			RelativePath=".\changelog"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
