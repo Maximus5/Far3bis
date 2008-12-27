@@ -1,3 +1,10 @@
+#ifndef __LOCALOEM_HPP__
+#define __LOCALOEM_HPP__
+/*
+localOEM.hpp
+
+Сравнение без учета регистра, преобразование регистра для OEM кодировки
+*/
 /*
 Copyright (c) 1996 Eugene Roshal
 Copyright (c) 2000 Far Group
@@ -26,61 +33,28 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "headers.hpp"
-#pragma hdrstop
+void LocalUpperInit();
+void InitLCIDSort();
+void InitKeysArray();
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+inline int IsSpaceA(int x) { return x==' '  || x=='\t';  }
+inline int IsEolA(int x)   { return x=='\r' || x=='\n'; }
+inline int IsSlashA(int x) { return x=='\\' || x=='/';  }
 
-void *__cdecl xf_malloc(size_t __size);
+int WINAPI LocalIslower(unsigned Ch);
+int WINAPI LocalIsupper(unsigned Ch);
+int WINAPI LocalIsalpha(unsigned Ch);
+int WINAPI LocalIsalphanum(unsigned Ch);
 
-#ifdef __cplusplus
-}
-#endif
+unsigned WINAPI LocalUpper(unsigned LowerChar);
+void WINAPI LocalUpperBuf(char *Buf,int Length);
+void WINAPI LocalLowerBuf(char *Buf,int Length);
+unsigned WINAPI LocalLower(unsigned UpperChar);
+void WINAPI LocalStrupr(char *s1);
+void WINAPI LocalStrlwr(char *s1);
+int WINAPI LStricmp(const char *s1,const char *s2);
+int WINAPI LStrnicmp(const char *s1,const char *s2,int n);
+const char * __cdecl LocalStrstri(const char *str1, const char *str2);
+const char * __cdecl LocalRevStrstri(const char *str1, const char *str2);
 
-/***
-*char *_strdup(string) - duplicate string into malloc'd memory
-*
-*Purpose:
-*       Allocates enough storage via malloc() for a copy of the
-*       string, copies the string into the new memory, and returns
-*       a pointer to it.
-*
-*Entry:
-*       char *string - string to copy into new memory
-*
-*Exit:
-*       returns a pointer to the newly allocated storage with the
-*       string in it.
-*
-*       returns NULL if enough memory could not be allocated, or
-*       string was NULL.
-*
-*Uses:
-*
-*Exceptions:
-*
-*******************************************************************************/
-
-char * __cdecl xf_strdup (const char * string)
-{
-  if(string)
-  {
-    char *memory;
-    if((memory = xf_malloc(strlen(string) + 1)) != NULL)
-       return strcpy(memory,string);
-  }
-  return(NULL);
-}
-
-wchar_t * __cdecl xf_wcsdup (const wchar_t * string)
-{
-  if(string)
-  {
-    wchar_t *memory;
-    if((memory = xf_malloc((wcslen(string)+1)*sizeof(wchar_t))) != NULL)
-       return wcscpy(memory,string);
-  }
-  return(NULL);
-}
+#endif //__LOCALOEM_HPP__

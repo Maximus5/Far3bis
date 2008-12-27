@@ -1,7 +1,9 @@
+#ifndef __LOCAL_HPP__
+#define __LOCAL_HPP__
 /*
-new.cpp
+local.hpp
 
-Замена RTL-модуля
+╤Ёртэхэшх схч єўхЄр ЁхушёЄЁр, яЁхюсЁрчютрэшх ЁхушёЄЁр
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -31,36 +33,32 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "headers.hpp"
-#pragma hdrstop
+inline int __cdecl StrLength(const wchar_t *str) { return (int) wcslen(str); }
 
-extern "C" {
-void *__cdecl xf_malloc(size_t __size);
-};
+inline int IsSpace(wchar_t x) { return x==L' '  || x==L'\t';  }
+inline int IsEol(wchar_t x)   { return x==L'\r' || x==L'\n'; }
+inline int IsSlash(wchar_t x) { return x==L'\\' || x==L'/'; }
 
-#if defined(SYSLOG)
-extern long CallNewDelete;
-#endif
+const wchar_t * __cdecl StrStrI(const wchar_t *str1, const wchar_t *str2);
+const wchar_t * __cdecl RevStrStrI(const wchar_t *str1, const wchar_t *str2);
 
+void __cdecl UpperBuf(wchar_t *Buf, int Length);
+void __cdecl LowerBuf(wchar_t *Buf, int Length);
+void __cdecl StrUpper(wchar_t *s1);
+void __cdecl StrLower(wchar_t *s1);
 
-//#if defined(_MSC_VER)
-/*
-extern _PNH _pnhHeap;
+wchar_t __cdecl Upper(wchar_t Ch);
+wchar_t __cdecl Lower(wchar_t Ch);
+int __cdecl StrCmpNI(const wchar_t *s1, const wchar_t *s2, int n);
+int __cdecl StrCmpI(const wchar_t *s1, const wchar_t *s2);
+int __cdecl IsLower(wchar_t Ch);
+int __cdecl IsUpper(wchar_t Ch);
+int __cdecl IsAlpha(wchar_t Ch);
+int __cdecl IsAlphaNum(wchar_t Ch);
 
+int __cdecl StrCmp(const wchar_t *s1, const wchar_t *s2);
+int __cdecl StrCmpN(const wchar_t *s1, const wchar_t *s2, int n);
+int __cdecl NumStrCmp(const wchar_t *s1, const wchar_t *s2);
+int __cdecl NumStrCmpI(const wchar_t *s1, const wchar_t *s2);
 
-extern "C" {
-void * __cdecl  _nh_malloc(size_t, int);
-};
-*/
-
-void * operator new( size_t cb )
-{
-  // здесь херня - что делать - ХЗ (если кто знает - сделайте!!!)
-  void *res = xf_malloc(cb);//_nh_malloc( cb, 1 );
-#if defined(SYSLOG)
-  CallNewDelete++;
-#endif
-  return res;
-}
-
-//#endif
+#endif //__LOCAL_HPP__

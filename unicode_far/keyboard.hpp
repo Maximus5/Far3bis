@@ -1,3 +1,10 @@
+#ifndef __KEYBOARD_HPP__
+#define __KEYBOARD_HPP__
+/*
+keyboard.hpp
+
+”г­ЄжЁ©, Ё¬ҐойЁҐ ®в­®иҐ­ЁҐ Є Є« ўЁвгаҐ
+*/
 /*
 Copyright (c) 1996 Eugene Roshal
 Copyright (c) 2000 Far Group
@@ -26,39 +33,16 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "headers.hpp"
-#pragma hdrstop
+#include "farqueue.hpp"
 
-// maxlen - максимальное число символов, которое может содержать
-//          dest БЕЗ учета заключительного нуля, т.е. в общем
-//          случае это "sizeof-1"
+extern FarQueue<DWORD> *KeyQueue;
+extern int AltPressed,CtrlPressed,ShiftPressed;
+extern int RightAltPressed,RightCtrlPressed,RightShiftPressed;
+extern int LButtonPressed, PrevLButtonPressed;
+extern int RButtonPressed, PrevRButtonPressed;
+extern int MButtonPressed, PrevMButtonPressed;
+extern int PrevMouseX,PrevMouseY,MouseX,MouseY;
+extern int PreMouseEventFlags,MouseEventFlags;
+extern int ReturnAltValue;
 
-char * __cdecl xstrncat(char * dest,const char * src, size_t maxlen)
-{
-	char * start=dest;
-	while(*dest)
-	{
-		dest++;
-		maxlen--;
-	}
-	while(maxlen--)
-		if(!(*dest++=*src++))
-			return start;
-	*dest=0;
-	return start;
-}
-
-wchar_t * __cdecl xwcsncat(wchar_t * dest,const wchar_t * src, size_t maxlen)
-{
-	wchar_t * start=dest;
-	while(*dest)
-	{
-		dest++;
-		maxlen--;
-	}
-	while(maxlen--)
-		if(!(*dest++=*src++))
-			return start;
-	*dest=0;
-	return start;
-}
+#endif //__KEYBOARD_HPP__
