@@ -1,7 +1,9 @@
+#ifndef __CVTNAME_HPP__
+#define __CVTNAME_HPP__
 /*
-constitle.cpp
+cvtname.hpp
 
-Заголовок консоли
+Функций для преобразования имен файлов/путей.
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -31,49 +33,17 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "headers.hpp"
-#pragma hdrstop
+int ConvertNameToFull(const wchar_t *lpwszSrc, string &strDest);
 
-#include "constitle.hpp"
+int ConvertNameToReal(const wchar_t *Src, string &strDest, bool Internal=true);
 
-#include "fn.hpp"
+void ConvertNameToShort(const wchar_t *Src, string &strDest); //BUGBUG, int
 
+void ConvertNameToLong(const wchar_t *Src, string &strDest); //BUGBUG, int
 
-ConsoleTitle::ConsoleTitle (const wchar_t *title)
-{
-	apiGetConsoleTitle (strOldTitle);
+void ConvertNameToUNC(string &strFileName);
 
-	if( title )
-		SetFarTitle (title);
-}
+// Получить из имени диска RemoteName
+string &DriveLocalToRemoteName(int DriveType,wchar_t Letter,string &strDest);
 
-ConsoleTitle::~ConsoleTitle()
-{
-	wchar_t *lpwszTitle = strOldTitle.GetBuffer ();
-
-	if ( *lpwszTitle )
-	{
-		lpwszTitle += StrLength (lpwszTitle);
-		lpwszTitle -= StrLength (FarTitleAddons);
-
-		if ( !StrCmpI (lpwszTitle, FarTitleAddons) )
-			*lpwszTitle = 0;
-	}
-
-	strOldTitle.ReleaseBuffer ();
-
-	SetFarTitle (strOldTitle);
-}
-
-void ConsoleTitle::Set (const wchar_t *fmt,...)
-{
-	wchar_t msg[2048];
-
-	va_list argptr;
-	va_start(argptr, fmt);
-
-	vsnwprintf(msg, countof(msg)-1, fmt, argptr);
-
-	va_end(argptr);
-	SetFarTitle(msg);
-}
+#endif // __CVTNAME_HPP__
