@@ -1,9 +1,9 @@
-#ifndef __GRABBER_HPP__
-#define __GRABBER_HPP__
+#ifndef __HOTPLUG_HPP__
+#define __HOTPLUG_HPP__
 /*
-grabber.hpp
+hotplug.hpp
 
-Screen grabber
+Отключение Hotplug-устройств
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -33,36 +33,9 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "modal.hpp"
+int  ProcessRemoveHotplugDevice (wchar_t Drive, DWORD Flags);
+void ShowHotplugDevice ();
+//BOOL RemoveUSBDrive(char Letter,DWORD Flags);
+//BOOL IsDriveUsb(wchar_t DriveName,void *pDevInst);
 
-struct GrabberArea
-{
-  int X1,Y1,X2,Y2;
-  int CurX,CurY;
-};
-
-class Grabber:Modal
-{
-  private:
-    SaveScreen *SaveScr;
-    struct GrabberArea PrevArea;
-    struct GrabberArea GArea;
-    int ResetArea;
-    int PrevMacroMode;
-    int VerticalBlock;
-
-  private:
-    virtual void DisplayObject();
-    virtual int ProcessKey(int Key);
-    virtual int ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent);
-    void CopyGrabbedArea(int Append, int VerticalBlock);
-    void Reset();
-
-  public:
-    Grabber();
-    virtual ~Grabber();
-};
-
-bool RunGraber();
-
-#endif	// __GRABBER_HPP__
+#endif // __HOTPLUG_HPP__

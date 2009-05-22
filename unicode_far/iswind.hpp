@@ -1,9 +1,9 @@
-#ifndef __GRABBER_HPP__
-#define __GRABBER_HPP__
+#ifndef __ISWIND_HPP__
+#define __ISWIND_HPP__
 /*
-grabber.hpp
+iswind.hpp
 
-Screen grabber
+Проверка fullscreen/windowed
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -33,36 +33,22 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "modal.hpp"
+extern HWND hFarWnd;
 
-struct GrabberArea
-{
-  int X1,Y1,X2,Y2;
-  int CurX,CurY;
-};
+/* Программое переключение FulScreen <-> Windowed
+   (с подачи "Vasily V. Moshninov")
+   mode = -2 - GetMode
+          -1 - как тригер
+           0 - Windowed
+           1 - FulScreen
+   Return
+           0 - Windowed
+           1 - FulScreen
+*/
+int FarAltEnter(int mode);
+void InitDetectWindowedMode();
+void DetectWindowedMode();
+int IsWindowed();
+void RestoreIcons();
 
-class Grabber:Modal
-{
-  private:
-    SaveScreen *SaveScr;
-    struct GrabberArea PrevArea;
-    struct GrabberArea GArea;
-    int ResetArea;
-    int PrevMacroMode;
-    int VerticalBlock;
-
-  private:
-    virtual void DisplayObject();
-    virtual int ProcessKey(int Key);
-    virtual int ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent);
-    void CopyGrabbedArea(int Append, int VerticalBlock);
-    void Reset();
-
-  public:
-    Grabber();
-    virtual ~Grabber();
-};
-
-bool RunGraber();
-
-#endif	// __GRABBER_HPP__
+#endif // __ISWIND_HPP__

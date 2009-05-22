@@ -1,9 +1,9 @@
-#ifndef __GRABBER_HPP__
-#define __GRABBER_HPP__
+#ifndef __EJECT_HPP__
+#define __EJECT_HPP__
 /*
-grabber.hpp
+eject.hpp
 
-Screen grabber
+Eject סתולםûץ םמסטעוכוי
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -33,36 +33,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "modal.hpp"
+BOOL EjectVolume(wchar_t Letter,DWORD Flags);
+BOOL IsEjectableMedia(wchar_t Letter,UINT DriveType=DRIVE_NOT_INIT,BOOL ForceCDROM=FALSE);
 
-struct GrabberArea
-{
-  int X1,Y1,X2,Y2;
-  int CurX,CurY;
-};
-
-class Grabber:Modal
-{
-  private:
-    SaveScreen *SaveScr;
-    struct GrabberArea PrevArea;
-    struct GrabberArea GArea;
-    int ResetArea;
-    int PrevMacroMode;
-    int VerticalBlock;
-
-  private:
-    virtual void DisplayObject();
-    virtual int ProcessKey(int Key);
-    virtual int ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent);
-    void CopyGrabbedArea(int Append, int VerticalBlock);
-    void Reset();
-
-  public:
-    Grabber();
-    virtual ~Grabber();
-};
-
-bool RunGraber();
-
-#endif	// __GRABBER_HPP__
+#endif // __EJECT_HPP__

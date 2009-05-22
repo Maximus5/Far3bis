@@ -1,9 +1,9 @@
-#ifndef __GRABBER_HPP__
-#define __GRABBER_HPP__
+#ifndef __PALETTE_HPP__
+#define __PALETTE_HPP__
 /*
-grabber.hpp
+palette.hpp
 
-Screen grabber
+Таблица цветов
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -33,36 +33,12 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "modal.hpp"
+extern unsigned char DefaultPalette[];
+extern unsigned char Palette[];
+extern unsigned char BlackPalette[];
+extern int SizeArrayPalette;
 
-struct GrabberArea
-{
-  int X1,Y1,X2,Y2;
-  int CurX,CurY;
-};
+int FarColorToReal(int FarColor);
+void ConvertCurrentPalette();
 
-class Grabber:Modal
-{
-  private:
-    SaveScreen *SaveScr;
-    struct GrabberArea PrevArea;
-    struct GrabberArea GArea;
-    int ResetArea;
-    int PrevMacroMode;
-    int VerticalBlock;
-
-  private:
-    virtual void DisplayObject();
-    virtual int ProcessKey(int Key);
-    virtual int ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent);
-    void CopyGrabbedArea(int Append, int VerticalBlock);
-    void Reset();
-
-  public:
-    Grabber();
-    virtual ~Grabber();
-};
-
-bool RunGraber();
-
-#endif	// __GRABBER_HPP__
+#endif // __PALETTE_HPP__

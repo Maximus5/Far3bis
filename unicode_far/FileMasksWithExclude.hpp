@@ -36,6 +36,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "FileMasksProcessor.hpp"
 
+extern const wchar_t EXCLUDEMASKSEPARATOR;
+
 class FileMasksWithExclude:public BaseFileMask
 {
 private:

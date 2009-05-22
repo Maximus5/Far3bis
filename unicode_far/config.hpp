@@ -1,9 +1,9 @@
-#ifndef __GRABBER_HPP__
-#define __GRABBER_HPP__
+#ifndef __CONFIG_HPP__
+#define __CONFIG_HPP__
 /*
-grabber.hpp
+config.hpp
 
-Screen grabber
+Конфигурация
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -33,36 +33,16 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "modal.hpp"
+void SystemSettings();
+void PanelSettings();
+void InterfaceSettings();
+void DialogSettings();
+void SetConfirmations();
+void SetDizConfig();
+void ViewerConfig(struct ViewerOptions &ViOpt,int Local=0);
+void EditorConfig(struct EditorOptions &EdOpt,int Local=0);
+void ReadConfig();
+void SaveConfig(int Ask);
+void SetFolderInfoFiles();
 
-struct GrabberArea
-{
-  int X1,Y1,X2,Y2;
-  int CurX,CurY;
-};
-
-class Grabber:Modal
-{
-  private:
-    SaveScreen *SaveScr;
-    struct GrabberArea PrevArea;
-    struct GrabberArea GArea;
-    int ResetArea;
-    int PrevMacroMode;
-    int VerticalBlock;
-
-  private:
-    virtual void DisplayObject();
-    virtual int ProcessKey(int Key);
-    virtual int ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent);
-    void CopyGrabbedArea(int Append, int VerticalBlock);
-    void Reset();
-
-  public:
-    Grabber();
-    virtual ~Grabber();
-};
-
-bool RunGraber();
-
-#endif	// __GRABBER_HPP__
+#endif // __CONFIG_HPP__

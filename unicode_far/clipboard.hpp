@@ -1,9 +1,9 @@
-#ifndef __GRABBER_HPP__
-#define __GRABBER_HPP__
+#ifndef __CLIPBOARD_HPP__
+#define __CLIPBOARD_HPP__
 /*
-grabber.hpp
+clipboard.hpp
 
-Screen grabber
+Работа с буфером обмена.
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -33,36 +33,15 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "modal.hpp"
+wchar_t* PasteFormatFromClipboard(const wchar_t *Format);
+int CopyFormatToClipboard(const wchar_t *Format,const wchar_t *Data);
+wchar_t* PasteFormatFromClipboard(const wchar_t *Format);
+wchar_t* WINAPI PasteFromClipboardEx(int max);
+BOOL WINAPI FAR_EmptyClipboard(VOID);
+int WINAPI CopyToClipboard(const wchar_t *Data);
+wchar_t* WINAPI PasteFromClipboard(void);
+wchar_t* InternalPasteFromClipboard(int AnsiMode);
+wchar_t* InternalPasteFromClipboardEx(int max,int AnsiMode);
+int InternalCopyToClipboard(const wchar_t *Data,int AnsiMode);
 
-struct GrabberArea
-{
-  int X1,Y1,X2,Y2;
-  int CurX,CurY;
-};
-
-class Grabber:Modal
-{
-  private:
-    SaveScreen *SaveScr;
-    struct GrabberArea PrevArea;
-    struct GrabberArea GArea;
-    int ResetArea;
-    int PrevMacroMode;
-    int VerticalBlock;
-
-  private:
-    virtual void DisplayObject();
-    virtual int ProcessKey(int Key);
-    virtual int ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent);
-    void CopyGrabbedArea(int Append, int VerticalBlock);
-    void Reset();
-
-  public:
-    Grabber();
-    virtual ~Grabber();
-};
-
-bool RunGraber();
-
-#endif	// __GRABBER_HPP__
+#endif // __CLIPBOARD_HPP__
