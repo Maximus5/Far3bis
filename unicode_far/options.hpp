@@ -1,9 +1,9 @@
-#ifndef __USERMENU_HPP__
-#define __USERMENU_HPP__
+#ifndef __OPTIONS_HPP__
+#define __OPTIONS_HPP__
 /*
-usermenu.hpp
+options.hpp
 
-User menu и есть
+Фаровское горизонтальное меню (вызов hmenu.cpp с конкретными параметрами)
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -33,6 +33,6 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-void ProcessUserMenu(int EditMenu);
+void ShellOptions(int LastCommand,MOUSE_EVENT_RECORD *MouseEvent);
 
-#endif // __USERMENU_HPP__
+#endif // __OPTIONS_HPP__

@@ -1,9 +1,9 @@
-#ifndef __USERMENU_HPP__
-#define __USERMENU_HPP__
+#ifndef __PATHMIX_HPP__
+#define __PATHMIX_HPP__
 /*
-usermenu.hpp
+pathmix.hpp
 
-User menu и есть
+Misc functions for processing of path names
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -33,6 +33,31 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-void ProcessUserMenu(int EditMenu);
+class NTPath
+{
+public:
+	string Str;
+	NTPath(LPCWSTR Src);
 
-#endif // __USERMENU_HPP__
+	operator LPCWSTR() const
+	{
+		return Str;
+	}
+};
+
+void CreatePath(string &strPath);
+
+string& PrepareDiskPath(string &strPath, BOOL CheckFullPath=TRUE);
+
+bool PathPrefix(const wchar_t *Path);
+BOOL IsNetworkPath(const wchar_t *Path);
+BOOL IsLocalPath(const wchar_t *Path);
+BOOL IsLocalRootPath(const wchar_t *Path);
+BOOL IsLocalPrefixPath(const wchar_t *Path);
+BOOL IsLocalVolumePath(const wchar_t *Path);
+BOOL IsLocalVolumeRootPath(const wchar_t *Path);
+int PathMayBeAbsolute(const wchar_t *Src);
+
+int _MakePath1(DWORD Key,string &strPathName, const wchar_t *Param2,int ShortNameAsIs=TRUE);
+
+#endif // __PATHMIX_HPP__

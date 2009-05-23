@@ -1,9 +1,9 @@
-#ifndef __STRFTIME_HPP__
-#define __STRFTIME_HPP__
+#ifndef __DIRINFO_HPP___
+#define __DIRINFO_HPP___
 /*
-strftime.hpp
+dirinfo.hpp
 
-Функция StrFTime
+GetDirInfo & GetPluginDirInfo
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -33,12 +33,25 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-int GetDateFormat();
-wchar_t GetDateSeparator();
-wchar_t GetTimeSeparator();
+class FileFilter;
 
-void PrepareStrFTime();
-size_t WINAPI StrFTime(string &strDest, const wchar_t *Format,const tm *t);
-size_t MkStrFTime(string &strDest, const wchar_t *Fmt=NULL);
+enum GETDIRINFOFLAGS{
+  GETDIRINFO_ENHBREAK           =0x00000001,
+  GETDIRINFO_DONTREDRAWFRAME    =0x00000002,
+  GETDIRINFO_SCANSYMLINK        =0x00000004,
+  GETDIRINFO_SCANSYMLINKDEF     =0x00000008,
+  GETDIRINFO_USEFILTER          =0x00000010,
+};
 
-#endif // __STRFTIME_HPP__
+int GetDirInfo(const wchar_t *Title,const wchar_t *DirName,unsigned long &DirCount,
+               unsigned long &FileCount,unsigned __int64 &FileSize,
+               unsigned __int64 &CompressedFileSize,unsigned __int64 &RealSize,
+               unsigned long &ClusterSize,clock_t MsgWaitTime,
+               FileFilter *Filter,
+               DWORD Flags=GETDIRINFO_SCANSYMLINKDEF);
+
+int GetPluginDirInfo(HANDLE hPlugin,const wchar_t *DirName,unsigned long &DirCount,
+               unsigned long &FileCount,unsigned __int64 &FileSize,
+               unsigned __int64 &CompressedFileSize);
+
+#endif // __DIRINFO_HPP___

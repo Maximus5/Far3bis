@@ -1,9 +1,9 @@
-#ifndef __USERMENU_HPP__
-#define __USERMENU_HPP__
+#ifndef __FFOLDERS_HPP__
+#define __FFOLDERS_HPP__
 /*
-usermenu.hpp
+ffolders.hpp
 
-User menu и есть
+Folder shortcuts
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -33,6 +33,9 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-void ProcessUserMenu(int EditMenu);
+int GetShortcutFolder(int Key,string *pDestFolder, string *pPluginModule=NULL, string *pPluginFile=NULL,string *pPluginData=NULL);
+int SaveFolderShortcut(int Key,string *pSrcFolder,string *pPluginModule=NULL, string *pPluginFile=NULL,string *pPluginData=NULL);
+int GetShortcutFolderSize(int Key);
+void ShowFolderShortcut();
 
-#endif // __USERMENU_HPP__
+#endif // __FFOLDERS_HPP__

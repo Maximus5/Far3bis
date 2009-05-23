@@ -1,9 +1,9 @@
-#ifndef __USERMENU_HPP__
-#define __USERMENU_HPP__
+#ifndef __FNPARCE_HPP__
+#define __FNPARCE_HPP___
 /*
-usermenu.hpp
+fnparce.hpp
 
-User menu и есть
+Парсер файловых ассоциаций
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -33,6 +33,11 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-void ProcessUserMenu(int EditMenu);
+int SubstFileName(string &strStr, const wchar_t *Name, const wchar_t *ShortName,
+                  string *strListName=NULL,
+                  string *strAnotherListName = NULL,
+                  string *strShortListName=NULL,
+                  string *strAnotherShortListName=NULL,
+                  int IgnoreInput=FALSE,const wchar_t *CmdLineDir=NULL);
 
-#endif // __USERMENU_HPP__
+#endif // __FNPARCE_HPP__

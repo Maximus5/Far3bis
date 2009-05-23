@@ -1,9 +1,9 @@
-#ifndef __USERMENU_HPP__
-#define __USERMENU_HPP__
+#ifndef __DATETIME_HPP__
+#define __DATETIME_HPP__
 /*
-usermenu.hpp
+datetime.hpp
 
-User menu и есть
+Функции для работы с датой и временем
 */
 /*
 Copyright (c) 1996 Eugene Roshal
@@ -33,6 +33,20 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-void ProcessUserMenu(int EditMenu);
+int GetDateFormat();
+wchar_t GetDateSeparator();
+wchar_t GetTimeSeparator();
 
-#endif // __USERMENU_HPP__
+__int64 FileTimeDifference(const FILETIME *a, const FILETIME* b);
+unsigned __int64 FileTimeToUI64(const FILETIME *ft);
+
+void GetFileDateAndTime(const wchar_t *Src,unsigned *Dst,int Separator);
+void StrToDateTime(const wchar_t *CDate, const wchar_t *CTime, FILETIME &ft, int DateFormat, int DateSeparator, int TimeSeparator, bool bRelative=false);
+void ConvertDate(const FILETIME &ft,string &strDateText, string &strTimeText,int TimeLength, int Brief=FALSE,int TextMonth=FALSE,int FullYear=FALSE,int DynInit=FALSE);
+void ConvertRelativeDate(const FILETIME &ft,string &strDaysText,string &strTimeText);
+
+void PrepareStrFTime();
+size_t WINAPI StrFTime(string &strDest, const wchar_t *Format,const tm *t);
+size_t MkStrFTime(string &strDest, const wchar_t *Fmt=NULL);
+
+#endif // __DATETIME_HPP__
