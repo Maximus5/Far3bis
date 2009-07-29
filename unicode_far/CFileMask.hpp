@@ -34,6 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "BaseFileMask.hpp"
+#include "noncopyable.hpp"
 
 enum FM_FLAGS
 {
@@ -43,7 +44,7 @@ enum FM_FLAGS
 };
 
 
-class CFileMask
+class CFileMask : private NonCopyable
 {
   private:
     BaseFileMask *FileMask;
@@ -57,10 +58,6 @@ class CFileMask
 		bool Compare(const wchar_t *Name);
 		bool IsEmpty();
     void Free();
-
-  private:
-    CFileMask& operator=(const CFileMask& rhs); /* чтобы не */
-    CFileMask(const CFileMask& rhs); /* генерировалось по умолчанию */
 
 };
 
