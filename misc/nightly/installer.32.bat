@@ -23,11 +23,3 @@ nmake -nologo
 genscript c:\src\outfinalold32 x86
 
 nmake -nologo
-
-genscript c:\src\outfinalnew64 x64
-
-nmake -nologo
-
-genscript c:\src\outfinalold64 x64
-
-nmake -nologo
