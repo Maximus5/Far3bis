@@ -1,4 +1,4 @@
-# -*- coding: windows-1251 -*-
+﻿#!/usr/bin/python
 """
 Make projects files for building Far Manager Encyclopedia in .CHM format
 """

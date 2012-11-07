@@ -1,4 +1,4 @@
-from os.path import join, dirname, abspath
+﻿from os.path import join, dirname, abspath
 
 #: path to Encyclopedia sources root
 ROOT_DIR        = abspath(join(dirname(__file__), ".."))

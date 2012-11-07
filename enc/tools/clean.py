@@ -1,3 +1,4 @@
+﻿#!/usr/bin/python
 """
 Aux buildbot script to cleanup Encyclopaedia build directory
 """
