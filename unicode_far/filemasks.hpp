@@ -1,9 +1,9 @@
 #pragma once
 
 /*
-CFileMask.hpp
+filemasks.hpp
 
-Основной класс для работы с масками файлов. Использовать нужно именно его.
+Класс для работы с масками файлов (учитывается наличие масок исключения).
 */
 /*
 Copyright © 1996 Eugene Roshal
@@ -33,24 +33,45 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include  "RegExp.hpp"
+
 enum FM_FLAGS
 {
-	FMF_SILENT        = 0x00000001,
-	FMF_FORBIDEXCLUDE = 0x00000002,
+	FMF_SILENT = 1,
 };
 
-class CFileMask:NonCopyable
+class filemasks
 {
 public:
-	CFileMask();
-	~CFileMask() { Free(); }
+	filemasks() {}
+	~filemasks() {}
 
 	bool Set(const string& Masks, DWORD Flags);
-	bool Compare(const string& Name);
-	bool IsEmpty();
-	void Free();
-	void ErrorMessage();
+	bool Compare(const string& Name) const;
+	bool IsEmpty() const;
+	void ErrorMessage() const;
 
 private:
-	class BaseFileMask *FileMask;
+	void Free();
+	wchar_t* FindExcludeChar(wchar_t* masks) const;
+
+	class masks
+	{
+	public:
+		masks():n(0), bRE(false) {}
+		~masks() {}
+
+		bool Set(const string& Masks);
+		void Free();
+		bool Compare(const string& Name) const;
+		bool IsEmpty() const;
+
+	private:
+		std::list<string> Masks;
+		std::unique_ptr<RegExp> re;
+		array_ptr<SMatch> m;
+		int n;
+		bool bRE;
+	}
+	Include, Exclude;
 };
