@@ -1,8 +1,8 @@
-;vc11.asm
+;vc_crt_fix.asm
 
-;Workaround for VC2012 and old Windows
+;Workaround for Visual C++ CRT inncompability with old Windows versions
 
-;Copyright © 2013 Far Group
+;Copyright © 2010 Far Group
 ;All rights reserved.
 ;
 ;Redistribution and use in source and binary forms, with or without
@@ -31,11 +31,18 @@
 .486
 .model flat
 
+EncodePointerWrapper proto stdcall :dword
+DecodePointerWrapper proto stdcall :dword
 GetModuleHandleExWWrapper proto stdcall :dword, :dword, :dword
 
 .const
 align 4
+__imp__EncodePointer@4 dd EncodePointerWrapper
+__imp__DecodePointer@4 dd DecodePointerWrapper
 __imp__GetModuleHandleExW@12 dd GetModuleHandleExWWrapper
-public __imp__GetModuleHandleExW@12
+public \
+__imp__EncodePointer@4,
+__imp__DecodePointer@4,
+__imp__GetModuleHandleExW@12
 
 end
