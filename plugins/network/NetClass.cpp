@@ -11,6 +11,17 @@
 NetResourceList *CommonRootResources;
 BOOL SavedCommonRootResources = FALSE;
 
+#if 1
+//Maximus: BUGBUG: переделать, vector много хочет
+#undef _HAS_EXCEPTIONS
+#define _HAS_EXCEPTIONS 0
+#include <vector>
+std::vector<wchar_t*> *gsConnectedResources=nullptr;
+void __CLRCALL_PURE_OR_CDECL std::_Xlength_error(_In_z_ const char *) {};
+void __cdecl _invoke_watson(_In_opt_z_ const wchar_t *, _In_opt_z_ const wchar_t *, _In_opt_z_ const wchar_t *, unsigned int, uintptr_t) {};
+void (__cdecl* std::_Raise_handler)(class stdext::exception const &) = nullptr;
+#endif
+
 static __int64 GetSetting(FARSETTINGS_SUBFOLDERS Root,const wchar_t* Name)
 {
 	__int64 result=0;
@@ -1786,6 +1797,12 @@ int NetBrowser::AddConnectionWithLogon(NETRESOURCE *nr, wchar_t *Name, wchar_t *
 	{
 		if (NO_ERROR == WNetAddConnection2(nr,Password,*Name ? Name:NULL,(Remember?CONNECT_UPDATE_PROFILE:0)))
 		{
+			if (nr->lpRemoteName)
+			{
+				if (!gsConnectedResources)
+					gsConnectedResources=new std::vector<wchar_t*>;
+				gsConnectedResources->push_back(_wcsdup(nr->lpRemoteName));
+			}
 			return TRUE;
 		}
 		else
@@ -1797,6 +1814,12 @@ int NetBrowser::AddConnectionWithLogon(NETRESOURCE *nr, wchar_t *Name, wchar_t *
 
 				if (NO_ERROR == WNetAddConnection2(nr,Password,*Name ? Name:NULL,(Remember?CONNECT_UPDATE_PROFILE:0)))
 				{
+					if (nr->lpRemoteName)
+					{
+						if (!gsConnectedResources)
+							gsConnectedResources=new std::vector<wchar_t*>;
+						gsConnectedResources->push_back(_wcsdup(nr->lpRemoteName));
+					}
 					return TRUE;
 				}
 			}
@@ -2349,6 +2372,18 @@ void WINAPI ExitFARW(const ExitInfo *Info)
 {
 	delete CommonRootResources;
 	NetResourceList::DeleteNetResource(CommonCurResource);
+	//Maximus: 1) нужна опция; 2) некоторые уже могли быть отключены
+	if (gsConnectedResources)
+	{
+		for (std::vector<wchar_t*>::iterator i=gsConnectedResources->begin(); i!=gsConnectedResources->end(); i=gsConnectedResources->erase(i))
+		{
+			wchar_t* RemoteName=*i;
+			WNetCancelConnection2(RemoteName,0,FALSE);
+			free(RemoteName);
+		}
+		delete gsConnectedResources;
+		gsConnectedResources=nullptr;
+	}
 }
 
 void NetBrowser::RemoveItems()
