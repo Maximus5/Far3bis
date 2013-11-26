@@ -2232,12 +2232,16 @@ int NetBrowser::GotoComputer(const wchar_t *Dir, BOOL InGetFindData /*= FALSE*/)
 
 		if (IsLogonInvalid(err))
 		{
-			if (!((AddConnectionFromFavorites(&res)||AddConnectionExplicit(&res))&&IsResourceReadable(res)))
+			while (!((AddConnectionFromFavorites(&res)||AddConnectionExplicit(&res))&&IsResourceReadable(res)))
 			{
 				if (GetLastError() != ERROR_CANCELLED)
-					Info.Message(&MainGuid, nullptr, FMSG_WARNING|FMSG_ERRORTYPE|FMSG_MB_OK|FMSG_ALLINONE,
-					             NULL, (const wchar_t **) GetMsg(MError), 0, 0);
-
+				{
+					if (Info.Message(&MainGuid, nullptr, FMSG_WARNING|FMSG_ERRORTYPE|FMSG_MB_RETRYCANCEL|FMSG_ALLINONE,
+					             NULL, (const wchar_t **) GetMsg(MError), 0, 0) == 0)
+					{
+						continue;
+					}
+				}
 				return FALSE;
 			}
 		}
