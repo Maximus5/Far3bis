@@ -275,9 +275,25 @@ BOOL NetBrowser::EnumerateNetList()
 		else
 		{
 			// try again with connection
-			AddConnection(PCurResource);
-
-			if (!NetList.Enumerate(RESOURCE_GLOBALNET,RESOURCETYPE_ANY,0,PCurResource))
+			int err;
+			BOOL lbConnected = AddConnection(PCurResource);
+			if (!lbConnected)
+			{
+				err = GetLastError();
+				// При подключении через "net:\\server" могла возникать ошибка "There are currently no logon servers available to service the logon request"
+				if (IsLogonInvalid(err))
+				{
+					lbConnected = AddConnectionExplicit (PCurResource);
+				}
+			}
+			if (!lbConnected)
+			{
+				if (err && err != ERROR_CANCELLED)
+				{
+					Info.Message (&MainGuid, nullptr, FMSG_WARNING|FMSG_ERRORTYPE|FMSG_MB_OK|FMSG_ALLINONE,
+						NULL, (const TCHAR **) GetMsg (MError), 0, 0);
+				}
+			} else if (!NetList.Enumerate(RESOURCE_GLOBALNET,RESOURCETYPE_ANY,0,PCurResource))
 				NetList.Clear();
 		}
 	}
