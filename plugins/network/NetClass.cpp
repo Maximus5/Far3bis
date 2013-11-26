@@ -370,7 +370,17 @@ int NetBrowser::GetFindData(PluginPanelItem **pPanelItem,size_t *pItemsNumber,OP
 			ReenterGetFindData--;
 
 			if (!GotoFavorite(TmpCmdLinePath))
-				GotoComputer(TmpCmdLinePath);
+			{
+				if (!GotoComputer(TmpCmdLinePath, TRUE))
+				{
+					int err = GetLastError();
+					if (err && err != ERROR_CANCELLED)
+					{
+						Info.Message (&MainGuid, nullptr,  FMSG_WARNING|FMSG_ERRORTYPE|FMSG_MB_OK|FMSG_ALLINONE,
+							NULL, (const TCHAR **) GetMsg (MError), 0, 0);
+					}
+				}
+			}
 
 			ReenterGetFindData++;
 		}
@@ -951,6 +961,7 @@ int NetBrowser::SetDirectory(const wchar_t *Dir,OPERATION_MODES OpMode)
 				return TRUE;
 			}
 
+			//Maximus: Если ChangeToDirectory только что обломался, нет смысла звать "GotoComputer"?
 			ChangeDirSuccess = GotoComputer(AnsiDir);
 			return ChangeDirSuccess;
 		}
@@ -2143,7 +2154,7 @@ BOOL NetBrowser::SetOpenFromFilePanel(wchar_t *ShareName)
 	return TRUE;
 }
 
-int NetBrowser::GotoComputer(const wchar_t *Dir)
+int NetBrowser::GotoComputer(const wchar_t *Dir, BOOL InGetFindData /*= FALSE*/)
 {
 #ifdef NETWORK_LOGGING
 	LogData(L"Entering GotoComputer");
@@ -2198,7 +2209,12 @@ int NetBrowser::GotoComputer(const wchar_t *Dir)
 
 	CurResource = res;
 	PCurResource = &CurResource;
-	/*int result = */Info.PanelControl(this, FCTL_UPDATEPANEL,0,0);
+	//Maximus: Не звать API фара, для вложенного вызова GetFindData
+	if (!InGetFindData)
+	{
+		//Maximus: и даже если мы не в GetFindData, а в SetDirectory - смысл все равно отсутствует. Фар сам перечитает
+		/*int result = */Info.PanelControl(this, FCTL_UPDATEPANEL,0,0);
+	}
 
 	if (IsShare)
 	{
@@ -2213,7 +2229,13 @@ int NetBrowser::GotoComputer(const wchar_t *Dir)
 		SetCursorToShare(ShareName);
 	}
 	else
-		Info.PanelControl(this, FCTL_REDRAWPANEL,0,0);
+	{
+		//Maximus: Не звать API фара, мы и так уже в GetFindData!
+		if (!InGetFindData)
+		{
+			Info.PanelControl(this, FCTL_REDRAWPANEL,0,0);
+		}
+	}
 
 	return TRUE;
 }
