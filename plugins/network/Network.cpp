@@ -112,6 +112,37 @@ HANDLE WINAPI OpenW(const OpenInfo *OInfo)
 			return nullptr;
 		}
 	}
+	#if 1
+	//Maximus: ≈сли при попытке перейти по истории Far обламываетс€ на логине - он просит Network подключитьс€ к серверу
+	else if (OInfo->OpenFrom == OPEN_FROMMACRO)
+	{
+		BOOL Succeeded=FALSE;
+		OpenMacroInfo* FromMacro=(OpenMacroInfo*)OInfo->Data;
+		if (FromMacro->StructSize>=sizeof(*FromMacro) && FromMacro->Count==2)
+		{
+			if (FromMacro->Values[0].Type==FMVT_STRING && FromMacro->Values[1].Type==FMVT_STRING)
+			{
+				if (lstrcmpi(FromMacro->Values[0].String, L"connect")==0)
+				{
+					wchar_t* Resource=_wcsdup(FromMacro->Values[1].String);
+					if (Browser->SetOpenFromFilePanel(Resource))
+					{
+						if (Browser->SetDirectory(FromMacro->Values[1].String, 0)
+							&& Browser->SetDirectory(FromMacro->Values[1].String, 0)
+							//&& Browser->GetFindData(NULL,NULL,0)
+							)
+						{
+							Succeeded=TRUE;
+						}
+					}
+					free(Resource);
+				}
+			}
+		}
+		delete Browser;
+		return (HANDLE)Succeeded;
+	}
+	#endif
 	else
 	{
 		if (IsFirstRun && Opt.LocalNetwork)
