@@ -426,13 +426,17 @@ int NetBrowser::GetFindData(PluginPanelItem **pPanelItem,size_t *pItemsNumber,OP
 	}
 
 	ChangeDirSuccess = TRUE;
-	PluginPanelItem *NewPanelItem=(PluginPanelItem *)malloc(sizeof(PluginPanelItem)*NetList.Count());
-	*pPanelItem=NewPanelItem;
-
-	if (NewPanelItem==NULL)
+	PluginPanelItem *NewPanelItem=NULL;
+	if (pPanelItem)
 	{
-		ReenterGetFindData--;
-		return(FALSE);
+		NewPanelItem=(PluginPanelItem *)malloc(sizeof(PluginPanelItem)*NetList.Count());
+		*pPanelItem=NewPanelItem;
+
+		if (NewPanelItem==NULL)
+		{
+			ReenterGetFindData--;
+			return(FALSE);
+		}
 	}
 
 	int CurItemPos=0;
@@ -450,8 +454,11 @@ int NetBrowser::GetFindData(PluginPanelItem **pPanelItem,size_t *pItemsNumber,OP
 		else
 			lstrcpy(Comment,NetList[I].lpComment);
 
-		memset(&NewPanelItem[CurItemPos],0,sizeof(PluginPanelItem));
 		GetLocalName(NetList[I].lpRemoteName,LocalName);
+
+		if (!NewPanelItem)
+			continue;
+		memset(&NewPanelItem[CurItemPos],0,sizeof(PluginPanelItem));
 		LPTSTR* CustomColumnData=(LPTSTR*)malloc(sizeof(LPTSTR)*2);
 		CustomColumnData[0] = wcsdup(LocalName);
 		CustomColumnData[1] = wcsdup(Comment);
@@ -471,7 +478,7 @@ int NetBrowser::GetFindData(PluginPanelItem **pPanelItem,size_t *pItemsNumber,OP
 		CurItemPos++;
 	}
 
-	*pItemsNumber=CurItemPos;
+	if (pItemsNumber) *pItemsNumber=CurItemPos;
 	ReenterGetFindData--;
 	return(TRUE);
 }
