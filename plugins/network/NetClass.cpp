@@ -355,6 +355,8 @@ BOOL NetBrowser::GotoFavorite(wchar_t *lpPath)
 		NetResourceList::CopyNetResource(CurResource, nr);
 		NetResourceList::DeleteNetResource(nr);
 		PCurResource = &CurResource;
+		//Maximus: а вот тут бы и проверить доступность ресурса, 
+		//         вместо вложенного вызова через Far GetFindDataW->NetBrowser::GetFindData
 		Info.PanelControl(this, FCTL_UPDATEPANEL,0,0);
 		Info.PanelControl(this, FCTL_REDRAWPANEL,0,0);
 		return TRUE;
