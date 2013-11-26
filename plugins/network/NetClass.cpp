@@ -6,6 +6,8 @@
 #include <DlgBuilder.hpp>
 #include <SimpleString.hpp>
 
+#define IsLogonInvalid(res) (res == ERROR_INVALID_PASSWORD || res == ERROR_LOGON_FAILURE || res == ERROR_NO_LOGON_SERVERS || res == ERROR_ACCESS_DENIED || res == ERROR_INVALID_HANDLE || res == ERROR_LOGON_TYPE_NOT_GRANTED || res == ERROR_WRONG_TARGET_NAME)
+
 NetResourceList *CommonRootResources;
 BOOL SavedCommonRootResources = FALSE;
 
@@ -1044,17 +1046,23 @@ BOOL NetBrowser::ChangeToDirectory(const wchar_t *Dir, int IsFind, int IsExplici
 						DWORD res = GetLastError();
 
 						if (!IsExplicit)
-							if (res == ERROR_INVALID_PASSWORD || res == ERROR_LOGON_FAILURE || res == ERROR_ACCESS_DENIED || res == ERROR_INVALID_HANDLE)
+						{
+							if (IsLogonInvalid(res))
+							{
 								ConnectError = !((AddConnectionFromFavorites(&NetList[I]) ||
 								                  AddConnectionExplicit(&NetList[I])) && IsReadable(NewDir));
+							}
+						}
 
 						if (ConnectError)
 						{
 							ChangeDirSuccess = FALSE;
 
 							if (GetLastError() != ERROR_CANCELLED)
+							{
 								Info.Message(&MainGuid, nullptr, FMSG_WARNING | FMSG_ERRORTYPE | FMSG_MB_OK | FMSG_ALLINONE,
 								             NULL, (const wchar_t **) GetMsg(MError), 0, 0);
+							}
 
 							return TRUE;
 						}
@@ -1069,7 +1077,7 @@ BOOL NetBrowser::ChangeToDirectory(const wchar_t *Dir, int IsFind, int IsExplici
 			{
 				int res = GetLastError();
 
-				if (res == ERROR_INVALID_PASSWORD || res == ERROR_LOGON_FAILURE || res == ERROR_ACCESS_DENIED || res == ERROR_LOGON_TYPE_NOT_GRANTED)
+				if (IsLogonInvalid(res))
 					ChangeDirSuccess = IsExplicit?FALSE:(AddConnectionFromFavorites(&NetList[I]) || AddConnectionExplicit(&NetList[I]));
 				else
 					ChangeDirSuccess = FALSE;
@@ -2196,7 +2204,8 @@ int NetBrowser::GotoComputer(const wchar_t *Dir, BOOL InGetFindData /*= FALSE*/)
 	{
 		int err = GetLastError();
 
-		if (err == ERROR_INVALID_PASSWORD || err == ERROR_LOGON_FAILURE || err == ERROR_ACCESS_DENIED || err == ERROR_INVALID_HANDLE || err == ERROR_LOGON_TYPE_NOT_GRANTED)
+		if (IsLogonInvalid(err))
+		{
 			if (!((AddConnectionFromFavorites(&res)||AddConnectionExplicit(&res))&&IsResourceReadable(res)))
 			{
 				if (GetLastError() != ERROR_CANCELLED)
@@ -2205,6 +2214,7 @@ int NetBrowser::GotoComputer(const wchar_t *Dir, BOOL InGetFindData /*= FALSE*/)
 
 				return FALSE;
 			}
+		}
 	}
 
 	CurResource = res;
