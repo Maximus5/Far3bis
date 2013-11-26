@@ -954,7 +954,8 @@ int NetBrowser::SetDirectory(const wchar_t *Dir,OPERATION_MODES OpMode)
 		if (ChangeToDirectory(Dir, ((OpMode & OPM_FIND) != 0), 0))
 			return ChangeDirSuccess;
 
-		if (GetLastError()==ERROR_CANCELLED)
+		DWORD dwChangeErr = GetLastError();
+		if (dwChangeErr==ERROR_CANCELLED)
 			return FALSE;
 
 		wchar_t AnsiDir[MAX_PATH];
