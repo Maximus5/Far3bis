@@ -403,8 +403,8 @@ int NetBrowser::GetFindData(PluginPanelItem **pPanelItem,size_t *pItemsNumber,OP
 			ReenterGetFindData++;
 		}
 
-		*pPanelItem=NULL;
-		*pItemsNumber=0;
+		if (pPanelItem) *pPanelItem=NULL;
+		if (pItemsNumber) *pItemsNumber=0;
 		TSaveScreen SS;
 
 		// get the list of connections, so that we can show mapped drive letters
