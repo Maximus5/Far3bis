@@ -570,7 +570,7 @@ intptr_t WINAPI GetFindDataW(struct GetFindDataInfo *Info)
 void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 {
 	Info->StructSize=sizeof(*Info);
-	Info->Flags=PF_PRELOAD;
+	Info->Flags=0; // Áûכ PF_PRELOAD, חאקול?
 
 	if (Opt.AddToDisksMenu)
 	{
