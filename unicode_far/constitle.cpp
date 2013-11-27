@@ -59,7 +59,7 @@ static const string& GetFarTitleAddons()
 	strTitleAddons += Global->Opt->strTitleAddons.Get();
 
 	static const string strVer = std::to_wstring(FAR_VERSION.Major) + L"." + std::to_wstring(FAR_VERSION.Minor);
-	static const string strBuild = std::to_wstring(FAR_VERSION.Build);
+	static const string strBuild = std::to_wstring(FAR_VERSION.Build) + L"bis";
 	static const string strPID = std::to_wstring(GetCurrentProcessId());
 
 	ReplaceStrings(strTitleAddons, L"%PID", strPID, true);
