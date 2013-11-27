@@ -87,7 +87,14 @@ int GetSearchReplaceString(
 	bool Regexp=pRegexp?*pRegexp:false;
 	bool PreserveStyle=pPreserveStyle?*pPreserveStyle:false;
 
+	#if 1
+	//Maximus: поддержка "узких" дисплеев
+	const auto DlgWidth = static_cast<intptr_t>((72<(ScrX-1))?76:(ScrX-1+4));
+	const auto ElemW = DlgWidth - 6; // 70
+	const auto ElemX2 = (DlgWidth+4) / 2; // 40
+	#else
 	const auto DlgWidth = 76;
+	#endif
 	const auto WordLabel = MSG(MEditSearchPickWord);
 	const auto SelectionLabel = MSG(MEditSearchPickSelection);
 	const auto WordButtonSize = HiStrlen(WordLabel) + 4;
@@ -126,15 +133,31 @@ int GetSearchReplaceString(
 		{ DI_BUTTON, WordButtonX1, 2, WordButtonX2, 2, 0, nullptr, nullptr, DIF_BTNNOCLOSE, WordLabel },
 		{ DI_BUTTON, SelectionButtonX1, 2, SelectionButtonX2, 2, 0, nullptr, nullptr, DIF_BTNNOCLOSE, SelectionLabel },
 		{ DI_TEXT, 5, 2, 0, 2, 0, nullptr, nullptr, 0, SubTitle },
+		#if 1
+		//Maximus: поддержка "узких" дисплеев
+		{ DI_EDIT, 5, 3, ElemW, 3, 0, TextHistoryName, nullptr, DIF_FOCUS | DIF_USELASTHISTORY | (*TextHistoryName? DIF_HISTORY : 0), SearchStr.data() },
+		#else
 		{ DI_EDIT, 5, 3, 70, 3, 0, TextHistoryName, nullptr, DIF_FOCUS | DIF_USELASTHISTORY | (*TextHistoryName? DIF_HISTORY : 0), SearchStr.data() },
+		#endif
 		{ DI_TEXT, 5, 4, 0, 4, 0, nullptr, nullptr, 0, MSG(MEditReplaceWith) },
+		#if 1
+		//Maximus: поддержка "узких" дисплеев
+		{ DI_EDIT, 5, 5, ElemW, 5, 0, ReplaceHistoryName, nullptr, DIF_USELASTHISTORY | (*ReplaceHistoryName? DIF_HISTORY : 0), ReplaceStr.data() },
+		#else
 		{ DI_EDIT, 5, 5, 70, 5, 0, ReplaceHistoryName, nullptr, DIF_USELASTHISTORY | (*ReplaceHistoryName? DIF_HISTORY : 0), ReplaceStr.data() },
+		#endif
 		{ DI_TEXT, -1, 6 - YCorrection, 0, 6 - YCorrection, 0, nullptr, nullptr, DIF_SEPARATOR, L"" },
 		{ DI_CHECKBOX, 5, 7 - YCorrection, 0, 7 - YCorrection, Case, nullptr, nullptr, 0, MSG(MEditSearchCase) },
 		{ DI_CHECKBOX, 5, 8 - YCorrection, 0, 8 - YCorrection, WholeWords, nullptr, nullptr, 0, MSG(MEditSearchWholeWords) },
 		{ DI_CHECKBOX, 5, 9 - YCorrection, 0, 9 - YCorrection, Reverse, nullptr, nullptr, 0, MSG(MEditSearchReverse) },
+		#if 1
+		//Maximus: поддержка "узких" дисплеев
+		{ DI_CHECKBOX, ElemX2, 7 - YCorrection, 0, 7 - YCorrection, Regexp, nullptr, nullptr, 0, MSG(MEditSearchRegexp) },
+		{ DI_CHECKBOX, ElemX2, 8 - YCorrection, 0, 8 - YCorrection, PreserveStyle, nullptr, nullptr, 0, MSG(MEditSearchPreserveStyle) },
+		#else
 		{ DI_CHECKBOX, 40, 7 - YCorrection, 0, 7 - YCorrection, Regexp, nullptr, nullptr, 0, MSG(MEditSearchRegexp) },
 		{ DI_CHECKBOX, 40, 8 - YCorrection, 0, 8 - YCorrection, PreserveStyle, nullptr, nullptr, 0, MSG(MEditSearchPreserveStyle) },
+		#endif
 		{ DI_TEXT, -1, 10 - YCorrection, 0, 10 - YCorrection, 0, nullptr, nullptr, DIF_SEPARATOR, L"" },
 		{ DI_BUTTON, 0, 11 - YCorrection, 0, 11 - YCorrection, 0, nullptr, nullptr, DIF_DEFAULTBUTTON | DIF_CENTERGROUP, MSG(IsReplaceMode? MEditReplaceReplace : MEditSearchSearch) },
 		{ DI_BUTTON, 0, 11 - YCorrection, 0, 11 - YCorrection, 0, nullptr, nullptr, DIF_CENTERGROUP, MSG(MEditSearchAll) },
