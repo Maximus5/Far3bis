@@ -328,11 +328,16 @@ void Edit::FastShow(const Edit::ShowInfo* Info)
 				OutStr.push_back(Oem2Unicode[10]);
 				break;
 			case EOL_CRLF:
+				#if 1
+				//Maximus: "CRLF" переводы строк - одним символом параграфа
+				OutStr.push_back(L'\xB6');
+				#else
 				OutStr.push_back(Oem2Unicode[13]);
 				if(OutStr.size() < EditLength)
 				{
 					OutStr.push_back(Oem2Unicode[10]);
 				}
+				#endif
 				break;
 			case EOL_CRCRLF:
 				OutStr.push_back(Oem2Unicode[13]);
