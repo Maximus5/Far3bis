@@ -182,6 +182,11 @@ private:
 	bool UpdateId(Plugin *pPlugin, const GUID& Id);
 	void LoadPluginsFromCache();
 
+	#if 1
+	//Maximus: расширенное меню плагинов
+	void GetPluginVersion(LPCTSTR ModuleName,string &strModuleVer);
+	#endif
+
 	std::vector<std::unique_ptr<GenericPluginModel>> PluginModels;
 	std::unordered_map<GUID, std::unique_ptr<Plugin>, uuid_hash, uuid_equal> m_Plugins;
 	plugins_set SortedPlugins;
