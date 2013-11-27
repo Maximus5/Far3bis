@@ -2598,6 +2598,10 @@ to calculate the total files count.
   If Network plugin is installed, for network folders (and network drives, if switch
 is in the third state) a list of server shared resources  will be shown.
 
+  #Remote server login dialog
+  If Network plugin is installed, show login dialog if needed, when you are trying
+go to server share from history (#Alt-F12# in panels).
+
   #ClearType friendly redraw#
   Redraw the window in such a way that ClearType related artifacts do not appear.
   #Attention!#: Enabling this option can considerably slow down the redraw speed.
