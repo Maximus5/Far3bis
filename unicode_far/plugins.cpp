@@ -121,6 +121,16 @@ bool PluginManager::plugin_less::operator ()(const Plugin* a, const Plugin *b) c
 
 static void CallPluginSynchroEvent(const any& Payload)
 {
+	#if 0
+	//Maximus: Нехорошо вызывать плагины до тех пор, пока фар не прошел полную инициализацию
+	if (!Global->CtrlObject /*|| !CtrlObject->Plugins->IsPluginsLoaded()*/)
+	{
+		//Это тема для багрепорта на Mantis?
+		_ASSERTE(Global->CtrlObject /*&& CtrlObject->Plugins->IsPluginsLoaded()*/);
+		return false;
+	}
+	#endif
+
 	const auto& Data = any_cast<std::pair<GUID, void*>>(Payload);
 	if (const auto pPlugin = Global->CtrlObject->Plugins->FindPlugin(Data.first))
 	{
