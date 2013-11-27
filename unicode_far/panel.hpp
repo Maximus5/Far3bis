@@ -262,7 +262,12 @@ public:
 	virtual const string& GetCurDir() const;
 	virtual size_t GetSelCount() const { return 0; }
 	virtual size_t GetRealSelCount() const {return 0;}
+    #if 1
+	//Maximus: Отображение владельцев с плагиновых панелей
+	virtual int GetSelName(string *strName, DWORD &FileAttr, string *ShortName = nullptr, os::FAR_FIND_DATA *fd = nullptr, string *strOwner = nullptr) { return FALSE; }
+	#else
 	virtual int GetSelName(string *strName, DWORD &FileAttr, string *ShortName = nullptr, os::FAR_FIND_DATA *fd = nullptr) { return FALSE; }
+	#endif
 	virtual void UngetSelName() {}
 	virtual void ClearLastGetSelection() {}
 	virtual unsigned __int64 GetLastSelectedSize() const { return -1; }
