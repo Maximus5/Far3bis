@@ -80,6 +80,10 @@ typedef void     (WINAPI *iCloseAnalysePrototype)        (const CloseAnalyseInfo
 typedef intptr_t (WINAPI *iGetContentFieldsPrototype)    (const GetContentFieldsInfo *Info);
 typedef intptr_t (WINAPI *iGetContentDataPrototype)      (GetContentDataInfo *Info);
 typedef void     (WINAPI *iFreeContentDataPrototype)     (const GetContentDataInfo *Info);
+#if 1
+//Maximus: поддержка Far3wrap
+typedef void*  (WINAPI *iWrapperFunction2Prototype)    (HMODULE hModule, LPCSTR lpProcName);
+#endif
 
 Plugin* GenericPluginModel::CreatePlugin(const string& filename)
 {
@@ -145,6 +149,11 @@ GenericPluginModel::GenericPluginModel(PluginManager* owner):
 
 		WA(""), // OpenFilePlugin not used
 		WA(""), // GetMinFarVersion not used
+
+		#if 1
+		//Maximus: поддержка Far3wrap
+		WA("FarWrapGetProcAddress"),
+		#endif
 	};
 	static_assert(ARRAYSIZE(ExportsNames) == ExportsCount, "Not all exports names are defined");
 
