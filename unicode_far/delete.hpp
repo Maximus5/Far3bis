@@ -59,4 +59,9 @@ private:
 void DeleteDirTree(const string& Dir);
 bool DeleteFileWithFolder(const string& FileName);
 
+#if 1
+//Maximus: RemoveToRecycleBin глобальная, используется в расширенном меню плагинов
+int RemoveToRecycleBin(const string& Name);
+#endif
+
 #endif // DELETE_HPP_835E1D6F_E70E_4AF7_8D20_1668C007B16C
