@@ -118,7 +118,12 @@ public:
 	void GetContentPlugins(const std::vector<const wchar_t*>& ColNames, std::vector<Plugin*>& Plugins) const;
 	void GetContentData(const std::vector<Plugin*>& Plugins, const string& FilePath, const std::vector<const wchar_t*>& Names, std::vector<const wchar_t*>& Values, std::unordered_map<string,string>& ContentData) const;
 	int UnloadPlugin(Plugin *pPlugin, int From);
+	#if 1
+	//Maximus: отображение ошибок загрузки плагинов
+	Plugin* LoadPluginExternal(const string& lpwszModuleName, bool LoadToMem, bool Manual=false);
+	#else
 	Plugin* LoadPluginExternal(const string& lpwszModuleName, bool LoadToMem);
+	#endif
 	int UnloadPluginExternal(Plugin* hPlugin);
 	bool IsPluginUnloaded(Plugin* pPlugin);
 	void LoadModels();
@@ -180,7 +185,12 @@ private:
 	friend class Plugin;
 
 	void LoadIfCacheAbsent();
+	#if 1
+	//Maximus: отображение ошибок загрузки плагинов
+	Plugin* LoadPlugin(const string& lpwszModuleName, const os::FAR_FIND_DATA &FindData, bool LoadToMem, bool* ShowErrors=nullptr, bool Manual=false);
+	#else
 	Plugin* LoadPlugin(const string& lpwszModuleName, const os::FAR_FIND_DATA &FindData, bool LoadToMem);
+	#endif
 	bool AddPlugin(Plugin *pPlugin);
 	bool RemovePlugin(Plugin *pPlugin);
 	bool UpdateId(Plugin *pPlugin, const GUID& Id);
