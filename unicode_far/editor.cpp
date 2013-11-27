@@ -3267,6 +3267,7 @@ void Editor::InsertString()
 			m_FoundPos -= static_cast<int>(CurPos);
 		}
 
+		//Maximus: BUGBUG: softbreaks: нужно проверить
 		Change(ECTYPE_CHANGED, m_it_CurLine.Number());
 	}
 	else
@@ -3285,6 +3286,7 @@ void Editor::InsertString()
 		NewString->SetEOL(EndSeq);
 	}
 
+	//Maximus: BUGBUG: softbreaks: нужно проверить
 	Change(ECTYPE_CHANGED, m_it_CurLine.Number() + 1);
 
 	if (IsVerticalSelection() && m_it_CurLine.Number() >= m_it_AnyBlockStart.Number() && m_it_CurLine.Number() < m_it_AnyBlockStart.Number() + VBlockSizeY)
@@ -6198,6 +6200,11 @@ int Editor::EditorControl(int Command, intptr_t Param1, void *Param2)
 				return TRUE;
 			}
 			break;
+		}
+		case ECTL_DROPMODIFEDFLAG:
+		{
+			m_Flags.Clear(FEDITOR_MODIFIED);
+			return TRUE;
 		}
 	}
 
