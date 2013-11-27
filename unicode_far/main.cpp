@@ -316,6 +316,11 @@ static void InitTemplateProfile(string &strTemplatePath)
 	}
 }
 
+#if 1
+//Maximus: для отладки
+DWORD gnMainThreadId = 0;
+#endif
+
 static void InitProfile(string &strProfilePath, string &strLocalProfilePath)
 {
 	if (!strProfilePath.empty())
@@ -471,6 +476,11 @@ static void SetDriveMenuHotkeys()
 static int mainImpl(const range<wchar_t**>& Args)
 {
 	SCOPED_ACTION(global);
+
+	#if 1
+	//Maximus: для отладки
+	gnMainThreadId = GetCurrentThreadId();
+	#endif
 
 	auto NoElevetionDuringBoot = std::make_unique<elevation::suppress>();
 
