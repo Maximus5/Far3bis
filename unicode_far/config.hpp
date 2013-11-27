@@ -790,6 +790,10 @@ public:
 	BoolOption ClearType;
 
 	Bool3Option PgUpChangeDisk;
+	#if 1
+	//Maximus: Remote server autologin from History
+	BoolOption RemoteAutoLogin;
+	#endif
 	BoolOption ShowDotsInRoot;
 	BoolOption ShowCheckingFile;
 	BoolOption CloseCDGate;       // автомонтирование CD
