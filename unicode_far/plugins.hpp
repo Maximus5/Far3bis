@@ -148,6 +148,10 @@ public:
 	};
 
 	Plugin *GetPlugin(const string& ModuleName);
+	#if 1
+	//Maximus: для отлова багов
+	bool IsPluginValid(Plugin *pPlugin);
+	#endif
 	size_t GetPluginsCount() const { return SortedPlugins.size(); }
 #ifndef NO_WRAPPER
 	size_t OemPluginsPresent() const { return OemPluginsCount > 0; }
