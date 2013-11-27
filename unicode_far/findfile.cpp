@@ -3017,28 +3017,68 @@ FindFiles::FindFiles():
 		static const wchar_t MasksHistoryName[] = L"Masks", TextHistoryName[] = L"SearchText";
 		static const wchar_t HexMask[]=L"HH HH HH HH HH HH HH HH HH HH HH HH HH HH HH HH HH HH HH HH HH HH HH";
 		const wchar_t VSeparator[] = { BoxSymbols[BS_T_H1V1], BoxSymbols[BS_V1], BoxSymbols[BS_V1], BoxSymbols[BS_V1], BoxSymbols[BS_V1], BoxSymbols[BS_B_H1V1], 0 };
+		#if 1
+		//Maximus: поддержка "узких" дисплеев
+		int BorderW = (76<(std::max((int)ScrX,60)-1))?76:(std::max((int)ScrX,60)-1); // 74
+		int ElemW = BorderW - 2; // 74
+		int ElemX2 = (BorderW + 3) / 2; // 38
+		#endif
 		FarDialogItem FindAskDlgData[]=
 		{
+			#if 1
+			//Maximus: поддержка "узких" дисплеев
+			{DI_DOUBLEBOX,3,1,BorderW,19,0,nullptr,nullptr,0,MSG(MFindFileTitle)},
+			#else
 			{DI_DOUBLEBOX,3,1,76,19,0,nullptr,nullptr,0,MSG(MFindFileTitle)},
+			#endif
 			{DI_TEXT,5,2,0,2,0,nullptr,nullptr,0,MSG(MFindFileMasks)},
+			#if 1
+			//Maximus: поддержка "узких" дисплеев
+			{DI_EDIT,5,3,ElemW,3,0,MasksHistoryName,nullptr,DIF_FOCUS|DIF_HISTORY|DIF_USELASTHISTORY,L""},
+			#else
 			{DI_EDIT,5,3,74,3,0,MasksHistoryName,nullptr,DIF_FOCUS|DIF_HISTORY|DIF_USELASTHISTORY,L""},
+			#endif
 			{DI_TEXT,-1,4,0,4,0,nullptr,nullptr,DIF_SEPARATOR,L""},
 			{DI_TEXT,5,5,0,5,0,nullptr,nullptr,0,L""},
+			#if 1
+			//Maximus: поддержка "узких" дисплеев
+			{DI_EDIT,5,6,ElemW,6,0,TextHistoryName,nullptr,DIF_HISTORY,L""},
+			{DI_FIXEDIT,5,6,ElemW,6,0,nullptr,HexMask,DIF_MASKEDIT,L""},
+			#else
 			{DI_EDIT,5,6,74,6,0,TextHistoryName,nullptr,DIF_HISTORY,L""},
 			{DI_FIXEDIT,5,6,74,6,0,nullptr,HexMask,DIF_MASKEDIT,L""},
+			#endif
 			{DI_TEXT,5,7,0,7,0,nullptr,nullptr,0,L""},
+			#if 1
+			//Maximus: поддержка "узких" дисплеев
+			{DI_COMBOBOX,5,8,ElemW,8,0,nullptr,nullptr,DIF_DROPDOWNLIST,L""},
+			#else
 			{DI_COMBOBOX,5,8,74,8,0,nullptr,nullptr,DIF_DROPDOWNLIST,L""},
+			#endif
 			{DI_TEXT,-1,9,0,9,0,nullptr,nullptr,DIF_SEPARATOR,L""},
 			{DI_CHECKBOX,5,10,0,10,0,nullptr,nullptr,0,MSG(MFindFileCase)},
 			{DI_CHECKBOX,5,11,0,11,0,nullptr,nullptr,0,MSG(MFindFileWholeWords)},
 			{DI_CHECKBOX,5,12,0,12,0,nullptr,nullptr,0,MSG(MSearchForHex)},
 			{DI_CHECKBOX,5,13,0,13,NotContaining,nullptr,nullptr,0,MSG(MSearchNotContaining)},
+			#if 1
+			//Maximus: поддержка "узких" дисплеев
+			{DI_CHECKBOX,ElemX2,10,0,10,0,nullptr,nullptr,0,MSG(MFindArchives)},
+			{DI_CHECKBOX,ElemX2,11,0,11,0,nullptr,nullptr,0,MSG(MFindFolders)},
+			{DI_CHECKBOX,ElemX2,12,0,12,0,nullptr,nullptr,0,MSG(MFindSymLinks)},
+			{DI_CHECKBOX,ElemX2,13,0,13,0,nullptr,nullptr,0,MSG(MFindAlternateStreams)},
+			#else
 			{DI_CHECKBOX,41,10,0,10,0,nullptr,nullptr,0,MSG(MFindArchives)},
 			{DI_CHECKBOX,41,11,0,11,0,nullptr,nullptr,0,MSG(MFindFolders)},
 			{DI_CHECKBOX,41,12,0,12,0,nullptr,nullptr,0,MSG(MFindSymLinks)},
 			{DI_CHECKBOX,41,13,0,13,0,nullptr,nullptr,0,MSG(MFindAlternateStreams)},
+			#endif
 			{DI_TEXT,-1,14,0,14,0,nullptr,nullptr,DIF_SEPARATOR,L""},
+			#if 1
+			//Maximus: поддержка "узких" дисплеев
+			{DI_VTEXT,ElemX2-2,9,0,9,0,nullptr,nullptr,DIF_BOXCOLOR,VSeparator},
+			#else
 			{DI_VTEXT,39,9,0,9,0,nullptr,nullptr,DIF_BOXCOLOR,VSeparator},
+			#endif
 			{DI_TEXT,5,15,0,15,0,nullptr,nullptr,0,MSG(MSearchWhere)},
 			{DI_COMBOBOX,5,16,36,16,0,nullptr,nullptr,DIF_DROPDOWNLIST|DIF_LISTNOAMPERSAND,L""},
 			{DI_CHECKBOX,41,16,0,16,(int)(UseFilter?BSTATE_CHECKED:BSTATE_UNCHECKED),nullptr,nullptr,DIF_AUTOMATION,MSG(MFindUseFilter)},
@@ -3113,7 +3153,12 @@ FindFiles::FindFiles():
 		Dlg->SetAutomation(FAD_CHECKBOX_FILTER,FAD_BUTTON_FILTER,DIF_DISABLE,DIF_NONE,DIF_NONE,DIF_DISABLE);
 		Dlg->SetHelp(L"FindFile");
 		Dlg->SetId(FindFileId);
+		#if 1
+		//Maximus: поддержка "узких" дисплеев
+		Dlg->SetPosition(-1,-1,BorderW+4,21);
+		#else
 		Dlg->SetPosition(-1,-1,80,21);
+		#endif
 		Dlg->Process();
 		ExitCode=Dlg->GetExitCode();
 		//Рефреш текущему времени для фильтра сразу после выхода из диалога
