@@ -3711,6 +3711,7 @@ size_t FileList::GetRealSelCount() const
 }
 
 
+#if 1
 //Maximus: отображение владельца с плагиновых панелей
 int FileList::GetSelName(string *strName, DWORD &FileAttr, string *strShortName, os::FAR_FIND_DATA *fde, string *strOwner)
 #else

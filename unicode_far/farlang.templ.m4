@@ -254,6 +254,17 @@ MHSkipAll
 "Preskočiť &všetko"
 "Salta &Tutti"
 
+MHSkipErrors
+"Пропустить &ошибки"
+"S&kip errors"
+upd:"S&kip errors"
+upd:"S&kip errors"
+upd:"S&kip errors"
+upd:"S&kip errors"
+upd:"S&kip errors"
+upd:"S&kip errors"
+upd:"S&kip errors"
+
 MHAbort
 "Прер&вать"
 "&Abort"
@@ -20763,6 +20774,61 @@ upd:"Błąd ładowania modułu plugina"
 "Error al cargar complemento"
 "Chyba pri nahrávaní zásuvného modulu"
 "Errore Di Caricamento Del Modulo Plugin"
+
+MPlgUnsupportedError
+"Файл не является поддерживаемым плагином Far"
+"File is not supported Far plugin"
+upd:"File is not supported Far plugin"
+upd:"File is not supported Far plugin"
+upd:"File is not supported Far plugin"
+upd:"File is not supported Far plugin"
+upd:"File is not supported Far plugin"
+upd:"File is not supported Far plugin"
+upd:"File is not supported Far plugin"
+
+MPlgBinaryNotMatchError
+"Файл не соответствует сохраненному в кеше плагинов Far"
+"File does not match cached binary"
+upd:"File does not match cached binary"
+upd:"File does not match cached binary"
+upd:"File does not match cached binary"
+upd:"File does not match cached binary"
+upd:"File does not match cached binary"
+upd:"File does not match cached binary"
+upd:"File does not match cached binary"
+
+MPlgCacheItemNotFoundError
+"Файл не найден в кеше плагинов Far"
+"File does not match any cached binary"
+upd:"File does not match any cached binary"
+upd:"File does not match any cached binary"
+upd:"File does not match any cached binary"
+upd:"File does not match any cached binary"
+upd:"File does not match any cached binary"
+upd:"File does not match any cached binary"
+upd:"File does not match any cached binary"
+
+MPlgRegisterError
+"Ошибка регистрации плагина (AddPlugin)"
+"Plugin registration failed (AddPlugin)"
+upd:"Plugin registration failed (AddPlugin)"
+upd:"Plugin registration failed (AddPlugin)"
+upd:"Plugin registration failed (AddPlugin)"
+upd:"Plugin registration failed (AddPlugin)"
+upd:"Plugin registration failed (AddPlugin)"
+upd:"Plugin registration failed (AddPlugin)"
+upd:"Plugin registration failed (AddPlugin)"
+
+MPlgDuplacateGuidError
+"Плагин с тем же GUID уже загружен"
+"Same GUID plugin was already loaded"
+upd:"Same GUID plugin was already loaded"
+upd:"Same GUID plugin was already loaded"
+upd:"Same GUID plugin was already loaded"
+upd:"Same GUID plugin was already loaded"
+upd:"Same GUID plugin was already loaded"
+upd:"Same GUID plugin was already loaded"
+upd:"Same GUID plugin was already loaded"
 
 MCheckBox2State
 l:

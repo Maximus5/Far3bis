@@ -594,7 +594,7 @@ static const wchar_t *GetShellAction(const string& FileName,DWORD& ImageSubsyste
 			if (!bGoodAssoc)
 			{
 				string strFound;
-				if (api::SearchPath(NULL, strNewValue, L".exe", strFound))
+				if (os::SearchPath(NULL, strNewValue, L".exe", strFound))
 					bGoodAssoc = GetImageSubsystem(strFound,ImageSubsystem);
 			}
 			//Maximus: Сопоставленный exe-шник не найден, предложить "openas"
