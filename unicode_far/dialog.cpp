@@ -60,6 +60,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "plugins.hpp"
 #include "language.hpp"
 #include "DlgGuid.hpp"
+//Maximus: debug
+#include "plugapi.hpp"
 
 // Флаги для функции ConvertItem
 enum CVTITEMFLAGS
@@ -4716,6 +4718,18 @@ intptr_t Dialog::DefProc(intptr_t Msg, intptr_t Param1, void* Param2)
 */
 intptr_t Dialog::SendMessage(intptr_t Msg,intptr_t Param1,void* Param2)
 {
+	#if 1
+	//Maximus: для отлова недобросовестных плагинов
+	if (gnMainThreadId != GetCurrentThreadId() && Msg < DM_USER)
+	{
+		BOOL lbSafe = FALSE;
+		if (!lbSafe)
+		{
+			ReportThreadUnsafeCall(L"SendDlgMessage(%u)", Msg);
+		}
+	}
+	#endif
+
 	SCOPED_ACTION(CriticalSectionLock)(CS);
 	_DIALOG(CleverSysLog CL(L"Dialog.SendDlgMessage()"));
 	_DIALOG(SysLog(L"hDlg=%p, Msg=%s, Param1=%d (0x%08X), Param2=%d (0x%08X)",this,_DLGMSG_ToName(Msg),Param1,Param1,Param2,Param2));
