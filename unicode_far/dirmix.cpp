@@ -227,6 +227,8 @@ void CreatePath(const string &InputPath, bool Simple)
 			Part = Path.substr(0, i);
 			if (!os::fs::exists(Part))
 			{
+				//Maximus: ?? пытается (безуспешно) последовательно создать "A:", "A:\4", "A:\4\"
+				//Maximus: ?? BUGBUG: игнорируется ошибка создания каталога!
 				if(os::CreateDirectory(Part, nullptr) && !Simple)
 					TreeList::AddTreeName(Part);
 			}
