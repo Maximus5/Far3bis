@@ -188,6 +188,23 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # include "SDK/sdk.gcc.h"
 #endif // __GNUC__
 
+//Maximus: для отладки
+#ifdef _DEBUG
+	#ifndef _CRT_WIDE
+	#define __CRT_WIDE(_String) L ## _String
+	#define _CRT_WIDE(_String) __CRT_WIDE(_String)
+	#endif
+	#define MY_ASSERT_EXPR(expr, msg) \
+		if (!(expr)) { \
+			if (MessageBox(NULL,msg,L"Assertion",MB_RETRYCANCEL|MB_SYSTEMMODAL)==IDRETRY) \
+				DebugBreak(); \
+		}
+    #undef _ASSERTE
+	#define _ASSERTE(x)  MY_ASSERT_EXPR((x), _CRT_WIDE(#x))
+#else
+	#define _ASSERTE(x)
+#endif
+
 #include "cpp.hpp"
 
 #include "farrtl.hpp"
