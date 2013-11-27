@@ -35,6 +35,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma hdrstop
 
 #include "execute.hpp"
+#include "farwinapi.hpp"
 #include "keyboard.hpp"
 #include "filepanels.hpp"
 #include "ctrlobj.hpp"
@@ -586,7 +587,35 @@ static const wchar_t *GetShellAction(const string& FileName,DWORD& ImageSubsyste
 					strNewValue.resize(pos);
 			}
 
+			#if 1
+			//Maximus: в случае плохого пути - explorer предлагает "OpenAs", а фар просто обламывается
+			bool bGoodAssoc = GetImageSubsystem(strNewValue,ImageSubsystem);
+			if (!bGoodAssoc)
+			{
+				string strFound;
+				if (os::SearchPath(NULL, strNewValue, L".exe", strFound))
+					bGoodAssoc = GetImageSubsystem(strFound,ImageSubsystem);
+			}
+			//Maximus: Сопоставленный exe-шник не найден, предложить "openas"
+			if (!bGoodAssoc)
+			{
+				if (strAction == L"open")
+				{
+					if (strNewValue != L"%1")
+					{
+						strAction = L"openas";
+						RetPtr = strAction.data();
+					}
+				}
+				else
+				{
+					Error=ERROR_NO_ASSOCIATION;
+					RetPtr=nullptr;
+				}
+			}
+			#else
 			GetImageSubsystem(strNewValue,ImageSubsystem);
+			#endif
 		}
 		else
 		{
