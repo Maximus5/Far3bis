@@ -153,6 +153,11 @@ public:
 	Plugin *FindPlugin(const string& ModuleName) const;
 	Plugin *FindPlugin(const GUID& SysID) const;
 
+	#if 1
+	//Maximus: для отлова багов
+	bool IsPluginValid(Plugin *pPlugin);
+	#endif
+
 #ifndef NO_WRAPPER
 	size_t OemPluginsPresent() const { return OemPluginsCount > 0; }
 #endif // NO_WRAPPER

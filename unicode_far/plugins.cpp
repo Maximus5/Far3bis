@@ -403,6 +403,25 @@ void PluginManager::LoadModels()
 	}
 }
 
+#if 1
+//Maximus: для отлова багов
+bool PluginManager::IsPluginValid(Plugin *pPlugin)
+{
+	Plugin *pTest;
+
+	auto Iterator = m_Plugins.cbegin();
+	while (Iterator != m_Plugins.cend())
+	{
+		pTest = Iterator->second.get();
+		if (pTest == pPlugin)
+			return true;
+		++Iterator;
+	}
+
+	return false;
+}
+#endif
+
 void PluginManager::LoadPlugins()
 {
 	SCOPED_ACTION(IndeterminateTaskBar)(false);
