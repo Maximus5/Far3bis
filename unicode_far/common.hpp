@@ -88,10 +88,18 @@ inline void clear_and_shrink(T& container)
 	T().swap(container);
 }
 
+#if 1
+//Maxmus: Для отлова ошибок - кидаем ассерты
+template <typename T>
+bool CheckNullOrStructSize(const T* s) {_ASSERTE(!s || (s->StructSize >= sizeof(T))); return !s || (s->StructSize >= sizeof(T));}
+template <typename T>
+bool CheckStructSize(const T* s) {_ASSERTE(!s || (s->StructSize >= sizeof(T))); return s && (s->StructSize >= sizeof(T));}
+#else
 template <typename T>
 bool CheckNullOrStructSize(const T* s) {return !s || (s->StructSize >= sizeof(T));}
 template <typename T>
 bool CheckStructSize(const T* s) {return s && (s->StructSize >= sizeof(T));}
+#endif
 
 template <typename type_1, typename type_2>
 struct simple_pair
