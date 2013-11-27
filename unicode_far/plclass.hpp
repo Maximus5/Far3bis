@@ -77,6 +77,11 @@ enum EXPORTS_ENUM
 	iOpenFilePlugin,
 	iGetMinFarVersion,
 
+	#if 1
+	//Maximus: поддержка Far3wrap
+	iWrapperFunction2, // FarWrapGetProcAddress
+	#endif
+
 	ExportsCount
 };
 
@@ -189,6 +194,10 @@ public:
 #ifndef NO_WRAPPER
 	virtual bool IsOemPlugin() const { return false; }
 #endif // NO_WRAPPER
+	#if 1
+	//Maximus: поддержка Far3wrap
+	virtual bool IsFar2Plugin() const { return Exports[iWrapperFunction2] != nullptr; }
+	#endif
 	virtual const string& GetHotkeyName() const { return m_strGuid; }
 
 	virtual bool InitLang(const string& Path);

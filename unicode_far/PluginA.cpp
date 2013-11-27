@@ -134,6 +134,11 @@ OEMPluginModel::OEMPluginModel(PluginManager* owner):
 
 		WA("OpenFilePlugin"),
 		WA("GetMinFarVersion"),
+
+		#if 1
+		//Maximus: поддержка Far3wrap
+		WA("FarWrapGetProcAddress"),
+		#endif
 	};
 	static_assert(ARRAYSIZE(ExportsNames) == ExportsCount, "Not all exports names are defined");
 	m_ExportsNames = make_range(std::cbegin(ExportsNames), std::cend(ExportsNames));
