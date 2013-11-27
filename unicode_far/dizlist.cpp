@@ -71,6 +71,7 @@ void DizList::Reset()
 
 static void PR_ReadingMsg()
 {
+	//Maximus: BUGBUG: Проверить, это с экрана убирается?
 	Message(0,0,L"",MSG(MReadingDiz));
 };
 
