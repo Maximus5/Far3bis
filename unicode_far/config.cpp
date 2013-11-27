@@ -295,6 +295,10 @@ void Options::InterfaceSettings()
 	Builder.AddCheckbox(MConfigCopyTimeRule, CMOpt.CopyTimeRule);
 	Builder.AddCheckbox(MConfigDeleteTotal, DelOpt.ShowTotal);
 	Builder.AddCheckbox(MConfigPgUpChangeDisk, PgUpChangeDisk);
+	#if 1
+	//Настройка всплытия пароля при обломе перехода в сетевую папку
+	Builder.AddCheckbox(MConfigRemoteAutoLogin, RemoteAutoLogin);
+	#endif
 	Builder.AddCheckbox(MConfigClearType, ClearType);
 	DialogItemEx* SetIconCheck = Builder.AddCheckbox(MConfigSetConsoleIcon, SetIcon);
 	DialogItemEx* SetAdminIconCheck = Builder.AddCheckbox(MConfigSetAdminConsoleIcon, SetAdminIcon);
@@ -1604,6 +1608,10 @@ void Options::InitConfigData()
 		{FSSF_PRIVATE,       NKeyInterface, L"ClearType", OPT_DEF(ClearType, true)},
 		{FSSF_PRIVATE,       NKeyInterface, L"CopyShowTotal", OPT_DEF(CMOpt.CopyShowTotal, true)},
 		{FSSF_PRIVATE,       NKeyInterface, L"CtrlPgUp", OPT_DEF(PgUpChangeDisk, 1)},
+		#if 1
+		//Настройка всплытия пароля при обломе перехода в сетевую папку
+		{FSSF_PRIVATE,       NKeyInterface, L"RemoteAutoLogin", OPT_DEF(RemoteAutoLogin, true)},
+		#endif
 		{FSSF_PRIVATE,       NKeyInterface, L"CursorSize1", OPT_DEF(CursorSize[0], 15)},
 		{FSSF_PRIVATE,       NKeyInterface, L"CursorSize2", OPT_DEF(CursorSize[1], 10)},
 		{FSSF_PRIVATE,       NKeyInterface, L"CursorSize3", OPT_DEF(CursorSize[2], 99)},

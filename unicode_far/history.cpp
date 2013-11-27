@@ -51,6 +51,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DlgGuid.hpp"
 #include "scrbuf.hpp"
 #include "plugins.hpp"
+#include "elevation.hpp"
+#include "pathmix.hpp"
 
 History::History(history_type TypeHistory, const string& HistoryName, const BoolOption& EnableSave):
 	m_TypeHistory(TypeHistory),
@@ -494,8 +496,35 @@ history_return_type History::ProcessMenu(string &strStr, GUID* Guid, string *pst
 			if (!HistoryCfgRef()->Get(SelectedRecord, strSelectedRecordName, SelectedRecordType, strSelectedRecordGuid, strSelectedRecordFile, strSelectedRecordData))
 				return HRT_CANCEL;
 
+			#if 1
+			//Maximus: для сетевых ресурсов - танцы с бубном
+			if (Global->Opt->RemoteAutoLogin
+				&& SelectedRecordType != HR_EXTERNAL && SelectedRecordType != HR_EXTERNAL_WAIT // ignore external
+				&& RetCode != HRT_CTRLENTER && ((m_TypeHistory == HISTORYTYPE_FOLDER && strSelectedRecordGuid.empty()) || m_TypeHistory == HISTORYTYPE_VIEW))
+			{
+				size_t DirOffset = 0;
+				PATH_TYPE Type = ParsePath(strSelectedRecordName, &DirOffset);
+				string strCopy = DirOffset ? strSelectedRecordName.substr(0, DirOffset) : strSelectedRecordName.data();
+				if (Type == PATH_REMOTE /*|| Type == PATH_REMOTEUNC*/)
+				{
+					auto DE = std::make_unique<elevation::suppress>();
+					if (os::GetFileAttributes(strSelectedRecordName) == INVALID_FILE_ATTRIBUTES)
+					{
+						FarMacroValue vParams[2]={L"connect",strCopy.data()};
+						OpenMacroInfo info={sizeof(OpenMacroInfo),2,vParams};
+						void* CallResult = nullptr; //we must pass (&CallResult) to avoid memory leak
+						Global->CtrlObject->Plugins->CallPlugin(Global->Opt->KnownIDs.Network.Id, OPEN_FROMMACRO, &info, &CallResult);
+						//CallResult==1 on succeess?
+					}
+				}
+			}
+			//Maximus: поплясали - теперь как обычно
 			if (SelectedRecordType != HR_EXTERNAL && SelectedRecordType != HR_EXTERNAL_WAIT
 				&& RetCode != HRT_CTRLENTER && ((m_TypeHistory == HISTORYTYPE_FOLDER && strSelectedRecordGuid.empty()) || m_TypeHistory == HISTORYTYPE_VIEW) && !os::fs::exists(strSelectedRecordName))
+			#else
+			if (SelectedRecordType != HR_EXTERNAL && SelectedRecordType != HR_EXTERNAL_WAIT
+				&& RetCode != HRT_CTRLENTER && ((m_TypeHistory == HISTORYTYPE_FOLDER && strSelectedRecordGuid.empty()) || m_TypeHistory == HISTORYTYPE_VIEW) && !os::fs::exists(strSelectedRecordName))
+			#endif
 			{
 				SetLastError(ERROR_FILE_NOT_FOUND);
 				Global->CatchError();
