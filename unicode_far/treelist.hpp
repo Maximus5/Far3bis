@@ -125,7 +125,12 @@ private:
 	virtual void KillFocus() override;
 	virtual void UpdateKeyBar() override;
 	virtual int GetCurrentPos() const override;
+	#if 1
+	//Maximus: Отображение владельцев с плагиновых панелей
+	virtual int GetSelName(string *strName, DWORD &FileAttr, string *ShortName = nullptr, os::FAR_FIND_DATA *fd = nullptr, string *strOwner = nullptr) override;
+	#else
 	virtual int GetSelName(string *strName, DWORD &FileAttr, string *ShortName = nullptr, os::FAR_FIND_DATA *fd = nullptr) override;
+	#endif
 	virtual void DisplayObject() override;
 	virtual size_t GetSelCount() const override;
 

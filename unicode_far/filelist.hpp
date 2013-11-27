@@ -244,7 +244,12 @@ public:
 	virtual void GetOpenPanelInfo(OpenPanelInfo *Info) const override;
 	virtual void SetPluginMode(PluginHandle* hPlugin,const string& PluginFile,bool SendOnFocus=false) override;
 	virtual size_t GetSelCount() const override;
+	#if 1
+	//Maximus: отображение владельца с плагиновых панелей
+	virtual int GetSelName(string *strName, DWORD &FileAttr, string *strShortName = nullptr, os::FAR_FIND_DATA *fde = nullptr, string *strOwner = nullptr) override;
+	#else
 	virtual int GetSelName(string *strName, DWORD &FileAttr, string *strShortName = nullptr, os::FAR_FIND_DATA *fde = nullptr) override;
+	#endif
 	virtual void UngetSelName() override;
 	virtual void ClearLastGetSelection() override;
 	virtual unsigned __int64 GetLastSelectedSize() const override;
