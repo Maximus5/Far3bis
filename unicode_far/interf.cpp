@@ -537,8 +537,14 @@ void GetVideoMode(COORD& Size)
 	Console().GetSize(Size);
 	ScrX=Size.X-1;
 	ScrY=Size.Y-1;
+	#ifdef _DEBUG
+	//Maximus: для отладки
+	_ASSERTE(ScrX>0);
+	_ASSERTE(ScrY>0);
+	#else
 	assert(ScrX>0);
 	assert(ScrY>0);
+	#endif
 
 	if (PrevScrX == -1) PrevScrX=ScrX;
 
