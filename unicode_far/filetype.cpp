@@ -400,7 +400,19 @@ intptr_t EditTypeRecordDlgProc(Dialog* Dlg,intptr_t Msg,intptr_t Param1,void* Pa
 
 bool EditTypeRecord(unsigned __int64 EditPos,bool NewRec)
 {
+	#if 1
+	//Maximus: поддержка "узких" дисплеев
+	if (ScrX < 30)
+	{
+		_ASSERTE(ScrX>=30);
+		return false;
+	}
+	const int DlgX=(72<(ScrX+3))?76:(ScrX+3);
+	const int DlgY=23;
+	#else
 	const int DlgX=76,DlgY=23;
+	#endif
+
 	FarDialogItem EditDlgData[]=
 	{
 		{DI_DOUBLEBOX,3, 1,DlgX-4,DlgY-2,0,nullptr,nullptr,0,MSG(MFileAssocTitle)},
