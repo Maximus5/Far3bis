@@ -2716,7 +2716,12 @@ intptr_t WINAPI apiPluginsControl(HANDLE Handle, FAR_PLUGINS_CONTROL_COMMANDS Co
 				{
 					string strPath;
 					ConvertNameToFull(reinterpret_cast<const wchar_t*>(Param2), strPath);
+					#if 1
+					//Maximus5: Manual=true, чтобы показать ошибки загрузки, если таковые будут
+					return reinterpret_cast<intptr_t>(Global->CtrlObject->Plugins->LoadPluginExternal(strPath, Command == PCTL_FORCEDLOADPLUGIN, true));
+					#else
 					return reinterpret_cast<intptr_t>(Global->CtrlObject->Plugins->LoadPluginExternal(strPath, Command == PCTL_FORCEDLOADPLUGIN));
+					#endif
 				}
 			}
 			break;

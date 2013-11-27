@@ -181,6 +181,12 @@ Plugin* PluginManager::AddPlugin(std::unique_ptr<Plugin>&& pPlugin)
 	const auto Result = m_Plugins.emplace(VALUE_TYPE(m_Plugins)(pPlugin->GetGUID(), VALUE_TYPE(m_Plugins)::second_type()));
 	if (!Result.second)
 	{
+		#if 1
+		//Maximus: для отладки
+		// Если попали сюда - значит плагин с таким GUID уже есть в кеше
+		// После возврата false "новая" копия плагина будет выгружена
+		_ASSERTE(FALSE && "Plugin with this GUID is already loaded");
+		#endif
 		pPlugin->Unload(true);
 		return nullptr;
 	}
@@ -228,28 +234,119 @@ bool PluginManager::RemovePlugin(Plugin *pPlugin)
 }
 
 
+#if 1
+//Maximus: диагностика ошибок загрузки
+Plugin* PluginManager::LoadPlugin(const string& FileName, const os::FAR_FIND_DATA &FindData, bool LoadToMem, bool* ShowErrors, bool Manual)
+#else
 Plugin* PluginManager::LoadPlugin(const string& FileName, const os::FAR_FIND_DATA &FindData, bool LoadToMem)
+#endif
 {
+	#if 1
+	//Maximus: не выполнять лишние действия
+	const auto ExistPluginPtr = FindPlugin(FileName);
+	if (ExistPluginPtr)
+	{
+		// Значит плагин почему-то оказался уже загружен
+		// Это может быть, например, если в ключе "/p" указано несколько пересекающихся папок
+		// Или плагин был загружен из другого плагина (AdvCmd2->VisComp)
+		//-- Не будем ругаться, если регистры различаются, а то достало
+		_ASSERTE(("Plugin was already loaded!" && 0) || ExistPluginPtr->GetModuleName()!=FileName);
+		return ExistPluginPtr;
+	}
+	#endif
+
 	std::unique_ptr<Plugin> pPlugin;
 
 	std::any_of(CONST_RANGE(PluginModels, i) { return (pPlugin = i->CreatePlugin(FileName)) != nullptr; });
 
+	#if 1
+	//Maximus: Диагностика загрузки плагина
+	if (!pPlugin && Manual && ShowErrors && *ShowErrors)
+	{
+		#ifdef _DEBUG
+		_ASSERTE(pPlugin!=nullptr);
+		#endif
+		if (Message(MSG_WARNING|MSG_NOPLUGINS, MSG(MError),
+				make_vector<string>(MSG(MPlgUnsupportedError), FileName.c_str()),
+				make_vector<string>(MSG(MOk), MSG(MHSkipErrors)),
+				L"ErrLoadPlugin")==1)
+			*ShowErrors=false;
+	}
+	#endif
+
 	if (pPlugin)
 	{
 		bool Result = false, bDataLoaded = false;
+		#if 1
+		//Maximus: диагностика ошибок загрузки
+		bool bAlwaysLoad = (!Global->Opt->LoadPlug.PluginsCacheOnly || Manual);
+		#endif
 
 		if (!LoadToMem)
 		{
 			Result = pPlugin->LoadFromCache(FindData);
 		}
 
+		#if 1
+		//Maximus: диагностика ошибок загрузки
+		if (!Result && (pPlugin->CheckWorkFlags(PIWF_PRELOADED) || bAlwaysLoad))
+		#else
 		if (!Result && (pPlugin->CheckWorkFlags(PIWF_PRELOADED) || !Global->Opt->LoadPlug.PluginsCacheOnly))
+		#endif
 		{
 			Result = bDataLoaded = pPlugin->LoadData();
 		}
+		#ifdef _DEBUG
+		//Maximus: диагностика ошибок загрузки
+		else if (IsDebuggerPresent())
+		{
+			string strDbgInfo = FileName + L" - skipped, (!bResult && (pPlugin->CheckWorkFlags(PIWF_PRELOADED) || !Global->Opt->LoadPlug.PluginsCacheOnly || Manual))\n";
+			OutputDebugString(strDbgInfo.c_str());
+		}
+		#endif
+
+		//Maximus: Загрузка двух плагинов (разные физические файлы) с одинаковыми GUID недопустима
+		#if 1
+		if (Result)
+		{
+			GUID PluginGuid = pPlugin->GetGUID();
+			if (memcmp(&PluginGuid, &FarGuid, sizeof(PluginGuid)) == 0)
+			{
+				#ifdef _DEBUG
+				_ASSERTE(memcmp(&PluginGuid, &FarGuid, sizeof(PluginGuid))!=0 /*|| Type!=UNICODE_PLUGIN*/);
+				#endif
+			}
+			else
+			{
+				const auto pExist = FindPlugin(PluginGuid);
+				if (pExist)
+				{
+					if (Manual)
+					{
+						Message(MSG_WARNING|MSG_NOPLUGINS, MSG(MError),
+							make_vector<string>(MSG(MPlgDuplacateGuidError), pExist->GetModuleName().c_str(), FileName.c_str()),
+							make_vector<string>(MSG(MOk)),
+							L"ErrLoadPlugin");
+					}
+					#ifdef _DEBUG
+					else if (IsDebuggerPresent())
+					{
+						string strDbgInfo = FileName + L", " + pExist->GetModuleName() + L" - Same guid, unloaded\n";
+						OutputDebugString(strDbgInfo.c_str());
+					}
+					#endif
+					Result = false;
+				}
+			}
+		}
+		#endif
 
 		if (!Result)
 		{
+			#if 1
+			//Maximus: диагностика ошибок загрузки
+			_ASSERTE(FALSE && "LoadPlugin failed");
+			#endif
 			return nullptr;
 		}
 
@@ -257,6 +354,10 @@ Plugin* PluginManager::LoadPlugin(const string& FileName, const os::FAR_FIND_DAT
 
 		if (!PluginPtr)
 		{
+			#if 1
+			//Maximus: Ошибку функция Load() показывает?
+			_ASSERTE(FALSE && "pPlugin->Load() failed");
+			#endif
 			return nullptr;
 		}
 
@@ -271,7 +372,12 @@ Plugin* PluginManager::LoadPlugin(const string& FileName, const os::FAR_FIND_DAT
 	return nullptr;
 }
 
+#if 1
+//Maximus: диагностика ошибок загрузки
+Plugin* PluginManager::LoadPluginExternal(const string& ModuleName, bool LoadToMem, bool Manual)
+#else
 Plugin* PluginManager::LoadPluginExternal(const string& ModuleName, bool LoadToMem)
+#endif
 {
 	auto pPlugin = FindPlugin(ModuleName);
 
@@ -292,7 +398,13 @@ Plugin* PluginManager::LoadPluginExternal(const string& ModuleName, bool LoadToM
 
 		if (os::GetFindDataEx(ModuleName, FindData))
 		{
+			#if 1
+			//Maximus: диагностика ошибок загрузки
+			bool ShowErrors=Manual;
+			pPlugin = LoadPlugin(ModuleName, FindData, LoadToMem, &ShowErrors, Manual);
+			#else
 			pPlugin = LoadPlugin(ModuleName, FindData, LoadToMem);
+			#endif
 		}
 	}
 	return pPlugin;
@@ -496,14 +608,60 @@ void PluginManager::LoadPluginsFromCache()
 {
 	string strModuleName;
 
+	#ifdef _DEBUG
+	//Maximus: Для отладки
+	string strTest;
+	DWORD nInitialCount = 0;
+	OutputDebugString(L"PluginManager::LoadPluginsFromCache.Initial\n");
+	// бывший Global->Db->PlCacheCfg()
+	while (ConfigProvider().PlCacheCfg()->EnumPlugins(nInitialCount, strModuleName))
+	{
+		strTest = str_printf(L"%3i: %s\n", nInitialCount, strModuleName.c_str());
+		OutputDebugString(strTest.c_str());
+		nInitialCount++;
+	}
+	string strPrevModuleName;
+	OutputDebugString(L"PluginManager::LoadPluginsFromCache.Loading\n");
+	#endif
+
+	#if 1
+	//Maximus: отображение ошибок загрузки
+	bool ShowErrors=true;
+	#endif
+
 	for (DWORD i=0; ConfigProvider().PlCacheCfg()->EnumPlugins(i, strModuleName); i++)
 	{
+		#ifdef _DEBUG
+		//Maximus: для отладки
+		strTest = str_printf(L"%3i: %s\n", i, strModuleName.c_str());
+		OutputDebugString(strTest.c_str());
+		_ASSERTE(strPrevModuleName == strModuleName);
+		strPrevModuleName = strModuleName;
+		unsigned __int64 id = ConfigProvider().PlCacheCfg()->GetCacheID(strModuleName);
+		bool bPreload = ConfigProvider().PlCacheCfg()->IsPreload(id);
+		string guid = ConfigProvider().PlCacheCfg()->GetGuid(id);
+		string title = ConfigProvider().PlCacheCfg()->GetTitle(id);
+		_ASSERTE(bPreload || !guid.empty());
+		#endif
+
 		ReplaceSlashToBackslash(strModuleName);
+
+		#ifdef _DEBUG
+		//Maximus: для отладки
+		Plugin *pExist = FindPlugin(strModuleName);
+		// может различаться регистром, в кеше может быть ДВА и более одинаковых элементов
+		_ASSERTE(pExist==nullptr || pExist->GetModuleName()!=strModuleName);
+		#endif
 
 		os::FAR_FIND_DATA FindData;
 
 		if (os::GetFindDataEx(strModuleName, FindData))
+			#if 1
+			//Maximus: отображение ошибок загрузки
+			LoadPlugin(strModuleName, FindData, false, &ShowErrors);
+			#else
 			LoadPlugin(strModuleName, FindData, false);
+			#endif
 	}
 }
 

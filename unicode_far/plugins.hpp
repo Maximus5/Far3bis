@@ -119,7 +119,12 @@ public:
 	int ProcessConsoleInput(ProcessConsoleInputInfo *Info) const;
 	std::vector<Plugin*> GetContentPlugins(const std::vector<const wchar_t*>& ColNames) const;
 	void GetContentData(const std::vector<Plugin*>& Plugins, const string& FilePath, const std::vector<const wchar_t*>& Names, std::vector<const wchar_t*>& Values, std::unordered_map<string,string>& ContentData) const;
+	#if 1
+	//Maximus: отображение ошибок загрузки плагинов
+	Plugin* LoadPluginExternal(const string& lpwszModuleName, bool LoadToMem, bool Manual=false);
+	#else
 	Plugin* LoadPluginExternal(const string& lpwszModuleName, bool LoadToMem);
+	#endif
 	int UnloadPluginExternal(Plugin* hPlugin);
 	bool IsPluginUnloaded(Plugin* pPlugin);
 	void LoadPlugins();
@@ -186,7 +191,12 @@ private:
 
 	void LoadModels();
 	void LoadIfCacheAbsent();
+	#if 1
+	//Maximus: отображение ошибок загрузки плагинов
+	Plugin* LoadPlugin(const string& lpwszModuleName, const os::FAR_FIND_DATA &FindData, bool LoadToMem, bool* ShowErrors=nullptr, bool Manual=false);
+	#else
 	Plugin* LoadPlugin(const string& lpwszModuleName, const os::FAR_FIND_DATA &FindData, bool LoadToMem);
+	#endif
 	Plugin* AddPlugin(std::unique_ptr<Plugin>&& pPlugin);
 	bool RemovePlugin(Plugin *pPlugin);
 	int UnloadPlugin(Plugin *pPlugin, int From);
