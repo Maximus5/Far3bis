@@ -1942,7 +1942,12 @@ void PluginManager::ShowPluginInfo(Plugin *pPlugin, const GUID& Guid)
 			strPluginPrefix = NullToEmpty(Info.CommandPrefix);
 		}
 	}
+	#if 1
+	//Maximus: сделаем пошире, а то совсем куций
+	const int Width = 56;
+	#else
 	const int Width = 36;
+	#endif
 	DialogBuilder Builder(MPluginInformation, L"ShowPluginInfo");
 	Builder.AddText(MPluginModuleTitle);
 	Builder.AddConstEditField(pPlugin->GetTitle(), Width);
