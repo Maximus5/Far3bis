@@ -475,6 +475,21 @@ void Plugin::ExecuteFunction(ExecuteStruct& es, const std::function<void()>& f)
 
 bool Plugin::SaveToCache()
 {
+	#if 1
+	//Maximus: Ќе сохран€ть в кеш, если груз€тс€ плагины только из кеша "/co"!
+	//Maximus: если это вызвать из LoadPluginsFromCache - возникнут коллизии с PlCacheCfg->EnumPlugins
+	if (Global->Opt->LoadPlug.PluginsCacheOnly)
+	{
+		return false;
+	}
+	#ifdef _DEBUG
+	else
+	{
+		_ASSERTE(PluginManager::PlCacheCfgEnum==0);
+	}
+	#endif
+	#endif
+
 	PluginInfo Info = {sizeof(Info)};
 	GetPluginInfo(&Info);
 
