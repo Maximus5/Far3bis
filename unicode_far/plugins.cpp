@@ -1367,6 +1367,15 @@ int PluginManager::ProcessKey(PluginHandle* hPlugin,const INPUT_RECORD *Rec, boo
 
 int PluginManager::ProcessEvent(PluginHandle* hPlugin, int Event, void *Param)
 {
+#if 1
+	//Maximus: Проверка значений
+	if (hPlugin==NULL || hPlugin==INVALID_HANDLE_VALUE || hPlugin==(PluginHandle*)TRUE || hPlugin==(PluginHandle*)-2 || hPlugin->pPlugin==NULL)
+	{
+		_ASSERTE(!(hPlugin==NULL || hPlugin==INVALID_HANDLE_VALUE || hPlugin==(PluginHandle*)TRUE || hPlugin==(PluginHandle*)-2 || hPlugin->pPlugin==NULL));
+		return 0;
+	}
+#endif
+
 	ProcessPanelEventInfo Info = {sizeof(Info)};
 	Info.hPanel = hPlugin->hPlugin;
 	Info.Event = Event;
