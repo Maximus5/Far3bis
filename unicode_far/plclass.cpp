@@ -485,6 +485,21 @@ static string MakeSignature(const os::FAR_FIND_DATA& Data)
 
 bool Plugin::SaveToCache()
 {
+	#if 1
+	//Maximus: Не сохранять в кеш, если грузятся плагины только из кеша "/co"!
+	//Maximus: если это вызвать из LoadPluginsFromCache - возникнут коллизии с PlCacheCfg->EnumPlugins
+	if (Global->Opt->LoadPlug.PluginsCacheOnly)
+	{
+		return false;
+	}
+	#ifdef _DEBUG
+	else
+	{
+		_ASSERTE(PluginManager::PlCacheCfgEnum==0);
+	}
+	#endif
+	#endif
+
 	PluginInfo Info = {sizeof(Info)};
 	GetPluginInfo(&Info);
 

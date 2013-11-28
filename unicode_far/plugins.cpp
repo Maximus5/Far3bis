@@ -613,6 +613,13 @@ void PluginManager::LoadPluginsFromCache()
 {
 	string strModuleName;
 
+	#if 1
+	//Maximus: загрузка с "/co" только "своих" плагинов
+	string strPluginsDir=Global->g_strFarPath+PluginsFolderName+L"\\"; // глюки с /co
+	size_t nMainLen = strPluginsDir.length();
+	//TODO: (Opt.LoadPlug.MainPluginDir || !Opt.LoadPlug.strCustomPluginsPath.IsEmpty() || (Opt.LoadPlug.PluginsPersonal && !Opt.LoadPlug.strPersonalPluginsPath.IsEmpty()))
+	#endif
+
 	#ifdef _DEBUG
 	//Maximus: Для отладки
 	_ASSERTE(PluginManager::PlCacheCfgEnum==0);
@@ -653,6 +660,15 @@ void PluginManager::LoadPluginsFromCache()
 		#endif
 
 		ReplaceSlashToBackslash(strModuleName);
+
+		#if 1
+		//Maximus: загрузка с "/co" только "своих" плагинов
+		if (lstrcmpi(strModuleName.substr(0, nMainLen).c_str(), strPluginsDir.c_str()) == 0)
+			continue; // глюки с /co
+		const wchar_t* ModuleExt=PointToExt(strModuleName);
+		if (!ModuleExt || _wcsicmp(ModuleExt, L".dll")!=0)
+			continue;
+		#endif
 
 		#ifdef _DEBUG
 		//Maximus: для отладки
