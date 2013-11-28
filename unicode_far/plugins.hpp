@@ -219,6 +219,11 @@ private:
 	size_t OemPluginsCount;
 #endif // NO_WRAPPER
 	bool m_PluginsLoaded;
+
+    #ifdef _DEBUG
+    //Maximus: для отлдаки
+    static int PlCacheCfgEnum;
+    #endif
 };
 
 #endif // PLUGINS_HPP_1BFC0299_8B63_4CCD_AC6B_1D48977E7A97

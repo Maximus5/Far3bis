@@ -605,6 +605,11 @@ bool Plugin::LoadData()
 		}
 
 		PrepareModulePath(m_strModuleName);
+		#ifdef _DEBUG
+		//Maximus: для отладки
+		string strDbgMsg = L"FarPluginLoad: " + m_strModuleName + L"\n";
+		OutputDebugString(strDbgMsg.c_str());
+		#endif
 		m_Instance = m_model->Create(m_strModuleName);
 		FarChDir(strCurPath);
 
