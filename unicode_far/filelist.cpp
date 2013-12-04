@@ -678,6 +678,57 @@ void FileList::SortFileList(int KeepPosition)
 
 		hSortPlugin=(m_PanelMode==PLUGIN_PANEL && m_hPlugin && m_hPlugin->pPlugin->has<iCompare>())? m_hPlugin : nullptr;
 
+		#if 1
+		//Maximus: оптимизация колонки C0
+		// Для файловых панелей в режиме сортировки по C0 нужно убедиться, что данные загружены
+		if (m_PanelMode!=PLUGIN_PANEL && m_SortMode==BY_CUSTOMDATA)
+		{
+			//BUGBUG: Same as FileList::ReadFileNames
+			std::vector<const wchar_t*> ContentNames, ContentValues;
+			std::vector<Plugin*> ContentPlugins;
+			{
+				std::unordered_set<string> ColumnsSet;
+				const std::vector<column>* ColumnsContainers[] = { &m_ViewSettings.PanelColumns, &m_ViewSettings.StatusColumns };
+
+				FOR(const auto& Columns, ColumnsContainers)
+				{
+					FOR(const auto& Column, *Columns)
+					{
+						if ((Column.type & 0xff) == CUSTOM_COLUMN0)
+						{
+							if (ColumnsSet.emplace(Column.title).second)
+								ContentNames.emplace_back(Column.title.data());
+						}
+					}
+				}
+
+				if (!ContentNames.empty())
+					ContentPlugins = Global->CtrlObject->Plugins->GetContentPlugins(ContentNames);
+
+				ContentValues.resize(ContentNames.size());
+			}
+
+			if (!ContentPlugins.empty())
+			{
+				string strSaveDir = os::GetCurrentDirectory();
+				os::SetCurrentDirectory(m_CurDir);
+
+				std::for_each(RANGE(m_ListData, i)
+				{
+					if (!i.CustomDataLoaded)
+					{
+						if (!i.ContentData)
+							i.ContentData = std::make_unique<decltype(i.ContentData)::element_type>();
+						Global->CtrlObject->Plugins->GetContentData(ContentPlugins, i.strName, ContentNames, ContentValues, *i.ContentData.get());
+						i.CustomDataLoaded = true;
+					}
+				});
+
+				os::SetCurrentDirectory(strSaveDir);
+			}
+		}
+		#endif
+
 		// ЭТО ЕСТЬ УЗКОЕ МЕСТО ДЛЯ СКОРОСТНЫХ ХАРАКТЕРИСТИК Far Manager
 		// при считывании директории
 
@@ -6844,6 +6895,11 @@ void FileList::ReadFileNames(int KeepSelection, int UpdateEvenIfPanelInvisible, 
 		}
 	}
 
+	#if 1
+	//Maximus: оптимизация колонки C0
+	bool ReadContentData=(!ContentPlugins.empty() && (m_ViewSettings.Flags&PVS_PRELOADC0DATA)) || (m_SortMode==BY_CUSTOMDATA);
+	#endif
+
 	time_check TimeCheck(time_check::delayed, GetRedrawTimeout());
 
 	std::all_of(CONST_RANGE(Find, fdata) -> bool
@@ -6903,8 +6959,17 @@ void FileList::ReadFileNames(int KeepSelection, int UpdateEvenIfPanelInvisible, 
 
 				if (!ContentPlugins.empty())
 				{
+					#if 1
+					//Maximus: оптимизация колонки C0
+					if (ReadContentData) {
+					#endif
 					NewItem.ContentData = std::make_unique<decltype(NewItem.ContentData)::element_type>();
 					Global->CtrlObject->Plugins->GetContentData(ContentPlugins, NewItem.strName, ContentNames, ContentValues, *NewItem.ContentData.get());
+					#if 1
+					//Maximus: оптимизация колонки C0
+					NewItem.CustomDataLoaded = true;
+					}
+					#endif
 				}
 
 				m_ListData.emplace_back(std::move(NewItem));
@@ -8503,6 +8568,37 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 	#endif
 
 	#if 1
+	//Maximus: оптимизация колонки C0
+	bool dirWasChanged = false;
+	string strSaveDir = os::GetCurrentDirectory();
+	//BUGBUG: Same as FileList::ReadFileNames
+	std::vector<const wchar_t*> ContentNames, ContentValues;
+	std::vector<Plugin*> ContentPlugins;
+	{
+		std::unordered_set<string> ColumnsSet;
+		const std::vector<column>* ColumnsContainers[] = { &m_ViewSettings.PanelColumns, &m_ViewSettings.StatusColumns };
+
+		FOR(const auto& ColumnsContainer, ColumnsContainers)
+		{
+			FOR(const auto& Column, *ColumnsContainer)
+			{
+				if ((Column.type & 0xff) == CUSTOM_COLUMN0)
+				{
+					if (ColumnsSet.emplace(Column.title).second)
+						ContentNames.emplace_back(Column.title.data());
+				}
+			}
+		}
+
+		if (!ContentNames.empty())
+		{
+			ContentPlugins = Global->CtrlObject->Plugins->GetContentPlugins(ContentNames);
+			ContentValues.resize(ContentNames.size());
+		}
+	}
+	#endif
+
+	#if 1
 	//Maximus: многострочная статусная область
 	for (int I=m_Y1+1+Global->Opt->ShowColumnTitles,J=m_CurTopFile; I<m_Y2-StatusHeight; I++,J++)
 	#else
@@ -8629,6 +8725,21 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 
 					if (!ColumnData)
 					{
+						#if 1
+						//Maximus: оптимизация колонки C0
+						auto& item = m_ListData[ListPos];
+						if (m_PanelMode!=PLUGIN_PANEL && !item.CustomDataLoaded && !ContentPlugins.empty())
+						{
+							// Требуется установка текущей папки для панели (это может быть пассивная панель)
+							// Хотя, может быть логичнее было бы отдавать полные пути во избежание?
+							if (!dirWasChanged && os::SetCurrentDirectory(m_CurDir))
+								dirWasChanged = true;
+							if (!item.ContentData)
+								item.ContentData = std::make_unique<decltype(item.ContentData)::element_type>();
+							Global->CtrlObject->Plugins->GetContentData(ContentPlugins, item.strName, ContentNames, ContentValues, *item.ContentData.get());
+							item.CustomDataLoaded = true;
+						}
+						#endif
 						const auto& ContentMapPtr = m_ListData[ListPos].ContentData;
 						if (ContentMapPtr)
 						{
@@ -9176,6 +9287,12 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 			Global->FS << fmt::MinWidth(m_X2-WhereX())<<L"";
 		}
 	}
+
+	#if 1
+	//Maximus: оптимизация колонки C0
+	if (dirWasChanged)
+		os::SetCurrentDirectory(strSaveDir);
+	#endif
 
 	#if 1
 	//Maximus: Последний видимый на панели элемент (при последней отрисовке панели), для возврата координат в API

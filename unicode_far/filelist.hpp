@@ -76,6 +76,11 @@ namespace detail
 		int PosX, PosY;
 		#endif
 
+	 	#if 1
+		//Maximus: оптимизация колонки C0
+		bool CustomDataLoaded;
+		#endif
+
 		int SortGroup;
 		DWORD CRC32;
 

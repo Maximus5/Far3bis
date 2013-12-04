@@ -2767,6 +2767,22 @@ PluginHandle* PluginManager::Open(Plugin *pPlugin,int OpenFrom,const GUID& Guid,
 	return nullptr;
 }
 
+#if 0
+//Maximus: оптимизация колонки C0
+bool PluginManager::HasGetContentData()
+{
+	bool result = false;
+
+	std::for_each(CONST_RANGE(SortedPlugins, i)
+	{
+		if (i->HasGetContentData())
+			result = true;
+	});
+
+	return result;
+}
+#endif
+
 std::vector<Plugin*> PluginManager::GetContentPlugins(const std::vector<const wchar_t*>& ColNames) const
 {
 	const GetContentFieldsInfo Info = { sizeof(GetContentFieldsInfo), ColNames.size(), ColNames.data() };
