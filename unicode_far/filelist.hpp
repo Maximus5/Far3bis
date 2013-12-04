@@ -71,6 +71,11 @@ namespace detail
 		size_t CustomColumnNumber;
 		size_t Position;
 
+		#if 1
+		//Maximus: координаты последней отрисовки
+		int PosX, PosY;
+		#endif
+
 		int SortGroup;
 		DWORD CRC32;
 
@@ -273,6 +278,10 @@ public:
 	size_t PluginGetPanelItem(int ItemNumber,FarGetPluginPanelItem *Item);
 	size_t PluginGetSelectedPanelItem(int ItemNumber,FarGetPluginPanelItem *Item);
 	void PluginGetColumnTypesAndWidths(string& strColumnTypes,string& strColumnWidths);
+	#if 1
+	//Maximus: FCTL_GETPANELITEMINFO
+	size_t PluginGetPanelItemInfo(int ItemNumber,FarGetPluginPanelItemInfo *Item);
+	#endif
 	void PluginBeginSelection();
 	void PluginSetSelection(int ItemNumber,bool Selection);
 	void PluginClearSelection(int SelectedItemNumber);

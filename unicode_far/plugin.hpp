@@ -800,6 +800,17 @@ struct SortingPanelItem
 	unsigned __int64 StreamsSize;
 };
 
+#if 1
+//Maximus: FCTL_GETPANELITEMINFO
+struct FarGetPluginPanelItemInfo
+{
+	size_t StructSize;
+	struct FarColor Color; // Current element color
+    int    PosX; // 1-based, relative to Far workspace, 0 means 'not visible now'
+    int    PosY; // 1-based, relative to Far workspace, 0 means 'not visible now'
+};
+#endif
+
 typedef unsigned __int64 PANELINFOFLAGS;
 static const PANELINFOFLAGS
 	PFLAGS_SHOWHIDDEN         = 0x0000000000000001ULL,
@@ -931,6 +942,11 @@ enum FILE_CONTROL_COMMANDS
 	FCTL_SETCASESENSITIVESORT       = 33,
 	FCTL_GETPANELPREFIX             = 34,
 	FCTL_SETACTIVEPANEL             = 35,
+
+	#if 1
+	//Maximus5
+	FCTL_GETPANELITEMINFO           = 1001,
+	#endif
 };
 
 typedef void (WINAPI *FARAPITEXT)(
