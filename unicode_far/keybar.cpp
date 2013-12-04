@@ -72,17 +72,36 @@ void KeyBar::DisplayObject()
 {
 	GotoXY(m_X1,m_Y1);
 	AltState=CtrlState=ShiftState=0;
+#if 1
+	//Maximus: на таблетках лучше бы все кнопки показать, для пальцетыканья
+	int KeyWidth=(m_X2-m_X1+2)/12;
+#else
 	int KeyWidth=(m_X2-m_X1-1)/12;
+#endif
 
+#if 1
+	//Maximus: на таблетках лучше бы все кнопки показать, для пальцетыканья
+	if (KeyWidth<3)
+		KeyWidth=3;
+#else
 	if (KeyWidth<8)
 		KeyWidth=8;
+#endif
 
 	int LabelWidth=KeyWidth-2;
 
 	for (size_t i=0; i<KEY_COUNT; i++)
 	{
+		#if 1
+		//Maximus: на таблетках лучше бы все кнопки показать, для пальцетыканья
+		if (WhereX()+2>m_X2)
+			break;
+		else if ((i+1)==KEY_COUNT)
+			LabelWidth=m_X2-WhereX()-1;
+		#else
 		if (WhereX()+LabelWidth>=m_X2)
 			break;
+		#endif
 
 		SetColor(COL_KEYBARNUM);
 		Global->FS << i+1;
@@ -313,10 +332,21 @@ int KeyBar::ProcessMouse(const MOUSE_EVENT_RECORD *MouseEvent)
 	        MouseEvent->dwMousePosition.Y!=m_Y1)
 		return FALSE;
 
+#if 1
+	//Maximus: на таблетках лучше бы все кнопки показать, для пальцетыканья
+	int KeyWidth=(m_X2-m_X1+2)/12;
+#else
 	int KeyWidth=(m_X2-m_X1-1)/12;
+#endif
 
+#if 1
+	//Maximus: на таблетках лучше бы все кнопки показать, для пальцетыканья
+	if (KeyWidth<3)
+		KeyWidth=3;
+#else
 	if (KeyWidth<8)
 		KeyWidth=8;
+#endif
 
 	int X=MouseEvent->dwMousePosition.X-m_X1;
 
