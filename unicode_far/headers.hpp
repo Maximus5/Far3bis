@@ -202,6 +202,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     #undef _ASSERTE
 	#define _ASSERTE(x)  MY_ASSERT_EXPR((x), _CRT_WIDE(#x))
 #else
+	#undef _ASSERTE
 	#define _ASSERTE(x)
 #endif
 
