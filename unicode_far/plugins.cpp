@@ -2252,7 +2252,22 @@ int PluginManager::UseFarCommand(PluginHandle* hPlugin,int CommandType)
 
 void PluginManager::ReloadLanguage()
 {
+	#ifdef _DEBUG
+	std::for_each(CONST_RANGE(SortedPlugins, i)
+	{
+		//Maximus: для отладки
+		// Если плагин еще не загружен - не будем закрывать LangData
+		// в принципе, это не очень хорошо, поскольку останутся старые (на старом языке)
+		// кешированные строки для меню плагинов, конфигураций и т.п.
+		// Но для отладки - самое то, не будем требовать загрузку всех подряд плагинов
+		if (i->m_Instance != NULL)
+		{
+			i->CloseLang();
+		}
+	});
+	#else
 	std::for_each(ALL_CONST_RANGE(SortedPlugins), std::mem_fn(&Plugin::CloseLang));
+	#endif
 	ConfigProvider().PlCacheCfg()->DiscardCache();
 }
 
