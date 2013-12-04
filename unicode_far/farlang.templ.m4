@@ -19702,6 +19702,17 @@ MEditPanelModeUpperToLowerCase
 "Zobraziť veľké znaky v názvoch súborov ako &malé písmená"
 "Mostra Nomi Files MAIUSCOLO In minuscol&o"
 
+MEditPanelModePreloadC0Data
+"Загружать данные в колонку C&0 для всех файлов"
+"Preload C&0 data for all files"
+upd:"Preload C&0 data for all files"
+upd:"Preload C&0 data for all files"
+upd:"Preload C&0 data for all files"
+upd:"Preload C&0 data for all files"
+upd:"Preload C&0 data for all files"
+upd:"Preload C&0 data for all files"
+upd:"Preload C&0 data for all files"
+
 MEditPanelReadHelp
 " Нажмите F1, чтобы получить информацию по настройке "
 " Read online help for instructions "

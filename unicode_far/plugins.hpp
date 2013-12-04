@@ -117,6 +117,11 @@ public:
 	int ProcessConsoleInput(ProcessConsoleInputInfo *Info) const;
 	std::vector<Plugin*> GetContentPlugins(const std::vector<const wchar_t*>& ColNames) const;
 	void GetContentData(const std::vector<Plugin*>& Plugins, const string& FilePath, const std::vector<const wchar_t*>& Names, std::vector<const wchar_t*>& Values, std::unordered_map<string,string>& ContentData) const;
+	#if 0
+	//Maximus: оптимизация колонки C0
+	bool HasGetContentData();
+	#endif
+
 	#if 1
 	//Maximus: отображение ошибок загрузки плагинов
 	Plugin* LoadPluginExternal(const string& lpwszModuleName, bool LoadToMem, bool Manual=false);

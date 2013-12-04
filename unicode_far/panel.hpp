@@ -97,6 +97,10 @@ enum
 	PVS_FOLDERUPPERCASE       = 0x00000008,
 	PVS_FILELOWERCASE         = 0x00000010,
 	PVS_FILEUPPERTOLOWERCASE  = 0x00000020,
+	#if 1
+	//Maximus: оптимизация колонки C0
+	PVS_PRELOADC0DATA         = 0x00000040,
+	#endif
 };
 
 enum
@@ -312,6 +316,10 @@ public:
 	virtual void DisplayObject() override {}
 	virtual Viewer* GetViewer(void) {return nullptr;}
 	virtual Viewer* GetById(int ID) {(void)ID; return nullptr;}
+	#if 0
+	//Maximus: оптимизация колонки C0
+	virtual void ClearCustomData() {};
+	#endif
 
 	static void exclude_sets(string& mask);
 
