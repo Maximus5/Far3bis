@@ -1121,6 +1121,10 @@ void Options::SetFilePanelModes()
 			MD_CHECKBOX_FOLDERUPPERCASE,
 			MD_CHECKBOX_FILESLOWERCASE,
 			MD_CHECKBOX_UPPERTOLOWERCASE,
+			#if 1
+			//Maximus: оптимизация колонки C0
+			MD_CHECKBOX_PRELOADC0DATA,
+			#endif
 			MD_SEPARATOR2,
 			MD_BUTTON_OK,
 			MD_BUTTON_RESET,
@@ -1128,7 +1132,12 @@ void Options::SetFilePanelModes()
 		} ;
 		FarDialogItem ModeDlgData[]=
 		{
+			#if 1
+			//Maximus: оптимизация колонки C0
+			{DI_DOUBLEBOX, 3, 1,72,18,0,nullptr,nullptr,0,AddNewMode? nullptr : ModeListMenu[CurMode].Name},
+			#else
 			{DI_DOUBLEBOX, 3, 1,72,17,0,nullptr,nullptr,0,AddNewMode? nullptr : ModeListMenu[CurMode].Name},
+			#endif
 			{DI_TEXT,      5, 2, 0, 2,0,nullptr,nullptr,0,MSG(MEditPanelModeName)},
 			{DI_EDIT,      5, 3,70, 3,0,nullptr,nullptr,DIF_FOCUS,L""},
 			{DI_TEXT,      5, 4, 0, 4,0,nullptr,nullptr,0,MSG(MEditPanelModeTypes)},
@@ -1146,10 +1155,19 @@ void Options::SetFilePanelModes()
 			{DI_CHECKBOX,  5,12, 0,12,0,nullptr,nullptr,0,MSG(MEditPanelModeFoldersUpperCase)},
 			{DI_CHECKBOX,  5,13, 0,13,0,nullptr,nullptr,0,MSG(MEditPanelModeFilesLowerCase)},
 			{DI_CHECKBOX,  5,14, 0,14,0,nullptr,nullptr,0,MSG(MEditPanelModeUpperToLowerCase)},
+			#if 1
+			//Maximus: оптимизация колонки C0
+			{DI_CHECKBOX,  5,15, 0,13,0,nullptr,nullptr,0,MSG(MEditPanelModePreloadC0Data)},
+			{DI_TEXT,     -1,16, 0,15,0,nullptr,nullptr,DIF_SEPARATOR,L""},
+			{DI_BUTTON,    0,17, 0,16,0,nullptr,nullptr,DIF_DEFAULTBUTTON|DIF_CENTERGROUP,MSG(MOk)},
+			{DI_BUTTON,    0,17, 0,16,0,nullptr,nullptr,DIF_CENTERGROUP|(ModeNumber < (int)predefined_panel_modes_count? 0 : DIF_DISABLE),MSG(MReset)},
+			{DI_BUTTON,    0,17, 0,16,0,nullptr,nullptr,DIF_CENTERGROUP,MSG(MCancel)},
+			#else
 			{DI_TEXT,     -1,15, 0,15,0,nullptr,nullptr,DIF_SEPARATOR,L""},
 			{DI_BUTTON,    0,16, 0,16,0,nullptr,nullptr,DIF_DEFAULTBUTTON|DIF_CENTERGROUP,MSG(MOk)},
 			{DI_BUTTON,    0,16, 0,16,0,nullptr,nullptr,DIF_CENTERGROUP|(ModeNumber < (int)predefined_panel_modes_count? 0 : DIF_DISABLE),MSG(MReset)},
 			{DI_BUTTON,    0,16, 0,16,0,nullptr,nullptr,DIF_CENTERGROUP,MSG(MCancel)},
+			#endif
 		};
 		auto ModeDlg = MakeDialogItemsEx(ModeDlgData);
 		int ExitCode;
@@ -1165,6 +1183,10 @@ void Options::SetFilePanelModes()
 			ModeDlg[MD_CHECKBOX_FOLDERUPPERCASE].Selected = (CurrentSettings.Flags & PVS_FOLDERUPPERCASE) != 0;
 			ModeDlg[MD_CHECKBOX_FILESLOWERCASE].Selected = (CurrentSettings.Flags & PVS_FILELOWERCASE) != 0;
 			ModeDlg[MD_CHECKBOX_UPPERTOLOWERCASE].Selected = (CurrentSettings.Flags & PVS_FILEUPPERTOLOWERCASE) != 0;
+			#if 1
+			//Maximus: оптимизация колонки C0
+			ModeDlg[MD_CHECKBOX_PRELOADC0DATA].Selected=(CurrentSettings.Flags & PVS_PRELOADC0DATA)?1:0;
+			#endif
 			ModeDlg[MD_EDITNAME].strData = CurrentSettings.Name;
 			ViewSettingsToText(CurrentSettings.PanelColumns, ModeDlg[MD_EDITTYPES].strData, ModeDlg[MD_EDITWIDTHS].strData);
 			ViewSettingsToText(CurrentSettings.StatusColumns, ModeDlg[MD_EDITSTATUSTYPES].strData, ModeDlg[MD_EDITSTATUSWIDTHS].strData);
@@ -1172,7 +1194,12 @@ void Options::SetFilePanelModes()
 
 		{
 			auto Dlg = Dialog::create(ModeDlg);
+			#if 1
+			//Maximus: оптимизация колонки C0
+			Dlg->SetPosition(-1,-1,76,20);
+			#else
 			Dlg->SetPosition(-1,-1,76,19);
+			#endif
 			Dlg->SetHelp(L"PanelViewModes");
 			Dlg->SetId(PanelViewModesEditId);
 			Dlg->Process();
@@ -1197,6 +1224,11 @@ void Options::SetFilePanelModes()
 					NewSettings.Flags|=PVS_FILELOWERCASE;
 				if (ModeDlg[MD_CHECKBOX_UPPERTOLOWERCASE].Selected)
 					NewSettings.Flags|=PVS_FILEUPPERTOLOWERCASE;
+				#if 1
+				//Maximus: оптимизация колонки C0
+				if (ModeDlg[MD_CHECKBOX_PRELOADC0DATA].Selected)
+					NewSettings.Flags|=PVS_PRELOADC0DATA;
+				#endif
 				NewSettings.Name = ModeDlg[MD_EDITNAME].strData;
 				TextToViewSettings(ModeDlg[MD_EDITTYPES].strData, ModeDlg[MD_EDITWIDTHS].strData, NewSettings.PanelColumns);
 				TextToViewSettings(ModeDlg[MD_EDITSTATUSTYPES].strData, ModeDlg[MD_EDITSTATUSWIDTHS].strData, NewSettings.StatusColumns);

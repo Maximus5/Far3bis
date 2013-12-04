@@ -82,6 +82,19 @@ struct FileListItem: noncopyable
 	std::unordered_map<string,string> ContentData;
 
 	#if 1
+	//Maximus: оптимизация колонки C0
+	bool CustomDataLoaded;
+
+	#if 0
+	void ClearCustomData()
+	{
+		strCustomData.clear();
+		CustomDataLoaded = false;
+	}
+	#endif
+	#endif
+
+	#if 1
 	//Maximus: координаты последней отрисовки
 	int PosX, PosY;
 	#endif
@@ -112,6 +125,10 @@ struct FileListItem: noncopyable
 		AllocationSize(),
 		StreamsSize(),
 		ReparseTag()
+		#if 1
+		//Maximus: оптимизация колонки C0
+		,CustomDataLoaded()
+		#endif
 		#if 1
 		//Maximus: координаты последней отрисовки
 		, PosX(), PosY()
@@ -146,6 +163,10 @@ struct FileListItem: noncopyable
 		AllocationSize(),
 		StreamsSize(),
 		ReparseTag()
+		#if 1
+		//Maximus: оптимизация колонки C0
+		,CustomDataLoaded()
+		#endif
 		#if 1
 		//Maximus: координаты последней отрисовки
 		, PosX(), PosY()
@@ -191,6 +212,10 @@ struct FileListItem: noncopyable
 		strShortName.swap(rhs.strShortName);
 		swap(ReparseTag, rhs.ReparseTag);
 		ContentData.swap(rhs.ContentData);
+		#if 1
+		//Maximus: оптимизация колонки C0
+		std::swap(CustomDataLoaded, rhs.CustomDataLoaded);
+		#endif
 		#if 1
 		//Maximus: координаты последней отрисовки
 		std::swap(PosX, rhs.PosX);
@@ -372,6 +397,10 @@ public:
 	#if 1
 	//Maximus: многострочная статусная строка
 	virtual int GetPanelStatusHeight();
+	#endif
+	#if 0
+	//Maximus: оптимизация колонки C0
+	virtual void ClearCustomData() override;
 	#endif
 
 	static size_t FileListToPluginItem2(FileListItem *fi,FarGetPluginPanelItem *pi);
