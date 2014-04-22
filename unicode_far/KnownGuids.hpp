@@ -1,10 +1,11 @@
-/*
-initguid.cpp
+#pragma once
 
-Init GUID's
+/*
+KnownGuids.hpp
+
 */
 /*
-Copyright © 2011 Far Group
+Copyright © 2010 Far Group
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,9 +31,13 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <initguid.h>
-
-#include "headers.hpp"
-#include "FarGuid.hpp"
-#include "DlgGuid.hpp"
-#include "KnownGuids.hpp"
+// {773B5051-7C5F-4920-A201-68051C4176A4}
+DEFINE_GUID(NetworkGuid, 0x773b5051, 0x7c5f, 0x4920, 0xa2, 0x1, 0x68, 0x5, 0x1c, 0x41, 0x76, 0xa4);
+// {742910F1-02ED-4542-851F-DEE37C2E13B2}
+DEFINE_GUID(EMenuGuid, 0x742910f1, 0x2ed, 0x4542, 0x85, 0x1f, 0xde, 0xe3, 0x7c, 0x2e, 0x13, 0xb2);
+// {65642111-AA69-4B84-B4B8-9249579EC4FA}
+DEFINE_GUID(ArcliteGuid, 0x65642111, 0xaa69, 0x4b84, 0xb4, 0xb8, 0x92, 0x49, 0x57, 0x9e, 0xc4, 0xfa);
+// {4EBBEFC8-2084-4B7F-94C0-692CE136894D}
+DEFINE_GUID(LuamacroGuid, 0x4ebbefc8, 0x2084, 0x4b7f, 0x94, 0xc0, 0x69, 0x2c, 0xe1, 0x36, 0x89, 0x4d);
+// {42E4AEB1-A230-44F4-B33C-F195BB654931}
+DEFINE_GUID(NetBoxGuid, 0x42e4aeb1, 0xa230, 0x44f4, 0xb3, 0x3c, 0xf1, 0x95, 0xbb, 0x65, 0x49, 0x31);
