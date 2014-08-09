@@ -1,13 +1,12 @@
 #pragma once
 
 /*
-rdrwdsk.hpp
+desktop.hpp
 
-class RedrawDesktop
+
 */
 /*
-Copyright © 1996 Eugene Roshal
-Copyright © 2000 Far Group
+Copyright © 2014 Far Group
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,14 +32,25 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-class RedrawDesktop: NonCopyable
+#include "frame.hpp"
+
+class desktop: public Frame
 {
 public:
-	RedrawDesktop(BOOL IsHidden=FALSE);
-	~RedrawDesktop();
+	desktop();
+	virtual ~desktop();
+
+	virtual int GetType() const override { return MODALTYPE_DESKTOP; }
+	virtual int GetTypeAndName(string& Type, string& Name) override { Type = GetTitle();  return GetType(); }
+	virtual void ResizeConsole() override;
+	virtual int ProcessKey(const Manager::Key& Key) override;
+
+	void FillFromBuffer();
+	void FillFromConsole();
 
 private:
-	int LeftVisible;
-	int RightVisible;
-	bool ClockVisible;
+	virtual string GetTitle() const override { return L"Desktop"; }
+	virtual void DisplayObject() override;
+
+	std::unique_ptr<SaveScreen> m_Background;
 };
