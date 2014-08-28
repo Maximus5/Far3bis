@@ -353,6 +353,10 @@ public:
 	void SetFullScreen() { m_ViewSettings.Flags |= PVS_FULLSCREEN; }
 	bool CreateFullPathName(const string& Name, const string& ShortName, DWORD FileAttr, string &strDest, int UNC, int ShortNameAsIs = TRUE) const;
 
+	#if 1
+	//Maximus: многострочная статусная область
+	virtual int GetPanelStatusHeight() { return 0; };
+	#endif
 
 	static void EndDrag();
 

@@ -54,6 +54,10 @@ enum PANEL_COLUMN_TYPE
 	STREAMSSIZE_COLUMN,
 	EXTENSION_COLUMN,
 	CUSTOM_COLUMN0,
+	#if 1
+	//Maximus: многострочная статусная область
+	LINEBREAK_COLUMN,
+	#endif
 
 	COLUMN_TYPES_COUNT
 };
