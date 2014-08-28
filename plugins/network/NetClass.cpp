@@ -17,8 +17,9 @@ BOOL SavedCommonRootResources = FALSE;
 #define _HAS_EXCEPTIONS 0
 #include <vector>
 std::vector<wchar_t*> *gsConnectedResources=nullptr;
-void __CLRCALL_PURE_OR_CDECL std::_Xlength_error(_In_z_ const char *) {};
-void __cdecl _invoke_watson(_In_opt_z_ const wchar_t *, _In_opt_z_ const wchar_t *, _In_opt_z_ const wchar_t *, unsigned int, uintptr_t) {};
+//Maximus: Далее объявлены пустышки, без которых некоторые версии VC не хотят линковать
+//void __CLRCALL_PURE_OR_CDECL std::_Xlength_error(_In_z_ const char *) {};
+//void __cdecl _invoke_watson(_In_opt_z_ const wchar_t *, _In_opt_z_ const wchar_t *, _In_opt_z_ const wchar_t *, unsigned int, uintptr_t) {};
 void (__cdecl* std::_Raise_handler)(class stdext::exception const &) = nullptr;
 #endif
 
