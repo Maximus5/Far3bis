@@ -365,6 +365,10 @@ public:
 	void PluginEndSelection();
 	int PluginPanelHelp(const PluginHandle* hPlugin) const;
 	void ResetLastUpdateTime() {LastUpdateTime = 0;}
+	#if 1
+	//Maximus: многострочная статусная строка
+	virtual int GetPanelStatusHeight();
+	#endif
 
 	static size_t FileListToPluginItem2(const FileListItem& fi,FarGetPluginPanelItem* pi);
 	static int FileNameToPluginItem(const string& Name,PluginPanelItem& pi);

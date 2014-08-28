@@ -76,9 +76,14 @@ ColumnInfo[] =
 	{ STREAMSSIZE_COLUMN, 6, L"G" },
 	{ EXTENSION_COLUMN, 0, L"X", },
 	{ CUSTOM_COLUMN0, 0, L"C0" },
+	#if 1
+	//Maximus: многострочная статусная область
+	{ LINEBREAK_COLUMN, 0, L"B" },
+	#endif
 };
 
 static_assert(ARRAYSIZE(ColumnInfo) == COLUMN_TYPES_COUNT, "wrong size of ColumnInfo array");
+
 
 void ShellUpdatePanels(Panel *SrcPanel,BOOL NeedSetUpADir)
 {
@@ -426,6 +431,32 @@ void TextToViewSettings(const string& ColumnTitles,const string& ColumnWidths, s
 			Columns.back().title = strArgOrig.substr(1, strArgOrig.size() - 2);
 			Columns.back().type = CUSTOM_COLUMN0;
 		}
+		#if 1
+		//Maximus: многострочная статусная область
+		else if (strArgName.front() == L'B')
+		{
+			unsigned __int64 &ColumnType = Columns.back().type;
+			ColumnType = LINEBREAK_COLUMN;
+			const wchar_t *Ptr = strArgName.c_str()+1;
+
+			while (*Ptr)
+			{
+				switch (*Ptr)
+				{
+				case L'R':
+					if (!(ColumnType & COLUMN_CENTERALIGN))
+						ColumnType|=COLUMN_RIGHTALIGN;
+					break;
+				case L'C':
+					if (!(ColumnType & COLUMN_RIGHTALIGN))
+						ColumnType|=COLUMN_CENTERALIGN;
+					break;
+				}
+
+				Ptr++;
+			}
+		}
+		#endif
 		else
 		{
 			const auto ItemIterator = std::find_if(CONST_RANGE(ColumnInfo, i) { return strArgName == i.Symbol; });
@@ -562,6 +593,17 @@ void ViewSettingsToText(const std::vector<column>& Columns, string &strColumnTit
 		{
 			strType = L"<" + i.title + L">";
 		}
+
+		#if 1
+		//Maximus: многострочная статусная область
+		if (ColumnType==LINEBREAK_COLUMN)
+		{
+			if (i.type & COLUMN_CENTERALIGN)
+				strType += L"C";
+			else if (i.type & COLUMN_RIGHTALIGN)
+				strType += L"R";
+		}
+		#endif
 
 		strColumnTitles += strType;
 
