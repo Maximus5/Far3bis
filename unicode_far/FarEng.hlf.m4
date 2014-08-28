@@ -3971,6 +3971,15 @@ characters, delimited with commas. Allowed column types are:
 
     F          - number of streams
 
+    B[C,R]     - ^<wrap>(only for status line) fictive column,
+means column break, so, you can set up multiline status area;
+you must specify column width (even if 0) must be specified.
+                 You may supply one of align modificators,
+                 where: C - ^<wrap>center align, leading and trailing spaces will be omitted;
+                        R - right align;
+                 ^<wrap>You may supply B column as first column
+for aligning first status line.
+
     If the column types description contains more than one file name column,
 the file panel will be displayed in multicolumn form.
 
