@@ -2477,7 +2477,6 @@ int PluginManager::CallPlugin(const GUID& SysID,int OpenFrom, void *Data,void **
 
 			if (Ret)
 			{
-				_ASSERTE(OpenFrom == OPEN_FROMMACRO);
 				auto handle = reinterpret_cast<PluginHandle*>(hNewPlugin);
 				if (OpenFrom == OPEN_FROMMACRO && process)
 					*Ret = ToPtr(1);
