@@ -1,7 +1,5 @@
-#pragma once
-
 /*
-RefreshFrameManager.hpp
+RefreshWindowManager.cpp
 
 Класс для решрешки
 */
@@ -33,23 +31,43 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-class SaveScreen;
+#include "headers.hpp"
+#pragma hdrstop
 
-class UndoGlobalSaveScrPtr: NonCopyable
+#include "lockscrn.hpp"
+#include "window.hpp"
+#include "manager.hpp"
+#include "savescr.hpp"
+#include "refreshwindowmanager.hpp"
+#include "interf.hpp"
+
+UndoGlobalSaveScrPtr::UndoGlobalSaveScrPtr(SaveScreen *SaveScr)
 {
-public:
-	UndoGlobalSaveScrPtr(SaveScreen *SaveScr);
-	~UndoGlobalSaveScrPtr();
-};
+	Global->GlobalSaveScrPtr=SaveScr;
+}
 
-class RefreshFrameManager: NonCopyable
+UndoGlobalSaveScrPtr::~UndoGlobalSaveScrPtr()
 {
-public:
-	RefreshFrameManager(int OScrX,int OScrY, int MsgWaitTime, BOOL DontRedrawFrame=FALSE);
-	~RefreshFrameManager();
+	Global->GlobalSaveScrPtr=nullptr;
+}
 
-private:
-	int OScrX,OScrY;
-	long MsgWaitTime;
-	BOOL DontRedrawFrame;
-};
+
+RefreshWindowManager::RefreshWindowManager(int OScrX,int OScrY, int MsgWaitTime, BOOL DontRedrawWindow):
+	OScrX(OScrX),
+	OScrY(OScrY),
+	MsgWaitTime(MsgWaitTime),
+	m_DontRedrawWindow(DontRedrawWindow)
+{
+}
+
+RefreshWindowManager::~RefreshWindowManager()
+{
+	if (m_DontRedrawWindow || !Global->WindowManager->ManagerStarted())
+		return;
+	else if (OScrX != ScrX || OScrY != ScrY || MsgWaitTime!=-1)
+	{
+		LockScreen LckScr;
+		Global->WindowManager->ResizeAllWindows();
+		Global->WindowManager->GetCurrentWindow()->Show();
+	}
+}

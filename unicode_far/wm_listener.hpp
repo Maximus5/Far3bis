@@ -1,11 +1,11 @@
 #pragma once
-
 /*
-notification.hpp
+wm_listener.hpp
 
+Обработка оконных сообщений
 */
 /*
-Copyright © 2013 Far Group
+Copyright © 2010 Far Group
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,64 +33,21 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "synchro.hpp"
 
-class payload
+class notifier;
+
+class wm_listener: NonCopyable
 {
 public:
-	virtual ~payload() {}
-};
-
-class notification;
-
-class listener: NonCopyable
-{
-public:
-	listener(const string& id, const std::function<void()>& function);
-	listener(const std::function<void(const payload&)>& function, const string& id);
-	~listener();
-
-	void callback(const payload& p) { m_ex_function? m_ex_function(p) : m_function(); }
+	wm_listener(notifier* owner);
+	~wm_listener();
+	void Check();
 
 private:
-	notification& m_notification;
-	std::function<void()> m_function;
-	std::function<void(const payload&)> m_ex_function;
+	void WindowThreadRoutine();
+
+	notifier* m_Owner;
+	Thread m_Thread;
+	HWND m_Hwnd;
+
+	Event m_exitEvent;
 };
-
-class notification: NonCopyable
-{
-public:
-	notification(const string& name): m_name(name) {}
-	~notification() {}
-
-	void notify(std::unique_ptr<const payload>&& p);
-	void dispatch();
-	void subscribe(listener* l) { m_listeners.emplace_back(l); }
-	void unsubscribe(listener* l) { m_listeners.remove(l); }
-	const string& name() const { return m_name; }
-
-private:
-	string m_name;
-	std::list<listener*> m_listeners;
-	SyncedQueue<std::unique_ptr<const payload>> m_events;
-};
-
-class wm_listener;
-
-class notifier: NonCopyable
-{
-public:
-	notification& at(const string& key) { return *m_notifications.at(key).get(); }
-
-	void dispatch();
-	void add(std::unique_ptr<notification>&& i);
-
-private:
-	friend notifier& Notifier();
-
-	notifier();
-
-	std::map<string, std::unique_ptr<notification>> m_notifications;
-	std::unique_ptr<wm_listener> m_Window;
-};
-
-notifier& Notifier();

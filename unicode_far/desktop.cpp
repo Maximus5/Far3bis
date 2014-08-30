@@ -80,7 +80,7 @@ int desktop::ProcessKey(const Manager::Key& Key)
 		return TRUE;
 
 	case KEY_F10:
-		Global->FrameManager->ExitMainLoop(TRUE);
+		Global->WindowManager->ExitMainLoop(TRUE);
 		return TRUE;
 	}
 	return FALSE;
