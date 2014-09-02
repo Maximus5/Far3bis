@@ -1532,19 +1532,52 @@ void PluginManager::Configure(int StartPos)
 
 					for (size_t J=0; ; J++)
 					{
+						//Maximus: Расширенное меню плагинов
+						bool bNext=false;
+
 						if (bCached)
 						{
+							#if 1
+							//Maximus: Расширенное меню плагинов
+							bNext = !ConfigProvider().PlCacheCfg()->GetPluginsConfigMenuItem(id, J, strName, guid);
+							#else
 							if (!ConfigProvider().PlCacheCfg()->GetPluginsConfigMenuItem(id, J, strName, guid))
 								break;
+							#endif
 						}
 						else
 						{
+							#if 1
+							//Maximus: Расширенное меню плагинов
+							bNext = (J >= Info.PluginConfig.Count);
+
+							if (!bNext)
+							{
+								strName = NullToEmpty(Info.PluginConfig.Strings[J]);
+								guid = Info.PluginConfig.Guids[J];
+							}
+							#else
 							if (J >= Info.PluginConfig.Count)
 								break;
 
 							strName = NullToEmpty(Info.PluginConfig.Strings[J]);
 							guid = Info.PluginConfig.Guids[J];
+							#endif
 						}
+
+						#if 1
+						//Maximus: Расширенное меню плагинов
+						if (bNext)
+						{
+							if (J)
+								break;
+							// плагин не конфигурируемый
+							strName = PointToName(i->GetTitle());
+							if (strName.empty()) // если Title пуст - покажем в меню имя dll-ки.
+								strName = PointToName(i->GetModuleName());
+							guid=FarGuid;
+						}
+						#endif
 
 						GetPluginHotKey(i, guid, PluginsHotkeysConfig::CONFIG_MENU, strHotKey);
 						MenuItemEx ListItem;
@@ -1562,12 +1595,53 @@ void PluginManager::Configure(int StartPos)
 						#endif
 							ListItem.Flags=LIF_CHECKED|L'A';
 #endif // NO_WRAPPER
-						if (!HotKeysPresent)
-							ListItem.strName = strName;
-						else if (!strHotKey.empty())
-							ListItem.strName = str_printf(L"&%c%s  %s", static_cast<wchar_t>(strHotKey.front()),(strHotKey.front()==L'&'?L"&":L""), strName.data());
+
+						#if 1
+						//Maximus: Расширенное меню плагинов
+						if (!bNext)
+							ListItem.Flags|=MIF_SUBMENU;
+
+						wchar_t state;
+						if (i->CheckWorkFlags(PIWF_PRELOADED))
+							state = (i->CheckWorkFlags(PIWF_LOADED)) ? L'+' : L'%';
 						else
+							state = (i->CheckWorkFlags(PIWF_LOADED)) ? L'*' : L'-';
+
+						string strModuleVer=L"";
+						#if 0
+						if (Opt.ChangePlugMenuMode&CFGPLUGMENU_SHOW_DLLVER)
+						{
+							string strVer;
+							GetPluginVersion(i->GetModuleName(),strVer);
+							strModuleVer = str_printf(L"%-20.20s%c%-13.13s%c", (const wchar_t*)PointToName(i->GetModuleName()), BoxSymbols[BS_V1], strVer.c_str(), BoxSymbols[BS_V1]);
+						}
+						#endif
+
+						string strNameTmp;
+						strNameTmp = str_printf(L"%c%c%c%s%s", BoxSymbols[BS_V1], state, BoxSymbols[BS_V1], strModuleVer.data(), strName.data());
+						#endif
+
+						if (!HotKeysPresent)
+							#if 1
+							//Maximus: Расширенное меню плагинов
+							ListItem.strName = strNameTmp;
+							#else
+							ListItem.strName = strName;
+							#endif
+						else if (!strHotKey.empty())
+							#if 1
+							//Maximus: Расширенное меню плагинов
+							ListItem.strName = str_printf(L"&%c%s  %s", strHotKey.front(), (strHotKey.front()==L'&'?L"&":L""), strNameTmp.data());
+							#else
+							ListItem.strName = str_printf(L"&%c%s  %s", static_cast<wchar_t>(strHotKey.front()),(strHotKey.front()==L'&'?L"&":L""), strName.data());
+							#endif
+						else
+							#if 1
+							//Maximus: Расширенное меню плагинов
+							ListItem.strName = str_printf(L"   %s", strNameTmp.data());
+							#else
 							ListItem.strName = str_printf(L"   %s", strName.data());
+							#endif
 
 						PluginMenuItemData item;
 						item.pPlugin = i;
@@ -1581,7 +1655,12 @@ void PluginManager::Configure(int StartPos)
 
 				PluginList->AssignHighlights(FALSE);
 				PluginList->SetBottomTitle(MSG(MPluginHotKeyBottom));
+				#if 1
+				//Maximus: Расширенное меню плагинов
+				PluginList->SortItems(false, HotKeysPresent? 6 : 3);
+				#else
 				PluginList->SortItems(false, HotKeysPresent? 3 : 0);
+				#endif
 				PluginList->SetSelectPos(StartPos,1);
 				NeedUpdateItems = false;
 			}
