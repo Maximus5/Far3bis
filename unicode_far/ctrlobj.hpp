@@ -33,16 +33,15 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "windowsfwd.hpp"
 #include "macro.hpp"
 
-class desktop;
 class CommandLine;
 class History;
 class KeyBar;
 class MenuBar;
 class HighlightFiles;
 class FilePositionCache;
-class FilePanels;
 class Shortcuts;
 class WindowHandler;
 class PluginManager;
@@ -59,7 +58,7 @@ public:
 	void CreateDummyFilePanels();
 	static void ShowCopyright(DWORD Flags=0);
 
-	desktop* Desktop;
+	desktop_ptr Desktop;
 	CommandLine *CmdLine;
 	History* CmdHistory;
 	History* FolderHistory;
@@ -70,6 +69,5 @@ public:
 	PluginManager* Plugins;
 
 private:
-	FilePanels *FPanels;
-	std::unique_ptr<FilePanels> DummyPanels;
+	filepanels_ptr FPanels;
 };

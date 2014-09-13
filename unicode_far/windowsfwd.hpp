@@ -1,14 +1,11 @@
 #pragma once
 
 /*
-modal.hpp
+windowsfwd.hpp
 
-привет автодетектор кодировки!
-Parent class для модальных объектов
 */
 /*
-Copyright © 1996 Eugene Roshal
-Copyright © 2000 Far Group
+Copyright © 2014 Far Group
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,43 +31,30 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+class window;
+class desktop;
+class FilePanels;
+class FileViewer;
+class FileEditor;
+class Dialog;
+class VMenu;
+class VMenu2;
+class Help;
+class FolderTree;
+class Grabber;
+class HMenu;
+class Search;
 
-#include "window.hpp"
-
-class Modal: public window
-{
-protected:
-	Modal(){}
-	~Modal(){}
-};
-
-class SimpleModal: public Modal
-{
-public:
-	virtual int ReadInput(INPUT_RECORD *GetReadRec = nullptr);
-	virtual void SetExitCode(int Code) override;
-
-	bool Done() const;
-	void ClearDone();
-	int GetExitCode() const;
-	void Process();
-	void WriteInput(int Key);
-	void ProcessInput();
-	void SetHelp(const wchar_t *Topic);
-	void ShowHelp();
-
-protected:
-	SimpleModal();
-	virtual ~SimpleModal() {}
-
-	void SetDone(void);
-	void Close(int Code);
-
-	INPUT_RECORD m_ReadRec;
-	string m_HelpTopic;
-
-private:
-	bool m_EndLoop;
-	int m_ReadKey;
-	int m_WriteKey;
-};
+typedef std::shared_ptr<window> window_ptr;
+typedef std::shared_ptr<desktop> desktop_ptr;
+typedef std::shared_ptr<FilePanels> filepanels_ptr;
+typedef std::shared_ptr<FileViewer> fileviewer_ptr;
+typedef std::shared_ptr<FileEditor> fileeditor_ptr;
+typedef std::shared_ptr<Dialog> dialog_ptr;
+typedef std::shared_ptr<VMenu> vmenu_ptr;
+typedef std::shared_ptr<VMenu2> vmenu2_ptr;
+typedef std::shared_ptr<Help> help_ptr;
+typedef std::shared_ptr<FolderTree> foldertree_ptr;
+typedef std::shared_ptr<Grabber> grabber_ptr;
+typedef std::shared_ptr<HMenu> hmenu_ptr;
+typedef std::shared_ptr<Search> search_ptr;
