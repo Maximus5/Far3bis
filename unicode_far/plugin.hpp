@@ -53,7 +53,9 @@ other possible license with no implications from the above license on them.
 
 #ifdef FAR_USE_INTERNALS
 #else // ELSE FAR_USE_INTERNALS
+#if (_MSC_VER>=1600)
 #include <stdint.h>
+#endif
 #include <windows.h>
 #endif // END FAR_USE_INTERNALS
 
