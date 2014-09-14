@@ -48,7 +48,9 @@ other possible license with no implications from the above license on them.
 
 #ifndef RC_INVOKED
 
+#if (_MSC_VER>=1600)
 #include <stdint.h>
+#endif
 #include <windows.h>
 
 #undef DefDlgProc
