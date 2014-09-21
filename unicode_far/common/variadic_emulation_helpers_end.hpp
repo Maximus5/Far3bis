@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 Copyright © 2014 Far Group
 All rights reserved.
@@ -27,24 +25,23 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-template <class F> struct return_type;
-#define DEFINE_R_TYPE { typedef typename std::remove_const<typename std::remove_reference<R>::type>::type type; };
-#if defined _MSC_VER && _MSC_VER < 1800
+#undef VTE_GENERATE
 
-template <class R> struct return_type<R(*)()> DEFINE_R_TYPE
+// extend here [v] if necessary
+#undef VTE_LIST9
+#undef VTE_LIST8
+#undef VTE_LIST7
+#undef VTE_LIST6
+#undef VTE_LIST5
+#undef VTE_LIST4
+#undef VTE_LIST3
+#undef VTE_LIST2
+#undef VTE_LIST1
 
-#define RETURN_TYPE_VTE(TYPENAME_LIST, ARG_LIST, REF_ARG_LIST, FWD_ARG_LIST) \
-template<typename R, TYPENAME_LIST> \
-struct return_type<R(*)(ARG_LIST)> DEFINE_R_TYPE
+#undef VTE_GENERATE_N
 
-#include "common/variadic_emulation_helpers_begin.hpp"
-VTE_GENERATE(RETURN_TYPE_VTE)
-#include "common/variadic_emulation_helpers_end.hpp"
-
-#undef RETURN_TYPE_VTE
-
-#else
-template <class R, class... A> struct return_type<R(*)(A...)> DEFINE_R_TYPE
-#endif
-#undef DEFINE_R_TYPE
-#define FN_RETURN_TYPE(function_name) return_type<decltype(&function_name)>::type
+#undef VTE_FWD_ARG
+#undef VTE_REF_ARG
+#undef VTE_ARG
+#undef VTE_TYPENAME
+#undef VTE_TYPE

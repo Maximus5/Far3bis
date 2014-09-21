@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 Copyright © 2014 Far Group
 All rights reserved.
@@ -27,24 +25,37 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-template <class F> struct return_type;
-#define DEFINE_R_TYPE { typedef typename std::remove_const<typename std::remove_reference<R>::type>::type type; };
-#if defined _MSC_VER && _MSC_VER < 1800
+#define VTE_TYPE(name)         name##_type
+#define VTE_TYPENAME(name)     typename VTE_TYPE(name)
+#define VTE_ARG(name)          VTE_TYPE(name) name
+#define VTE_REF_ARG(name)      VTE_TYPE(name)&& name
+#define VTE_FWD_ARG(name)      std::forward<VTE_TYPE(name)>(name)
 
-template <class R> struct return_type<R(*)()> DEFINE_R_TYPE
+#define VTE_GENERATE_N(TEMPLATE, n)\
+	TEMPLATE(VTE_LIST##n(VTE_TYPENAME),\
+	         VTE_LIST##n(VTE_ARG),\
+	         VTE_LIST##n(VTE_REF_ARG),\
+	         VTE_LIST##n(VTE_FWD_ARG))
 
-#define RETURN_TYPE_VTE(TYPENAME_LIST, ARG_LIST, REF_ARG_LIST, FWD_ARG_LIST) \
-template<typename R, TYPENAME_LIST> \
-struct return_type<R(*)(ARG_LIST)> DEFINE_R_TYPE
+#define VTE_LIST1(MODE)                    MODE(a1)
+#define VTE_LIST2(MODE)  VTE_LIST1(MODE),  MODE(a2)
+#define VTE_LIST3(MODE)  VTE_LIST2(MODE),  MODE(a3)
+#define VTE_LIST4(MODE)  VTE_LIST3(MODE),  MODE(a4)
+#define VTE_LIST5(MODE)  VTE_LIST4(MODE),  MODE(a5)
+#define VTE_LIST6(MODE)  VTE_LIST5(MODE),  MODE(a6)
+#define VTE_LIST7(MODE)  VTE_LIST6(MODE),  MODE(a7)
+#define VTE_LIST8(MODE)  VTE_LIST7(MODE),  MODE(a8)
+#define VTE_LIST9(MODE)  VTE_LIST8(MODE),  MODE(a9)
 
-#include "common/variadic_emulation_helpers_begin.hpp"
-VTE_GENERATE(RETURN_TYPE_VTE)
-#include "common/variadic_emulation_helpers_end.hpp"
+// extend here [^] and here [v] if necessary
 
-#undef RETURN_TYPE_VTE
-
-#else
-template <class R, class... A> struct return_type<R(*)(A...)> DEFINE_R_TYPE
-#endif
-#undef DEFINE_R_TYPE
-#define FN_RETURN_TYPE(function_name) return_type<decltype(&function_name)>::type
+#define VTE_GENERATE(TEMPLATE)\
+	VTE_GENERATE_N(TEMPLATE, 9)\
+	VTE_GENERATE_N(TEMPLATE, 8)\
+	VTE_GENERATE_N(TEMPLATE, 7)\
+	VTE_GENERATE_N(TEMPLATE, 6)\
+	VTE_GENERATE_N(TEMPLATE, 5)\
+	VTE_GENERATE_N(TEMPLATE, 4)\
+	VTE_GENERATE_N(TEMPLATE, 3)\
+	VTE_GENERATE_N(TEMPLATE, 2)\
+	VTE_GENERATE_N(TEMPLATE, 1)

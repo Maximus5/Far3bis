@@ -28,45 +28,48 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 template<class T, class Y>
-T emplace_back(T&& container, Y value) { container.emplace_back(value); return std::move(container); }
-
-#if defined _MSC_VER && _MSC_VER < 1800
-template<class T> std::vector<T> make_vector(T a1)
-{ return emplace_back(std::vector<T>(), a1); }
-
-template<class T> std::vector<T> make_vector(T a1, T a2)
-{ return emplace_back(make_vector(a1), a2); }
-
-template<class T> std::vector<T> make_vector(T a1, T a2, T a3)
-{ return emplace_back(make_vector(a1, a2), a3); }
-
-template<class T> std::vector<T> make_vector(T a1, T a2, T a3, T a4)
-{ return emplace_back(make_vector(a1, a2, a3), a4); }
-
-template<class T> std::vector<T> make_vector(T a1, T a2, T a3, T a4, T a5)
-{ return emplace_back(make_vector(a1, a2, a3, a4), a5); }
-
-template<class T> std::vector<T> make_vector(T a1, T a2, T a3, T a4, T a5, T a6)
-{ return emplace_back(make_vector(a1, a2, a3, a4, a5), a6); }
-
-template<class T> std::vector<T> make_vector(T a1, T a2, T a3, T a4, T a5, T a6, T a7)
-{ return emplace_back(make_vector(a1, a2, a3, a4, a5, a6), a7); }
-
-template<class T> std::vector<T> make_vector(T a1, T a2, T a3, T a4, T a5, T a6, T a7, T a8)
-{ return emplace_back(make_vector(a1, a2, a3, a4, a5, a6, a7), a8); }
-
-template<class T> std::vector<T> make_vector(T a1, T a2, T a3, T a4, T a5, T a6, T a7, T a8, T a9)
-{ return emplace_back(make_vector(a1, a2, a3, a4, a5, a6, a7, a8), a9); }
-#else
-template<class T, class Y, class... Args>
-T emplace_back(T&& container, Y value, Args... args)
+void emplace_back(T&& container, Y&& value)
 {
-	container.emplace_back(value);
-	return emplace_back(std::move(container), args...);
+	container.emplace_back(std::forward<Y>(value));
 }
 
-template<class T, class... Args> std::vector<T> make_vector(T value, Args... args)
+#if defined _MSC_VER && _MSC_VER < 1800
+
+template<class T1>
+std::vector<typename std::decay<T1>::type> make_vector(T1&& a1)
 {
-	return emplace_back(std::vector<T>(), value, args...);
+	std::vector<typename std::decay<T1>::type> v;
+	emplace_back(v, std::forward<T1>(a1));
+	return v;
+}
+
+#define MAKE_VECTOR_VTE(TYPENAME_LIST, ARG_LIST, REF_ARG_LIST, FWD_ARG_LIST) \
+template<TYPENAME_LIST, VTE_TYPENAME(last)> \
+std::vector<typename std::decay<VTE_TYPE(a1)>::type> make_vector(REF_ARG_LIST, VTE_REF_ARG(last)) \
+{ \
+	auto v = make_vector(FWD_ARG_LIST); \
+	emplace_back(v, VTE_FWD_ARG(last)); \
+	return v; \
+}
+
+#include "variadic_emulation_helpers_begin.hpp"
+VTE_GENERATE(MAKE_VECTOR_VTE)
+#include "variadic_emulation_helpers_end.hpp"
+
+#undef MAKE_VECTOR_VTE
+
+#else
+template<class T, class Y, class... Args>
+void emplace_back(T&& container, Y&& value, Args&&... args)
+{
+	container.emplace_back(std::forward<Y>(value));
+	emplace_back(std::forward<T>(container), std::forward<Args>(args)...);
+}
+
+template<class T, class... Args> std::vector<typename std::decay<T>::type> make_vector(T&& value, Args&&... args)
+{
+	std::vector<typename std::decay<T>::type> v;
+	emplace_back(v, std::forward<T>(value), std::forward<Args>(args)...);
+	return v;
 }
 #endif
