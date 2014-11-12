@@ -151,6 +151,7 @@ WINDOWINFO_TYPE WindowTypeToPluginWindowType(const int fType)
 		{windowtype_dialog,     WTYPE_DIALOG},
 		{windowtype_menu,       WTYPE_VMENU},
 		{windowtype_help,       WTYPE_HELP},
+		{windowtype_search,     WTYPE_SEARCH},
 		{windowtype_combobox,   WTYPE_COMBOBOX},
 		{windowtype_findfolder, WTYPE_FINDFOLDER},
 		{windowtype_grabber,    WTYPE_GRABBER},

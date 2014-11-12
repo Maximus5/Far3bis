@@ -1381,6 +1381,7 @@ enum WINDOWINFO_TYPE
 	WTYPE_DIALOG                    = 4,
 	WTYPE_VMENU                     = 5,
 	WTYPE_HELP                      = 6,
+	WTYPE_SEARCH                    = 7,
 #ifdef FAR_USE_INTERNALS
 	WTYPE_COMBOBOX,
 	WTYPE_FINDFOLDER,
