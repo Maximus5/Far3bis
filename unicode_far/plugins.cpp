@@ -2580,12 +2580,15 @@ int PluginManager::CallPluginItem(const GUID& Guid, CallPluginInfo *Data)
 							return FALSE;
 						break;
 					case CPT_CMDLINE:
+						#if 0
+						//Maximus: Разрешить вызов из любых окон
 						if (curType!=windowtype_panels)
 						{
 							//TODO: Автокомплит не влияет?
 							return FALSE;
 						}
 						//TODO: OpenPanel или OpenFilePlugin?
+						#endif
 						if (!Data->pPlugin->has<iOpen>())
 							return FALSE;
 						break;
