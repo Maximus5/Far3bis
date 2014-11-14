@@ -1,0 +1,77 @@
+﻿Nov 14, 2014
+------------
+* Executor bugfix. "openas" was called for "rundll32.exe ..." registry association.
+
+Here are list of patches on Nov 13, 2014
+----------------------------------------
+- Far3bis. Allow Plugin.Command from any window but not panels only
+- Far3bis. Expose WTYPE_SEARCH
+- Far3bis. Powershell script to create TOC html files for lua manuals
+- Far3bis. CR/LF fixes
+- Far3bis. Don't include 'stdint.h' if compiling with VC 9.0
+- Far3bis. C0 column optimization
+- Far3bis. ExtPlugMenu. Show all plugins in config (without version option yet)
+- Far3bis. gitattributes
+- Far3bis. Multiline panel status line
+- Far3bis. Temp commit. Remove '_ASSERTE(OpenFrom == OPEN_FROMMACRO)'
+- Far3bis. Debug build. Asserts in viewer
+- Far3bis. PlugAPI. PPIF_HASNOTEXTENSION - say 'I has no extensions on panel'
+- Far3bis. Debug build. skip force load of plugin LangData if it was not loaded yet
+- Far3bis. FCTL_GETPANELITEMINFO (coords and color)
+- Far3bis. '/co' plugins loading optimization
+- Far3bis. Wider plugin info dialog
+- Far3bis. Debug assers in plugins.cpp
+- Far3bis. Restrict ProcessConsoleInput in IsProcessAssignMacroKey
+- Far3bis. Debug assers and PlCacheCfgEnum in plugin loading
+- Far3bis. Show diagnostic on plugin loading fail
+- Far3bis. Debug asserts in synchro.cpp
+- Far3bis. PluginManager::IsPluginValid for debugging
+- Far3bis. PluginManager::GetPluginVersion for ext plugin menu
+- Far3bis. Detect Far3wrapper, '2' in menus, FPF_FAR2 in API
+- Far3bis. Debug. OutputDebugString in apiSetCurrentDirectory
+- Far3bis. Debug assert STATUS_DATATYPE_MISALIGNMENT
+- Far3bis. Don't allow ACTL_SYNCHO before init finished
+- Far3bis. Executor. Suggest 'openas' when 'bad' path detected
+- Far3bis. Editor. Seamless softlinebreaks, ECTL_DROPMODIFEDFLAG
+- Far3bis. Editor,whitespaces. Show CRLF as one 'Para' symbol
+- Far3bis. Show 'owner' from plugin panel in SetAttr dlg
+- Far3bis. Debug asserts in interf.cpp
+- Far3bis. Debug. Frame Manager check in apiPanelControl
+- Far3bis. Return VS_BIS in ACTL_GETFARMANAGERVERSION
+- Far3bis. Try to catch bad plugin calls in DEBUG build
+- Far3bis. Show 'bis' after build no
+- Far3bis. Debug global var gnMainThreadId initialized in main()
+- Far3bis. Show all Fn on KeyBar even on narrow display (touch-panels)
+- Far3bis. Support narrow display in viewer Search dialog
+- Far3bis. Support narrow display in MkDir dialog
+- Far3bis. Support narrow display in SearchReplace dialog
+- Far3bis. Support narrow display in FindFile dialog
+- Far3bis. Support narrow display in Copy dialog
+- Far3bis. Support narrow display in Masks dialog
+- Far3bis. Editor. Support narrow display in dlgOpenEditor
+- Far3bis. Debugging asserts in history.cpp
+- Far3bis. Call NetworkBis for logon dlg when history goto fails
+- Far3bis. DizList. Some todo comments
+- Far3bis. DizList. Don't try elevation for SetHidden
+- Far3bis. DEBUG_PEEK_INPUT
+- Far3bis. headers.hpp. Debug assertions (remove cl warning)
+- Far3bis. CreatePath. Some todo comments
+- Far3bis. RemoveToRecycleBin is used in ExtPluginMenu
+- Far3bis. VS_BIS in version, "bis" in description
+- Far3bis. headers.hpp. Debug assertions
+- Far3bis. Editor. Some todo comments
+- Far3bis. Editor. Restore strOldCurDir after save
+- Far3bis. Editor. Remove excess save confirm if ShiftF10 already cancelled
+- TmpPanelBis. Remove PF_PRELOAD flag
+- NetworkBis. Compile with VC2013 (linker duplicate issues)
+- NetworkBis. Add bis_changelog
+- NetworkBis. Export to Far ability to logon
+- NetworkBis. Disconnect servers on plugin exit
+- NetworkBis. Allow retry login/password in GotoComputer
+- NetworkBis. Debug GetLastError check
+- NetworkBis. Allow NetBrowser::GetFindData with NULL args
+- NetworkBis. Some todo comments
+- NetworkBis. Pointer checks
+- NetworkBis. There are currently no logon servers...
+- NetworkBis. Check logon errors with IsLogonInvalid macro
+- NetworkBis. Don't call FarApi if we already in GetFindData
