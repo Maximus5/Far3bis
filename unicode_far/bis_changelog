@@ -1,4 +1,8 @@
-﻿Nov 14, 2014
+﻿Nov 20, 2014
+------------
+* Do not ask for elevation when Far is already elevated.
+
+Nov 14, 2014
 ------------
 * Executor bugfix. "openas" was called for "rundll32.exe ..." registry association.
 
