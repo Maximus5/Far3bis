@@ -418,11 +418,25 @@ bool elevation::ElevationApproveDlg(LNGID Why, const string& Object)
 	// request for backup&restore privilege is useless if the user already has them
 	{
 		SCOPED_ACTION(GuardLastError);
+		#if 1
+		//Maximus: Why ask for elevation if we are already elevated?
+		if (AskApprove && is_admin())
+		{
+			SCOPED_ACTION(privilege)(make_vector<const wchar_t*>(SE_BACKUP_NAME, SE_RESTORE_NAME));
+			if (privilege::is_set(SE_BACKUP_NAME) && privilege::is_set(SE_RESTORE_NAME))
+			{
+				AskApprove = false;
+				IsApproved = DontAskAgain = true;
+				return true;
+			}
+		}
+		#else
 		if (AskApprove && is_admin() && privilege::is_set(SE_BACKUP_NAME) && privilege::is_set(SE_RESTORE_NAME))
 		{
 			AskApprove = false;
 			return true;
 		}
+		#endif
 	}
 
 	if(!(is_admin() && !(Global->Opt->ElevationMode&ELEVATION_USE_PRIVILEGES)) &&
