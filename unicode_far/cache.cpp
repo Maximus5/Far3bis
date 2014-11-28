@@ -193,11 +193,17 @@ bool CachedRead::FillBuffer()
 	return Result;
 }
 
+#if 1
+//Maximus: Implement CachedWrite::WriteStr considering requested codepage
+CachedWrite::CachedWrite(os::fs::file& file, uintptr_t codepage):
+#else
 CachedWrite::CachedWrite(os::fs::file& file):
+#endif
 	file(file),
 	Buffer(0x10000),
 	FreeSize(Buffer.size()),
-	Flushed(false)
+	Flushed(false),
+	codepage(codepage)
 {
 }
 
@@ -236,6 +242,38 @@ bool CachedWrite::Write(const void* Data, size_t DataSize)
 		}
 	}
 	return Result;
+}
+
+bool CachedWrite::WriteStr(const wchar_t* SaveStr, size_t Length)
+{
+	if (!Length)
+		return true;
+
+	if (codepage == CP_UNICODE)
+	{
+		return Write(SaveStr, Length*sizeof(wchar_t));
+	}
+	else
+	{
+		auto SwapBytes = [](const wchar_t* src, char* dst, size_t count)
+		{
+			return _swab(reinterpret_cast<char*>(const_cast<wchar_t*>(src)), dst, static_cast<int>(count));
+		};
+
+		DWORD length = (codepage == CP_REVERSEBOM?static_cast<DWORD>(Length*sizeof(wchar_t)):WideCharToMultiByte(codepage, 0, SaveStr, Length, nullptr, 0, nullptr, nullptr));
+		char_ptr SaveStrCopy(length);
+
+		if (SaveStrCopy)
+		{
+			if (codepage == CP_REVERSEBOM)
+				SwapBytes(SaveStr, SaveStrCopy.get(), length);
+			else
+				WideCharToMultiByte(codepage, 0, SaveStr, Length, SaveStrCopy.get(), length, nullptr, nullptr);
+
+			return Write(SaveStrCopy.get(),length);
+		}
+	}
+	return false;
 }
 
 bool CachedWrite::Flush()
