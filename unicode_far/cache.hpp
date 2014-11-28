@@ -58,9 +58,15 @@ private:
 class CachedWrite: noncopyable
 {
 public:
+	#if 1
+	//Maximus: Implement CachedWrite::WriteStr considering requested codepage
+	CachedWrite(os::fs::file& file, uintptr_t codepage = CP_UNICODE);
+	#else
 	CachedWrite(os::fs::file& file);
+	#endif
 	~CachedWrite();
 	bool Write(const void* Data, size_t DataSize);
+	bool WriteStr(const wchar_t* SaveStr, size_t Length);
 	bool Flush();
 
 private:
@@ -68,6 +74,7 @@ private:
 	std::vector<char> Buffer;
 	size_t FreeSize;
 	bool Flushed;
+	uintptr_t codepage;
 };
 
 #endif // CACHE_HPP_2D98721D_C727_4F3B_86A2_BEDD0B1D6D8A
