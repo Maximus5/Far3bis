@@ -73,7 +73,7 @@ namespace components
 		++m_size;
 	}
 
-	bool components_list::get(size_t index, component::get_info& value)
+	bool components_list::get(size_t index, value_type& value)
 	{
 		if (!index)
 			enum_ptr = list;
