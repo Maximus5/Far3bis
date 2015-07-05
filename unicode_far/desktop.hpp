@@ -36,8 +36,11 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class desktop: public window
 {
+	struct private_tag {};
+
 public:
 	static desktop_ptr create();
+	desktop(private_tag);
 	virtual ~desktop();
 
 	virtual int GetType() const override { return windowtype_desktop; }
@@ -49,7 +52,6 @@ public:
 	void FillFromConsole();
 
 private:
-	desktop();
 	virtual string GetTitle() const override { return L"Desktop"; } // TODO: localization
 	virtual void DisplayObject() override;
 
