@@ -69,6 +69,7 @@ VMenu::VMenu(const wchar_t *Title,       // заголовок меню
 	strTitle(Title),
 	SelectPos(-1),
 	TopPos(0),
+	WasAutoHeight(false),
 	MaxLength(0),
 	BoxType(DOUBLE_BOX),
 	ParentDialog(ParentDialog),
@@ -245,6 +246,7 @@ int VMenu::SetSelectPos(int Pos, int Direct)
 			else
 			{
 				Pos = 0;
+				TopPos = 0;
 				Pass++;
 			}
 		}
@@ -254,6 +256,7 @@ int VMenu::SetSelectPos(int Pos, int Direct)
 			if (CheckFlags(VMENU_WRAPMODE))
 			{
 				Pos = 0;
+				TopPos = 0;
 			}
 			else
 			{
@@ -558,6 +561,10 @@ int VMenu::DeleteItem(int ID, int Count)
 	// коррекция текущей позиции
 	if (SelectPos >= ID && SelectPos < ID+Count)
 	{
+		if(SelectPos==ItemCount)
+		{
+			ID--;
+		}
 		SelectPos = -1;
 		SetSelectPos(ID,1);
 	}
@@ -645,28 +652,80 @@ void VMenu::RestoreFilteredItems()
 
 	ItemHiddenCount=0;
 
+	FilterUpdateHeight();
+
 	if (SelectPos < 0)
 		SetSelectPos(0,1);
 }
 
 void VMenu::FilterStringUpdated(bool bLonger)
 {
+	int PrevSeparator = -1;
+	int UpperVisible = -1, LowerVisible = -2;
+	bool bBottomMode = false;
+
+	if (SelectPos > 0)
+	{
+		// Определить, в верхней или нижней части расположен курсор
+		int TopVisible = GetVisualPos(TopPos);
+		int SelectedVisible = GetVisualPos(SelectPos);
+		int BottomVisible = (TopVisible+MaxHeight > GetShowItemCount()) ? (TopVisible+MaxHeight-1) : (GetShowItemCount()-1);
+		if (SelectedVisible >= ((TopVisible+BottomVisible)>>1))
+			bBottomMode = true;
+	}
 
 	if (bLonger)
 	{
 		//строка фильтра увеличилась
 		for (int i=0; i < ItemCount; i++)
 		{
-			if (ItemIsVisible(Item[i]->Flags) && !StrStrI(Item[i]->strName, strFilter))
+			// Нет смысла накладывать фильтр на разделители?
+			if (ItemIsVisible(Item[i]->Flags))
 			{
-				Item[i]->Flags |= LIF_HIDDEN;
-				ItemHiddenCount++;
-				if (SelectPos == i)
+				if (Item[i]->Flags & LIF_SEPARATOR)
 				{
-					Item[i]->Flags &= ~LIF_SELECTED;
-					SelectPos = -1;
+					// В предыдущей группе все элементы скрыты, разделитель перед группой - не нужен
+					if (PrevSeparator != -1)
+					{
+						Item[PrevSeparator]->Flags |= LIF_HIDDEN;
+						ItemHiddenCount++;
+					}
+					PrevSeparator = i;
+				}
+				else if (!StrStrI(Item[i]->strName, strFilter))
+				{
+					Item[i]->Flags |= LIF_HIDDEN;
+					ItemHiddenCount++;
+					if (SelectPos == i)
+					{
+						Item[i]->Flags &= ~LIF_SELECTED;
+						SelectPos = -1;
+						LowerVisible = -1;
+					}
+				}
+				else
+				{
+					if (LowerVisible == -2)
+					{
+						if (ItemCanHaveFocus(Item[i]->Flags))
+							UpperVisible = i;
+					}
+					else if (LowerVisible == -1)
+					{
+						if (ItemCanHaveFocus(Item[i]->Flags))
+							LowerVisible = i;
+					}
+					// Этот разделитель - оставить видимым
+					if (PrevSeparator != -1)
+						PrevSeparator = -1;
 				}
 			}
+		}
+		// В предыдущей группе все элементы скрыты, разделитель перед группой - не нужен
+		if (PrevSeparator != -1)
+		{
+			Item[PrevSeparator]->Flags |= LIF_HIDDEN;
+			ItemHiddenCount++;
 		}
 	}
 	else
@@ -674,16 +733,64 @@ void VMenu::FilterStringUpdated(bool bLonger)
 		//строка фильтра сократилась
 		for (int i=0; i < ItemCount; i++)
 		{
-			if (!ItemIsVisible(Item[i]->Flags) && StrStrI(Item[i]->strName, strFilter))
+			if (!ItemIsVisible(Item[i]->Flags))
 			{
-				Item[i]->Flags &= ~LIF_HIDDEN;
-				ItemHiddenCount--;
+				if (Item[i]->Flags & LIF_SEPARATOR)
+				{
+					PrevSeparator = i;
+				}
+				else if (StrStrI(Item[i]->strName, strFilter))
+				{
+					Item[i]->Flags &= ~LIF_HIDDEN;
+					ItemHiddenCount--;
+					if (PrevSeparator != -1)
+					{
+						// Разделитель перед ранее скрытой группой был скрыт
+						Item[PrevSeparator]->Flags &= ~LIF_HIDDEN;
+						ItemHiddenCount--;
+						PrevSeparator = -1;
+					}
+				}
+			}
+			else if ((PrevSeparator != -1) && (Item[i]->Flags & LIF_SEPARATOR))
+			{
+				PrevSeparator = -1;
 			}
 		}
+
+		FilterUpdateHeight();
 	}
 
-	if (SelectPos<0)
-		SetSelectPos(0,1);
+	if (GetShowItemCount()>0)
+	{
+		// Подровнять, а то в нижней части списка может оставаться куча пустых строк
+		FarListPos pos={SelectPos,-1};
+		if (SelectPos<0)
+		{
+			pos.SelectPos = bBottomMode ? ((LowerVisible>0) ? LowerVisible : UpperVisible) : UpperVisible;
+			if (pos.SelectPos == -1)
+				pos.SelectPos = bBottomMode ? VisualPosToReal(GetShowItemCount()-1) : 0;
+		}
+		SetSelectPos(&pos);
+	}
+}
+
+void VMenu::FilterUpdateHeight()
+{
+	if (WasAutoHeight)
+	{
+		int NewY2;
+		if (MaxHeight && MaxHeight<GetShowItemCount())
+			NewY2 = Y1 + MaxHeight + 1;
+		else
+			NewY2 = Y1 + GetShowItemCount() + 1;
+		if (NewY2 > ScrY)
+			NewY2 = ScrY;
+		if (NewY2 > Y2)
+		{
+			SetPosition(X1,Y1,X2,NewY2);
+		}
+	}
 }
 
 bool VMenu::IsFilterEditKey(int Key)
@@ -1023,7 +1130,8 @@ int VMenu::ProcessKey(int Key)
 		case KEY_CTRLHOME:     case KEY_CTRLNUMPAD7:
 		case KEY_CTRLPGUP:     case KEY_CTRLNUMPAD9:
 		{
-			SetSelectPos(0,1);
+			FarListPos pos={0,-1};
+			SetSelectPos(&pos);
 			ShowMenu(true);
 			break;
 		}
@@ -1597,12 +1705,18 @@ void VMenu::Show()
 			}
 		}
 
+		WasAutoHeight = false;
 		if (Y2 <= 0)
 		{
 			if (MaxHeight && MaxHeight<GetShowItemCount())
+			{
 				Y2 = Y1 + MaxHeight + 1;
+			}
 			else
+			{
 				Y2 = Y1 + GetShowItemCount() + 1;
+				WasAutoHeight = true;
+			}
 		}
 
 		if (Y2 > ScrY)

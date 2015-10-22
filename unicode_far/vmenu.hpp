@@ -215,6 +215,7 @@ class VMenu: public Modal
 		int SelectPos;
 		int TopPos;
 		int MaxHeight;
+		bool WasAutoHeight;
 		int MaxLength;
 		int BoxType;
 		bool PrevCursorVisible;
@@ -333,6 +334,7 @@ class VMenu: public Modal
 		int  FindItem(int StartIndex,const wchar_t *Pattern,DWORD Flags=0);
 		void RestoreFilteredItems();
 		void FilterStringUpdated(bool bLonger);
+		void FilterUpdateHeight();
 		void SetFilterEnabled(bool bEnabled) { bFilterEnabled=bEnabled; };
 		void SetFilterLocked(bool bLocked) { bFilterEnabled=bLocked; };
  		bool AddToFilter(const wchar_t *str);
