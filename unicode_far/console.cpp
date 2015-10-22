@@ -40,6 +40,11 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "colors.hpp"
 #include "interf.hpp"
 
+#ifdef _DEBUG
+//#define DEBUG_PEEK_INPUT
+#undef DEBUG_PEEK_INPUT
+#endif
+
 console Console;
 
 bool console::Allocate()
@@ -232,9 +237,21 @@ bool console::SetMode(HANDLE ConsoleHandle, DWORD Mode)
 	return SetConsoleMode(ConsoleHandle, Mode)!=FALSE;
 }
 
+#ifdef DEBUG_PEEK_INPUT
+INPUT_RECORD gPeek = {0};
+DWORD gnLastPeekButtons = 0;
+#endif
+
 bool console::PeekInput(INPUT_RECORD& Buffer, DWORD Length, DWORD& NumberOfEventsRead)
 {
+	#ifdef DEBUG_PEEK_INPUT
+	bool Result=PeekConsoleInput(GetInputHandle(), &gPeek, Length, &NumberOfEventsRead)!=FALSE;
+	Buffer = gPeek;
+	if (gPeek.EventType == MOUSE_EVENT)
+		gnLastPeekButtons = gPeek.Event.MouseEvent.dwButtonState;
+	#else
 	bool Result=PeekConsoleInput(GetInputHandle(), &Buffer, Length, &NumberOfEventsRead)!=FALSE;
+	#endif
 	if(Opt.WindowMode && Buffer.EventType==MOUSE_EVENT)
 	{
 		Buffer.Event.MouseEvent.dwMousePosition.Y=Max(0, Buffer.Event.MouseEvent.dwMousePosition.Y-GetDelta());

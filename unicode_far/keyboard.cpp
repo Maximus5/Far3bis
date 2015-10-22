@@ -721,7 +721,30 @@ DWORD GetInputRecord(INPUT_RECORD *rec,bool ExcludeMacro,bool ProcessMouse,bool 
 			ReloadEnvironment();
 		}
 
+#ifdef _DEBUG
+		bool lbDbg1 =
+#endif
 		Console.PeekInput(*rec, 1, ReadCount);
+#ifdef _DEBUG
+		if (rec->EventType == MOUSE_EVENT)
+		{
+			static int LastMsButton;
+			if ((LastMsButton & 1) && (rec->Event.MouseEvent.dwButtonState == 0))
+			{
+				// LButton was Down, now - Up
+				LastMsButton = rec->Event.MouseEvent.dwButtonState;
+			}
+			else if (!LastMsButton && (rec->Event.MouseEvent.dwButtonState & 1))
+			{
+				// LButton was Up, now - Down
+				LastMsButton = rec->Event.MouseEvent.dwButtonState;
+			}
+			else
+			{
+				LastMsButton = rec->Event.MouseEvent.dwButtonState;
+			}
+		}
+#endif
 
 		/* $ 26.04.2001 VVM
 		   ! Убрал подмену колесика */
@@ -1005,7 +1028,17 @@ DWORD GetInputRecord(INPUT_RECORD *rec,bool ExcludeMacro,bool ProcessMouse,bool 
 
 //_SVS(if(rec->EventType==KEY_EVENT)SysLog(L"[%d] if(rec->EventType==KEY_EVENT) >>> %s",__LINE__,_INPUT_RECORD_Dump(rec)));
 	IntKeyState.ReturnAltValue=FALSE;
+#ifdef _DEBUG
+	DWORD nDbgMouseBtn = (rec->EventType == MOUSE_EVENT) ? rec->Event.MouseEvent.dwButtonState : 0;
+#endif
 	CalcKey=CalcKeyCode(rec,TRUE,&NotMacros);
+#ifdef _DEBUG
+	if (rec->EventType == MOUSE_EVENT)
+	{
+		if (nDbgMouseBtn != rec->Event.MouseEvent.dwButtonState)
+			nDbgMouseBtn = nDbgMouseBtn;
+	}
+#endif
 	/*
 	  if(CtrlObject && CtrlObject->Macro.IsRecording() && (CalcKey == (KEY_ALT|KEY_NUMPAD0) || CalcKey == (KEY_ALT|KEY_INS)))
 	  {
@@ -1035,7 +1068,38 @@ DWORD GetInputRecord(INPUT_RECORD *rec,bool ExcludeMacro,bool ProcessMouse,bool 
 		return(CalcKey);
 	}
 
+#ifdef _DEBUG
+	if (rec->EventType == MOUSE_EVENT)
+	{
+		if (nDbgMouseBtn != rec->Event.MouseEvent.dwButtonState)
+			nDbgMouseBtn = nDbgMouseBtn;
+	}
+#endif
+
+#ifdef _DEBUG
+		bool lbDbg2 =
+#endif
 	Console.ReadInput(*rec, 1, ReadCount);
+#ifdef _DEBUG
+	if (rec->EventType == MOUSE_EVENT)
+	{
+		static int LastMsButton;
+		if ((LastMsButton & 1) && (rec->Event.MouseEvent.dwButtonState == 0))
+		{
+			// LButton was Down, now - Up
+			LastMsButton = rec->Event.MouseEvent.dwButtonState;
+		}
+		else if (!LastMsButton && (rec->Event.MouseEvent.dwButtonState & 1))
+		{
+			// LButton was Up, now - Down
+			LastMsButton = rec->Event.MouseEvent.dwButtonState;
+		}
+		else
+		{
+			LastMsButton = rec->Event.MouseEvent.dwButtonState;
+		}
+	}
+#endif
 
 	if (EnableShowTime)
 		ShowTime(1);

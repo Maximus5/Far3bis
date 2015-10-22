@@ -5719,6 +5719,26 @@ int KeyMacro::ReadVarsConst(int ReadMode, string &strSData)
 
 void KeyMacro::SetMacroConst(const wchar_t *ConstName, const TVar& Value)
 {
+#ifdef _DEBUG
+	if (ConstName == constMsButton)
+	{
+		static int LastMsButton;
+		if ((LastMsButton & 1) && (Value.i() == 0))
+		{
+			// LButton was Down, now - Up
+			LastMsButton = (int)Value.i();
+		}
+		else if (!LastMsButton && (Value.i() & 1))
+		{
+			// LButton was Up, now - Down
+			LastMsButton = (int)Value.i();
+		}
+		else
+		{
+			LastMsButton = (int)Value.i();
+		}
+	}
+#endif
 	varLook(glbConstTable, ConstName,1)->value = Value;
 }
 

@@ -2437,6 +2437,10 @@ int Edit::TabPosToReal(int Pos)
 
 void Edit::Select(int Start,int End)
 {
+#ifdef _DEBUG
+	//wchar_t szSel[64]; wsprintfW(szSel, L"Edit::Select(Start=%i, End=%i)\n", Start, End);
+	//OutputDebugStringW(szSel);
+#endif
 	SelStart=Start;
 	SelEnd=End;
 
