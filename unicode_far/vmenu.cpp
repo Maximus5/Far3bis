@@ -1243,11 +1243,9 @@ bool VMenu::AddToFilter(const wchar_t *str)
 			{
 				if ( Key==KEY_BS || Key==KEY_CTRLBS || Key==KEY_CTRLDEL || Key==KEY_CTRLNUMDEL)
 					ShortenFilterString(Key);
-				else
-					if (bFilterMaskMode)
+				else if (bFilterMaskMode)
 						strMaskFilter += Key;
-				else
-						if (GetShowItemCount() > GetShowSeparatorCount())
+				else if (GetShowItemCount() > GetShowSeparatorCount())
 					strFilter += Key;
 			}
 			++str;
@@ -1263,7 +1261,7 @@ void VMenu::SetFilterString(const wchar_t *str)
 	if (bFilterMaskMode)
 		strMaskFilter=str;
 	else
-	strFilter=str;
+		strFilter=str;
 }
 
 const wchar_t *VMenu::GetFilterString()
@@ -1532,9 +1530,8 @@ int VMenu::ProcessKey(int Key)
 				{
 					if (bFilterMaskMode)
 						strMaskFilter += (wchar_t)Key;
-					else
-						if (GetShowItemCount() > GetShowSeparatorCount())
-					strFilter += (wchar_t)Key;
+					else if (GetShowItemCount() > GetShowSeparatorCount())
+						strFilter += (wchar_t)Key;
 				}
 
 				FilterStringUpdated();

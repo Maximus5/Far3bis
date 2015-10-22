@@ -156,6 +156,8 @@ lockscrn.cpp
 lockscrn.hpp
 macro.cpp
 macro.hpp
+macrocompiler.cpp
+macrocompiler.hpp
 macroopcode.hpp
 main.cpp
 manager.cpp
@@ -242,8 +244,8 @@ strmix.cpp
 strmix.hpp
 synchro.cpp
 synchro.hpp
-syntax.cpp
-syntax.hpp
+macrocompiler.cpp
+macrocompiler.hpp
 syslog.cpp
 syslog.hpp
 TaskBar.cpp

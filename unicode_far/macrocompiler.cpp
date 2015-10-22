@@ -1,5 +1,5 @@
 /*
-syntax.cpp
+macrocompiler.cpp
 
 Реализация парсера для MacroDrive II
 

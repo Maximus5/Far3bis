@@ -408,12 +408,12 @@ static TMacroFunction intMacroFunction[]=
 	{L"LCASE",            1, 0,   MCODE_F_LCASE,            nullptr, 0,nullptr,L"S=LCase(S1)",0,lcaseFunc},
 	{L"LEN",              1, 0,   MCODE_F_LEN,              nullptr, 0,nullptr,L"N=Len(S)",0,lenFunc},
 	{L"MAX",              2, 0,   MCODE_F_MAX,              nullptr, 0,nullptr,L"N=Max(N1,N2)",0,maxFunc},
+	{L"MENU.FILTER",      2, 2,   MCODE_F_MENU_FILTER,      nullptr, 0,nullptr,L"N=Menu.Filter([Action[,Mode]])",0,usersFunc},
+	{L"MENU.FILTERSTR",   2, 2,   MCODE_F_MENU_FILTERSTR,   nullptr, 0,nullptr,L"N=Menu.FilterStr([Action[,S]])",0,usersFunc},
 	{L"MENU.GETVALUE",    1, 1,   MCODE_F_MENU_GETVALUE,    nullptr, 0,nullptr,L"S=Menu.GetValue([N])",0,usersFunc},
 	{L"MENU.ITEMSTATUS",  1, 1,   MCODE_F_MENU_ITEMSTATUS,  nullptr, 0,nullptr,L"N=Menu.ItemStatus([N])",0,usersFunc},
 	{L"MENU.SELECT",      3, 2,   MCODE_F_MENU_SELECT,      nullptr, 0,nullptr,L"N=Menu.Select(S[,N[,Dir]])",0,usersFunc},
 	{L"MENU.SHOW",        6, 5,   MCODE_F_MENU_SHOW,        nullptr, 0,nullptr,L"S=Menu.Show(Items[,Title[,Flags[,FindOrFilter[,X[,Y]]]]])",IMFF_UNLOCKSCREEN|IMFF_DISABLEINTINPUT,menushowFunc},
-	{L"MENU.FILTER",      2, 2,   MCODE_F_MENU_FILTER,      nullptr, 0,nullptr,L"N=Menu.Filter([Action[,Mode]])",0,usersFunc},
-	{L"MENU.FILTERSTR",   2, 2,   MCODE_F_MENU_FILTERSTR,   nullptr, 0,nullptr,L"N=Menu.FilterStr([Action[,S]])",0,usersFunc},
 	{L"MIN",              2, 0,   MCODE_F_MIN,              nullptr, 0,nullptr,L"N=Min(N1,N2)",0,minFunc},
 	{L"MLOAD",            1, 0,   MCODE_F_MLOAD,            nullptr, 0,nullptr,L"N=MLoad(S)",0,mloadFunc},
 	{L"MMODE",            2, 1,   MCODE_F_MMODE,            nullptr, 0,nullptr,L"N=MMode(Action[,Value])",0,usersFunc},
@@ -1622,11 +1622,16 @@ TVar KeyMacro::FARPseudoVariable(DWORD Flags,DWORD CheckCode,DWORD& Err)
 						{
 							string NewStr;
 
-							if (f->VMProcess(CheckCode,&NewStr))
+							switch(CheckCode)
 							{
-								HiText2Str(strFileName, NewStr);
-								RemoveExternalSpaces(strFileName);
-								Cond=strFileName.CPtr();
+								case MCODE_V_MENU_VALUE:
+									if (f->VMProcess(CheckCode,&NewStr))
+									{
+										HiText2Str(strFileName, NewStr);
+										RemoveExternalSpaces(strFileName);
+										Cond=strFileName.CPtr();
+									}
+									break;
 							}
 						}
 					}
@@ -2508,8 +2513,9 @@ static bool menushowFunc(const TMacroFunction*)
 	TVar Items; VMStack.Pop(Items);
 	string strItems = Items.toString();
 	ReplaceStrings(strItems,L"\r\n",L"\n");
+
 	if (!strItems.Equal(strItems.GetLength()-1,L"\n"))
-	strItems.Append(L"\n");
+		strItems.Append(L"\n");
 
 	TVar Result = -1;
 	int BoxType = (Flags & 0x7)?(Flags & 0x7)-1:3;
@@ -2568,39 +2574,39 @@ static bool menushowFunc(const TMacroFunction*)
 
 		if (NewItem.strName!=L"\n")
 		{
-		wchar_t *CurrentChar=(wchar_t *)NewItem.strName.CPtr();
-		bool bContunue=(*CurrentChar<=L'\x4');
-		while(*CurrentChar && bContunue)
-		{
-			switch (*CurrentChar)
+			wchar_t *CurrentChar=(wchar_t *)NewItem.strName.CPtr();
+			bool bContunue=(*CurrentChar<=L'\x4');
+			while(*CurrentChar && bContunue)
 			{
-				case L'\x1':
-					NewItem.Flags|=LIF_SEPARATOR;
-					CurrentChar++;
-					break;
+				switch (*CurrentChar)
+				{
+					case L'\x1':
+						NewItem.Flags|=LIF_SEPARATOR;
+						CurrentChar++;
+						break;
 
-				case L'\x2':
-					NewItem.Flags|=LIF_CHECKED;
-					CurrentChar++;
-					break;
+					case L'\x2':
+						NewItem.Flags|=LIF_CHECKED;
+						CurrentChar++;
+						break;
 
-				case L'\x3':
-					NewItem.Flags|=LIF_DISABLE;
-					CurrentChar++;
-					break;
+					case L'\x3':
+						NewItem.Flags|=LIF_DISABLE;
+						CurrentChar++;
+						break;
 
-				case L'\x4':
-					NewItem.Flags|=LIF_GRAYED;
-					CurrentChar++;
-					break;
+					case L'\x4':
+						NewItem.Flags|=LIF_GRAYED;
+						CurrentChar++;
+						break;
 
-				default:
-				bContunue=false;
-				CurrentChar++;
-				break;
+					default:
+						bContunue=false;
+						CurrentChar++;
+						break;
+				}
 			}
-		}
-		NewItem.strName=CurrentChar;
+			NewItem.strName=CurrentChar;
 		}
 		else
 			NewItem.strName.Clear();
@@ -2776,12 +2782,18 @@ static bool menushowFunc(const TMacroFunction*)
 	else
 	{
 		Menu.Hide();
-		Result=0;
 		if (bExitAfterNavigate)
 		{
 			Result=SelectedPos+1;
 			if ((Key == KEY_ESC) || (Key == KEY_F10) || (Key == KEY_BREAK))
 				Result=-Result;
+		}
+		else
+		{
+			if(bResultAsIndex)
+				Result=0;
+			else
+				Result=L"";
 		}
 	}
 
@@ -4697,8 +4709,7 @@ done:
 	{
 		INPUT_RECORD rec;
 
-		//if (PeekInputRecord(&rec) && rec.EventType==KEY_EVENT && rec.Event.KeyEvent.wVirtualKeyCode == VK_CANCEL)
-		if (StopMacro)
+		if (StopMacro || (PeekInputRecord(&rec) && rec.EventType==KEY_EVENT && rec.Event.KeyEvent.wVirtualKeyCode == VK_CANCEL))
 		{
 			GetInputRecord(&rec,true);  // удаляем из очереди эту "клавишу"...
 			Work.KeyProcess=0;
