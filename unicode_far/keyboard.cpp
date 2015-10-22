@@ -635,7 +635,8 @@ DWORD GetInputRecord(INPUT_RECORD *rec,bool ExcludeMacro,bool ProcessMouse,bool 
 				TranslateKeyToVK(MacroKey,VirtKey,ControlState,rec);
 				rec->EventType=((((unsigned int)MacroKey >= KEY_MACRO_BASE && (unsigned int)MacroKey <= KEY_MACRO_ENDBASE) || ((unsigned int)MacroKey>=KEY_OP_BASE && (unsigned int)MacroKey <=KEY_OP_ENDBASE)) || (MacroKey&(~0xFF000000)) >= KEY_END_FKEY)?0:FARMACRO_KEY_EVENT;
 
-				if (!(MacroKey&KEY_SHIFT))
+				if (!(MacroKey&KEY_SHIFT)
+					&& (MacroKey != KEY_NONE))
 					IntKeyState.ShiftPressed=0;
 
 				//_KEYMACRO(SysLog(L"MacroKey1 =%s",_FARKEY_ToName(MacroKey)));
