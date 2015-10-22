@@ -36,6 +36,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "scrobj.hpp"
 #include "colors.hpp"
 #include "bitflags.hpp"
+#include "scrbufAnnotate.hpp"
 
 // ћладший байт (маска 0xFF) юзаетс€ классом ScreenObject!!!
 enum FLAGS_CLASS_EDITLINE
@@ -59,11 +60,15 @@ enum FLAGS_CLASS_EDITLINE
 	FEDITLINE_PARENT_EDITOR        = 0x00400000,  // "вверху" обычный редактор
 };
 
+// Fck! Bit 'C' should be instead of 'D', since 0x10000 is cleared by FAR!
+#define COLOR_ITEM_ANNOTATION_INDICATOR 0xDEACBEAF
+
 struct ColorItem
 {
 	int StartPos;
 	int EndPos;
 	int Color;
+	AnnotationInfo annotationInfo;
 };
 
 enum SetCPFlags

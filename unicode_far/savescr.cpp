@@ -68,6 +68,8 @@ SaveScreen::~SaveScreen()
 	_OT(SysLog(L"[%p] SaveScreen::~SaveScreen()", this));
 	RestoreArea();
 	delete[] ScreenBuf;
+	if (ScreenBufAn)
+		delete[] ScreenBufAn;
 }
 
 
@@ -78,6 +80,12 @@ void SaveScreen::Discard()
 
 	delete[] ScreenBuf;
 	ScreenBuf=nullptr;
+
+	if (!ScreenBufAn)
+		return;
+
+	delete[] ScreenBufAn;
+	ScreenBufAn=nullptr;
 }
 
 
@@ -87,6 +95,8 @@ void SaveScreen::RestoreArea(int RestoreCursor)
 		return;
 
 	PutText(X1,Y1,X2,Y2,ScreenBuf);
+	if (ScreenBufAn)
+		PutTextAn(X1,Y1,X2,Y2,ScreenBufAn);
 
 	if (RestoreCursor)
 	{
@@ -108,6 +118,17 @@ void SaveScreen::SaveArea(int X1,int Y1,int X2,int Y2)
 		return;
 
 	GetText(X1,Y1,X2,Y2,ScreenBuf,ScreenBufCharCount()*sizeof(CHAR_INFO));
+
+	if (IsTrueMode())
+	{
+		ScreenBufAn=new AnnotationInfo[ScreenBufCharCount()];
+
+		if (ScreenBufAn)
+			GetTextAn(X1,Y1,X2,Y2,ScreenBufAn,ScreenBufCharCount()*sizeof(AnnotationInfo));
+	}
+	else
+		ScreenBufAn=NULL;
+
 	GetCursorPos(CurPosX,CurPosY);
 	GetCursorType(CurVisible,CurSize);
 }
@@ -118,6 +139,8 @@ void SaveScreen::SaveArea()
 		return;
 
 	GetText(X1,Y1,X2,Y2,ScreenBuf,ScreenBufCharCount()*sizeof(CHAR_INFO));
+	if (ScreenBufAn)
+		GetTextAn(X1,Y1,X2,Y2,ScreenBufAn,ScreenBufCharCount()*sizeof(AnnotationInfo));
 	GetCursorPos(CurPosX,CurPosY);
 	GetCursorType(CurVisible,CurSize);
 }
@@ -169,6 +192,11 @@ void SaveScreen::Resize(int NewX,int NewY, DWORD Corner, bool SyncWithConsole)
 	int iYReal;
 	int ToIndex=0;
 	int FromIndex=0;
+
+  if (ScreenBufAn){
+    delete ScreenBufAn;
+    ScreenBufAn=new AnnotationInfo[NewX*NewY];
+  }
 
 	if (Corner & 2)
 	{

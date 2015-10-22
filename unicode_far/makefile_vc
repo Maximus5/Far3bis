@@ -207,6 +207,7 @@ LINK_OBJS = \
 	"$(INTDIR)\savescr.obj" \
 	"$(INTDIR)\scantree.obj" \
 	"$(INTDIR)\scrbuf.obj" \
+	"$(INTDIR)\scrbufAnnotate.obj" \
 	"$(INTDIR)\scrobj.obj" \
 	"$(INTDIR)\scrsaver.obj" \
 	"$(INTDIR)\setattr.obj" \

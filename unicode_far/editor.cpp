@@ -5770,6 +5770,41 @@ int Editor::EditorControl(int Command,void *Param)
 
 			break;
 		}
+		case ECTL_ADDANNOTATION:
+		{
+			if (Param)
+			{
+				EditorAnnotation *col=(EditorAnnotation*)Param;
+				_ECTLLOG(SysLog(L"EditorAnnotation{"));
+				_ECTLLOG(SysLog(L"  StringNumber=%d",col->StringNumber));
+				_ECTLLOG(SysLog(L"  StartPos    =%d",col->StartPos));
+				_ECTLLOG(SysLog(L"  EndPos      =%d",col->EndPos));
+				//_ECTLLOG(SysLog(L"  Color       =%d (0x%08X)",col->Color,col->Color));
+				_ECTLLOG(SysLog(L"}"));
+				
+				ColorItem newcol;
+				newcol.StartPos = col->StartPos+(col->StartPos!=-1?X1:0);
+				newcol.EndPos = col->EndPos+X1;
+				newcol.Color = COLOR_ITEM_ANNOTATION_INDICATOR;
+				memcpy(newcol.annotationInfo.raw, col->annotation_raw, sizeof(AnnotationInfo));
+
+				Edit *CurPtr=GetStringByNumber(col->StringNumber);
+
+				if (CurPtr==NULL)
+				{
+					_ECTLLOG(SysLog(L"GetStringByNumber(%d) return NULL",col->StringNumber));
+					return FALSE;
+				}
+
+				if (newcol.StartPos == -1)
+					return(CurPtr->DeleteColor(newcol.StartPos));
+
+				CurPtr->AddColor(&newcol);
+				return TRUE;
+			}
+
+			break;
+		}
 		// TODO: Если DI_MEMOEDIT не будет юзать раскаску, то должно выполняется в FileEditor::EditorControl(), в диалоге - нафиг ненать
 		case ECTL_GETCOLOR:
 		{

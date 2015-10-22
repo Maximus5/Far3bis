@@ -2757,15 +2757,28 @@ void Edit::ApplyColor()
 		// Раскрашиваем элемент, если есть что раскрашивать
 		if (Length > 0)
 		{
-			ScrBuf.ApplyColor(
-			    Start,
-			    Y1,
-			    Start+Length-1,
-			    Y1,
-			    Attr,
-			    // Не раскрашиваем выделение
-			    SelColor >= COL_FIRSTPALETTECOLOR ? Palette[SelColor-COL_FIRSTPALETTECOLOR] : SelColor
-			);
+			if (Attr == COLOR_ITEM_ANNOTATION_INDICATOR)
+			{
+    			ScrBuf.ApplyAnnotation(
+    			    Start,
+    			    Y1,
+    			    Start+Length-1,
+    			    Y1,
+    			    &CurItem->annotationInfo,
+    			    // Не раскрашиваем выделение
+    			    SelColor >= COL_FIRSTPALETTECOLOR ? Palette[SelColor-COL_FIRSTPALETTECOLOR] : SelColor
+    			);
+    		}else{
+    			ScrBuf.ApplyColor(
+    			    Start,
+    			    Y1,
+    			    Start+Length-1,
+    			    Y1,
+    			    Attr,
+    			    // Не раскрашиваем выделение
+    			    SelColor >= COL_FIRSTPALETTECOLOR ? Palette[SelColor-COL_FIRSTPALETTECOLOR] : SelColor
+    			);
+    		}
 		}
 	}
 }

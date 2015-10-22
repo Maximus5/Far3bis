@@ -1564,6 +1564,7 @@ enum EDITOR_CONTROL_COMMANDS
 #ifdef FAR_USE_INTERNALS
 	ECTL_SERVICEREGION,
 #endif // END FAR_USE_INTERNALS
+	ECTL_ADDANNOTATION=100,
 };
 
 enum EDITOR_SETPARAMETER_TYPES
@@ -1754,6 +1755,14 @@ struct EditorColor
 	int StartPos;
 	int EndPos;
 	int Color;
+};
+
+struct EditorAnnotation
+{
+	int StringNumber;
+	int StartPos;
+	int EndPos;
+	int annotation_raw[8];
 };
 
 struct EditorSaveFile

@@ -818,6 +818,11 @@ void GetText(int X1,int Y1,int X2,int Y2,void *Dest,int DestSize)
 	ScrBuf.Read(X1,Y1,X2,Y2,(CHAR_INFO *)Dest,DestSize);
 }
 
+void GetTextAn(int X1,int Y1,int X2,int Y2,void *Dest,int DestSize)
+{
+	ScrBuf.ReadAn(X1,Y1,X2,Y2,(AnnotationInfo *)Dest,DestSize);
+}
+
 void PutText(int X1,int Y1,int X2,int Y2,const void *Src)
 {
 	int Width=X2-X1+1;
@@ -826,6 +831,16 @@ void PutText(int X1,int Y1,int X2,int Y2,const void *Src)
 
 	for (Y=Y1; Y<=Y2; ++Y,SrcPtr+=Width)
 		ScrBuf.Write(X1,Y,SrcPtr,Width);
+}
+
+void PutTextAn(int X1,int Y1,int X2,int Y2,const void *Src)
+{
+	int Width=X2-X1+1;
+	int Y;
+	AnnotationInfo *SrcPtr=(AnnotationInfo*)Src;
+
+	for (Y=Y1; Y<=Y2; ++Y,SrcPtr+=Width)
+		ScrBuf.WriteAn(X1,Y,SrcPtr,Width);
 }
 
 void BoxText(wchar_t Chr)
@@ -1257,4 +1272,9 @@ bool IsFullscreen()
 		Result=true;
 	}
 	return Result;
+}
+
+bool IsTrueMode()
+{
+	return ScrBuf.AiActive();
 }

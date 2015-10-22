@@ -35,6 +35,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "bitflags.hpp"
 #include "CriticalSections.hpp"
+#include "scrbufAnnotate.hpp"
 
 class ScreenBuf
 {
@@ -43,6 +44,7 @@ class ScreenBuf
 
 		CHAR_INFO *Buf;
 		CHAR_INFO *Shadow;
+		ScrBufAnnotationInfo ai;
 		CHAR_INFO MacroChar;
 		bool MacroCharUsed;
 		CHAR_INFO ElevationChar;
@@ -76,17 +78,22 @@ class ScreenBuf
 	public:
 		void FillBuf();
 		void Read(int X1,int Y1,int X2,int Y2,CHAR_INFO *Text,int MaxTextLength);
+		void ReadAn(int X1,int Y1,int X2,int Y2,AnnotationInfo *annotation,int MaxTextLength);
 		void Write(int X,int Y,const CHAR_INFO *Text,int TextLength);
+		void WriteAn(int X,int Y,const AnnotationInfo *Text,int TextLength);
 		void RestoreMacroChar();
 		void RestoreElevationChar();
 
 		void ApplyColorMask(int X1,int Y1,int X2,int Y2,WORD ColorMask);
 		void ApplyColor(int X1,int Y1,int X2,int Y2,WORD Color);
 		void ApplyColor(int X1,int Y1,int X2,int Y2,int Color,WORD ExceptColor);
+		void ApplyAnnotation(int X1,int Y1,int X2,int Y2,AnnotationInfo *annotation,WORD ExceptColor);
 		void FillRect(int X1,int Y1,int X2,int Y2,WCHAR Ch,WORD Color);
 
 		void Scroll(int);
 		void Flush();
+		bool AiActive();
+
 };
 
 extern ScreenBuf ScrBuf;

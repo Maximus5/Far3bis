@@ -103,6 +103,11 @@ void ScreenBuf::AllocBuf(int X,int Y)
 	BufY=Y;
 }
 
+bool  ScreenBuf::AiActive()
+{
+	return ai.active();
+}
+
 /* Заполнение виртуального буфера значением из консоли.
 */
 void ScreenBuf::FillBuf()
@@ -117,6 +122,11 @@ void ScreenBuf::FillBuf()
 	Console.GetCursorPosition(CursorPosition);
 	CurX=CursorPosition.X;
 	CurY=CursorPosition.Y;
+
+	if (!ai.active()) return;
+	AnnotationInfo *ai_ptr = ai.at(0);
+	memset(ai_ptr, 0, sizeof(AnnotationInfo) * ai.header->bufferSize);
+
 }
 
 /* Записать Text в виртуальный буфер
@@ -145,6 +155,10 @@ void ScreenBuf::Write(int X,int Y,const CHAR_INFO *Text,int TextLength)
 		SetVidChar(PtrBuf[i],Text[i].Char.UnicodeChar);
 		PtrBuf[i].Attributes=Text[i].Attributes;
 	}
+	AnnotationInfo *ai_ptr = ai.at(Y*BufX + X);
+	AnnotationInfo *ai_ptr_e = ai.at(Y*BufX + X + TextLength);
+	if (ai_ptr && ai_ptr_e)
+		memset(ai_ptr, 0, sizeof(AnnotationInfo) * TextLength);
 
 	SBFlags.Clear(SBFLAGS_FLUSHED);
 #ifdef DIRECT_SCREEN_OUT
@@ -157,6 +171,40 @@ void ScreenBuf::Write(int X,int Y,const CHAR_INFO *Text,int TextLength)
 #endif
 }
 
+void ScreenBuf::WriteAn(int X,int Y,const AnnotationInfo *Text,int TextLength)
+{
+	CriticalSectionLock Lock(CS);
+
+	if (!ai.active()) return;
+
+	if (X<0)
+	{
+		Text-=X;
+		TextLength=Max(0,TextLength+X);
+		X=0;
+	}
+
+	if (X>=BufX || Y>=BufY || !TextLength || Y<0)
+		return;
+
+	if (X+TextLength >= BufX)
+		TextLength=BufX-X; //??
+
+	AnnotationInfo *ai_ptr = ai.at(Y*BufX + X);
+	AnnotationInfo *ai_ptr_e = ai.at(Y*BufX + X + TextLength);
+	if (ai_ptr && ai_ptr_e)
+		memcpy(ai_ptr, Text, sizeof(AnnotationInfo) * TextLength);
+
+	SBFlags.Clear(SBFLAGS_FLUSHED);
+#ifdef DIRECT_SCREEN_OUT
+	Flush();
+#elif defined(DIRECT_RT)
+
+	if (DirectRT)
+		Flush();
+
+#endif
+}
 
 /* Читать блок из виртуального буфера.
 */
@@ -169,6 +217,23 @@ void ScreenBuf::Read(int X1,int Y1,int X2,int Y2,CHAR_INFO *Text,int MaxTextLeng
 
 	for (Idx=I=0; I < Height; I++, Idx+=Width)
 		memcpy(Text+Idx,Buf+(Y1+I)*BufX+X1,Min((int)sizeof(CHAR_INFO)*Width,(int)MaxTextLength));
+}
+
+void ScreenBuf::ReadAn(int X1,int Y1,int X2,int Y2,AnnotationInfo *annotation,int MaxTextLength)
+{
+	CriticalSectionLock Lock(CS);
+	int Width=X2-X1+1;
+	int Height=Y2-Y1+1;
+	int I, Idx;
+
+	if (!ai.active()) return;
+
+	for (Idx=I=0; I < Height; I++, Idx+=Width)
+	{
+		AnnotationInfo *ai_ptr = ai.at((Y1+I)*BufX+X1);
+		AnnotationInfo *ai_ptr1 = annotation+Idx;
+		memcpy( ai_ptr1->raw,ai_ptr->raw, Min((int)sizeof(AnnotationInfo)*Width,(int)MaxTextLength));
+	}
 }
 
 /* Изменить значение цветовых атрибутов в соответствии с маской
@@ -189,6 +254,7 @@ void ScreenBuf::ApplyColorMask(int X1,int Y1,int X2,int Y2,WORD ColorMask)
 		{
 			if (!(PtrBuf->Attributes&=~ColorMask))
 				PtrBuf->Attributes=0x08;
+			// TODO: rgb darkening?
 		}
 	}
 
@@ -223,7 +289,12 @@ void ScreenBuf::ApplyColor(int X1,int Y1,int X2,int Y2,WORD Color)
 			CHAR_INFO *PtrBuf=Buf+(Y1+I)*BufX+X1;
 
 			for (J=0; J < Width; J++, ++PtrBuf)
+			{
 				PtrBuf->Attributes=Color;
+			}
+			AnnotationInfo *ai_ptr = ai.at((Y1+I)*BufX + X1);
+			if (ai_ptr)
+				memset(ai_ptr->raw, 0, sizeof(AnnotationInfo)*Width);
 
 			//Buf[K+J].Attributes=Color;
 		}
@@ -257,7 +328,12 @@ void ScreenBuf::ApplyColor(int X1,int Y1,int X2,int Y2,int Color,WORD ExceptColo
 
 			for (int J = 0; J < X2-X1+1; J++, ++PtrBuf)
 				if (PtrBuf->Attributes != ExceptColor)
+				{
 					PtrBuf->Attributes = Color;
+				}
+				AnnotationInfo *ai_ptr = ai.at((Y1+I)*BufX + X1);
+				if (ai_ptr)
+					memset(ai_ptr->raw, 0, sizeof(AnnotationInfo) * (X2-X1+1) );
 		}
 
 #ifdef DIRECT_SCREEN_OUT
@@ -270,6 +346,41 @@ void ScreenBuf::ApplyColor(int X1,int Y1,int X2,int Y2,int Color,WORD ExceptColo
 #endif
 	}
 }
+
+void ScreenBuf::ApplyAnnotation(int X1,int Y1,int X2,int Y2,AnnotationInfo *annotation,WORD ExceptColor)
+{
+	CriticalSectionLock Lock(CS);
+	int Width=X2-X1+1;
+	int Height=Y2-Y1+1;
+	int I, J;
+
+	if (!ai.active()) return;
+
+	for (I=0; I < Height; I++)
+	{
+		CHAR_INFO *PtrBuf = Buf+(Y1+I)*BufX+X1;
+		AnnotationInfo *ai_ptr = ai.at((Y1+I)*BufX + X1);
+
+		for (J=0; J < Width; J++, ++ai_ptr, ++PtrBuf)
+		{
+			if (PtrBuf->Attributes != ExceptColor)
+			{
+				memcpy(ai_ptr->raw, annotation->raw, sizeof(AnnotationInfo));
+			}
+		}
+	}
+
+#ifdef DIRECT_SCREEN_OUT
+	Flush();
+#elif defined(DIRECT_RT)
+
+	if (DirectRT)
+		Flush();
+
+#endif
+
+}
+
 
 /* Закрасить прямоугольник символом Ch и цветом Color
 */
@@ -287,6 +398,10 @@ void ScreenBuf::FillRect(int X1,int Y1,int X2,int Y2,WCHAR Ch,WORD Color)
 	{
 		for (PtrBuf=Buf+(Y1+I)*BufX+X1, J=0; J < Width; J++, ++PtrBuf)
 			*PtrBuf=CI;
+		AnnotationInfo *ai_ptr = ai.at((Y1+I)*BufX + X1);
+		if (ai_ptr && ai.at((Y1+I)*BufX + X1 + Width))
+			memset(ai_ptr, 0, sizeof(AnnotationInfo) * Width);
+
 	}
 
 	SBFlags.Clear(SBFLAGS_FLUSHED);
@@ -308,6 +423,10 @@ void ScreenBuf::Flush()
 
 	if (!LockCount)
 	{
+
+		if (ai.active())
+			ai.header->flushCounter++;
+
 		if (CtrlObject && (CtrlObject->Macro.IsRecording() || CtrlObject->Macro.IsExecuting()))
 		{
 			MacroChar=Buf[0];

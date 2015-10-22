@@ -144,7 +144,9 @@ void HiText(const WCHAR *Str,int HiColor,int isVertText=0);
 void mprintf(const WCHAR *fmt,...);
 void vmprintf(const WCHAR *fmt,...);
 void PutText(int X1,int Y1,int X2,int Y2,const void *Src);
+void PutTextAn(int X1,int Y1,int X2,int Y2,const void *Src);
 void GetText(int X1,int Y1,int X2,int Y2,void *Dest,int DestSize);
+void GetTextAn(int X1,int Y1,int X2,int Y2,void *Dest,int DestSize);
 void BoxText(wchar_t Chr);
 void BoxText(const wchar_t *Str,int IsVert=0);
 
@@ -181,3 +183,5 @@ string& HiText2Str(string& strDest, const wchar_t *Str);
 #define RemoveHighlights(Str) RemoveChar(Str,L'&')
 
 bool IsFullscreen();
+
+bool IsTrueMode();
