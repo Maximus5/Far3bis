@@ -6,11 +6,14 @@
 #include "MenuDlg.h"
 #include "FarMenu.h"
 #include "Pidl.h"
-#include "shlguid.h"
+#include <shlguid.h>
 #include "olethread.h"
 #include "farkeys.hpp"
 #include "HMenu.h"
 #include <cassert>
+
+#undef DBG_SHOW_INFO
+//#define DBG_SHOW_INFO
 
 #ifndef UNICODE
 #define GetCheck(i) DlgItems[i].Selected
@@ -43,21 +46,17 @@ CPlugin::CPlugin(const PluginStartupInfo *Info)
   m_hModule=(HINSTANCE)GetModuleHandle(Info->ModuleName);
   m_pMalloc=NULL;
   NULL_HWND=NULL;
-  REG_Key=_T("\\RightClick");
-  REG_WaitToContinue=_T("WaitToContinue");
-  REG_UseGUI=_T("UseGUI");
-  REG_DelUsingFar=_T("DelUsingFar");
-  REG_ClearSel=_T("ClearSelection");
-  REG_Silent=_T("Silent");
-  REG_Helptext=_T("Helptext");
-  REG_DifferentOnly=_T("DifferentOnly");
-  REG_GuiPos=_T("GuiPos");
-#ifndef UNICODE
-  auto_sz::SetOem();
-#else
+  REG_Key=L"\\RightClick";
+  REG_WaitToContinue=L"WaitToContinue";
+  REG_UseGUI=L"UseGUI";
+  REG_DelUsingFar=L"DelUsingFar";
+  REG_ClearSel=L"ClearSelection";
+  REG_Silent=L"Silent";
+  REG_Helptext=L"Helptext";
+  REG_DifferentOnly=L"DifferentOnly";
+  REG_GuiPos=L"GuiPos";
   SelectedItems=NULL;
   SelectedItemsCount=0;
-#endif
 
   *(PluginStartupInfo*)this=*Info;
   m_fsf=*Info->FSF;
@@ -69,20 +68,7 @@ CPlugin::CPlugin(const PluginStartupInfo *Info)
   OSVERSIONINFO osvi;
   osvi.dwOSVersionInfoSize=sizeof(osvi);
   if (!GetVersionEx(&osvi)) return;
-  if (osvi.dwPlatformId==VER_PLATFORM_WIN32_WINDOWS)
-  {
-    m_bWin9x=true;
-    m_bWin95=(osvi.dwMajorVersion==4 && !osvi.dwMinorVersion);
-    m_bWin98=(osvi.dwMajorVersion==4 && osvi.dwMinorVersion<0x5a);
-    m_bWinME=((osvi.dwMajorVersion>4)
-      || (osvi.dwMajorVersion==4 && osvi.dwMinorVersion>=0x5a));
-  }
-  m_bWinNT=(4==osvi.dwMajorVersion
-    && 0==osvi.dwMinorVersion
-    && VER_PLATFORM_WIN32_NT==osvi.dwPlatformId);
-  m_bWin2K=(5==osvi.dwMajorVersion
-    && 0==osvi.dwMinorVersion
-    && VER_PLATFORM_WIN32_NT==osvi.dwPlatformId);
+  m_bWin2K=(5==osvi.dwMajorVersion && 0==osvi.dwMinorVersion && VER_PLATFORM_WIN32_NT==osvi.dwPlatformId);
 }
 
 void CPlugin::ReadRegValues()
@@ -108,19 +94,18 @@ void CPlugin::GetPluginInfo(PluginInfo *Info)
   Info->PluginMenuStringsNumber=1;
   Info->PluginConfigStrings=&m_PluginConfigString;
   Info->PluginConfigStringsNumber=1;
-  Info->CommandPrefix=PFX_RCLK _T(":") PFX_RCLK_TXT _T(":")
-    PFX_RCLK_GUI _T(":") PFX_RCLK_CMD _T(":") PFX_RCLK_ITEM;
+  Info->CommandPrefix=PFX_RCLK L":" PFX_RCLK_TXT L":" PFX_RCLK_GUI L":" PFX_RCLK_CMD L":" PFX_RCLK_ITEM;
 }
 
-LPCTSTR g_szTopicMain=_T("Main");
-LPCTSTR g_szTopicConfig=_T("Config");
-LPCTSTR g_szTopicChooseMenuType=_T("ChooseMenuType");
-LPCTSTR g_szTopicContextMenu=_T("ContextMenu");
-LPCTSTR g_szTopicMyComp=_T("MyComp");
-LPCTSTR g_szTopicError0=_T("Error0");
-LPCTSTR g_szTopicError1=_T("Error1");
-LPCTSTR g_szTopicError2=_T("Error2");
-LPCTSTR g_szTopicClose=_T("Close");
+LPCWSTR g_szTopicMain=L"Main";
+LPCWSTR g_szTopicConfig=L"Config";
+LPCWSTR g_szTopicChooseMenuType=L"ChooseMenuType";
+LPCWSTR g_szTopicContextMenu=L"ContextMenu";
+LPCWSTR g_szTopicMyComp=L"MyComp";
+LPCWSTR g_szTopicError0=L"Error0";
+LPCWSTR g_szTopicError1=L"Error1";
+LPCWSTR g_szTopicError2=L"Error2";
+LPCWSTR g_szTopicClose=L"Close";
 
 LPCTSTR CPlugin::GetMsg(int nMsgId)
 {
@@ -137,15 +122,6 @@ int CPlugin::Menu(int nX, int nY, int nMaxHeight, DWORD nFlags
     , pItems, nItemsNumber);
 }
 
-#ifndef UNICODE
-int CPlugin::DialogEx(int X1, int Y1, int X2, int Y2, LPCTSTR szHelpTopic
-    , FarDialogItem* pItem, int nItemsNumber, DWORD nReserved, DWORD nFlags
-    , FARWINDOWPROC DlgProc, LONG_PTR pParam)
-{
-  return PluginStartupInfo::DialogEx(ModuleNumber, X1, Y1, X2, Y2, szHelpTopic
-    , pItem, nItemsNumber, nReserved, nFlags, DlgProc, pParam);
-}
-#else
 HANDLE CPlugin::DialogInit(int X1, int Y1, int X2, int Y2, LPCTSTR szHelpTopic
     , FarDialogItem* pItem, int nItemsNumber, DWORD nReserved, DWORD nFlags
     , FARWINDOWPROC DlgProc, LONG_PTR pParam)
@@ -163,7 +139,6 @@ void CPlugin::DialogFree(HANDLE hDlg)
 {
   PluginStartupInfo::DialogFree(hDlg);
 }
-#endif
 
 int CPlugin::Message(DWORD nFlags, LPCTSTR szHelpTopic, const LPCTSTR* pItems
     , int nItemsNumber, int nButtonsNumber)
@@ -173,17 +148,9 @@ int CPlugin::Message(DWORD nFlags, LPCTSTR szHelpTopic, const LPCTSTR* pItems
     , nItemsNumber, nButtonsNumber);
 }
 
-#ifndef UNICODE
-int CPlugin::Control(int nCommand, void* pParam)
-#else
 int CPlugin::Control(int nCommand, int Param1,INT_PTR Param2)
-#endif
 {
-#ifndef UNICODE
-  return PluginStartupInfo::Control(INVALID_HANDLE_VALUE, nCommand, pParam);
-#else
   return PluginStartupInfo::Control(INVALID_HANDLE_VALUE,nCommand,Param1,Param2);
-#endif
 }
 
 INT_PTR CPlugin::AdvControl(int nCommand, void *pParam)
@@ -215,8 +182,7 @@ void CPlugin::CfgDlgProc(HANDLE hDlg, int Msg, int Param1, LONG_PTR Param2)
   {
     SendDlgMessage(hDlg, DM_ENABLE, m_nShowMessId, 0==Param2);
   }
-  if (DN_BTNCLICK==Msg && Param1>=m_nDifferentId-2
-    && Param1<m_nDifferentId)
+  if (DN_BTNCLICK==Msg && Param1>=m_nDifferentId-2 && Param1<m_nDifferentId)
   {
     SendDlgMessage(hDlg, DM_ENABLE, m_nDifferentId, 0!=Param2);
   }
@@ -258,11 +224,7 @@ int CPlugin::Configure()
   m_nShowMessId=1;
   m_nSilentId=5;
   m_nDifferentId=10;
-#ifndef UNICODE
-#define SET_DLGITEM(n,v)  lstrcpy(DlgItems[n].Data, v)
-#else
 #define SET_DLGITEM(n,v)  DlgItems[n].PtrData = v
-#endif
   SET_DLGITEM(0, GetMsg(LNG_TITLE));
   SET_DLGITEM(m_nShowMessId, GetMsg(LNG_SHOWMESS));
   SET_DLGITEM(2, GetMsg(LNG_SHOWGUI));
@@ -329,9 +291,7 @@ int CPlugin::Configure()
     SetRegKey(REG_GuiPos, m_GuiPos);
     ret=1;
   }
-#ifdef UNICODE
   DialogFree(hDlg);
-#endif
   return ret;
 }
 
@@ -344,28 +304,24 @@ HANDLE CPlugin::OpenPlugin(int nOpenFrom, INT_PTR nItem)
 {
   LPCTSTR MsgItems[2]={GetMsg(LNG_TITLE)};
   bool bSuccess=false;
-  SetFileApisToANSI();
   switch (OleThread::OpenPlugin(nOpenFrom, (int)nItem))
   {
   case DOMNU_ERR_DIFFERENT_FOLDERS:
     {
       MsgItems[1]=GetMsg(LNG_ERR_DIFFERENT_FOLDERS);
-      Message(FMSG_WARNING|FMSG_MB_OK, g_szTopicError0, MsgItems
-        , ARRAYSIZE(MsgItems), 0);
+      Message(FMSG_WARNING|FMSG_MB_OK, g_szTopicError0, MsgItems, ARRAYSIZE(MsgItems), 0);
     }
     break;
   case DOMNU_ERR_SHOW:
     {
       MsgItems[1]=GetMsg(LNG_ERR_SHOW);
-      Message(FMSG_WARNING|FMSG_MB_OK, g_szTopicError1, MsgItems
-        , ARRAYSIZE(MsgItems), 0);
+      Message(FMSG_WARNING|FMSG_MB_OK, g_szTopicError1, MsgItems, ARRAYSIZE(MsgItems), 0);
     }
     break;
   case DOMNU_ERR_INVOKE:
     {
       MsgItems[1]=GetMsg(LNG_ERR_INVOKE);
-      Message(FMSG_WARNING|FMSG_MB_OK, g_szTopicError2, MsgItems
-        , ARRAYSIZE(MsgItems), 0);
+      Message(FMSG_WARNING|FMSG_MB_OK, g_szTopicError2, MsgItems, ARRAYSIZE(MsgItems), 0);
     }
     break;
   case DOMNU_OK:
@@ -381,14 +337,9 @@ HANDLE CPlugin::OpenPlugin(int nOpenFrom, INT_PTR nItem)
   default:
     assert(0);
   }
-  SetFileApisToOEM();
   if (bSuccess)
   {
-    if (m_ClearSel && !Control(FCTL_UPDATEPANEL,
-#ifdef UNICODE
-                                                0,
-#endif
-                                                  NULL))
+    if (m_ClearSel && !Control(FCTL_UPDATEPANEL, 0, NULL))
     {
       assert(0);
     }
@@ -398,34 +349,24 @@ HANDLE CPlugin::OpenPlugin(int nOpenFrom, INT_PTR nItem)
 
 CPlugin::EDoMenu CPlugin::OpenPluginBkg(int nOpenFrom, INT_PTR nItem)
 {
-  LPTSTR szCmdLine=NULL;
+  LPWSTR szCmdLine=NULL;
   if (OPEN_COMMANDLINE==nOpenFrom)
   {
-    LPCTSTR sz=reinterpret_cast<LPCTSTR>(nItem);
+    LPCWSTR sz=reinterpret_cast<LPCWSTR>(nItem);
     size_t nLen=512;
     do
     {
       delete[] szCmdLine;
       nLen*=2;
-      szCmdLine=new TCHAR[nLen];
-    } while (
-#ifndef UNICODE
-             m_fsf.ExpandEnvironmentStr   // in OEM
-#else
-             ExpandEnvironmentStrings
-#endif
-             (sz, szCmdLine,
-#ifdef UNICODE
-                             (DWORD)
-#endif
-                                     nLen) >= nLen-1);
+      szCmdLine=new wchar_t[nLen];
+    } while (ExpandEnvironmentStrings(sz, szCmdLine,(DWORD)nLen) >= nLen-1);
   }
   EDoMenu enDoMenu=DoMenu(szCmdLine);
   delete[] szCmdLine;
   return enDoMenu;
 }
 
-CPlugin::EDoMenu CPlugin::DoMenu(LPTSTR szCmdLine)
+CPlugin::EDoMenu CPlugin::DoMenu(LPWSTR szCmdLine)
 {
   IShellFolderPtr pDesktop;
   if (FAILED(SHGetDesktopFolder(&pDesktop))) return DOMNU_ERR_SHOW;
@@ -434,29 +375,29 @@ CPlugin::EDoMenu CPlugin::DoMenu(LPTSTR szCmdLine)
   if (szCmdLine)
   {
     int UseGUISav=m_UseGUI;
-    LPTSTR szParams=NULL;
+    LPWSTR szParams=NULL;
     EAutoItem enAutoItem=AI_NONE;
-    if (0==m_fsf.LStrnicmp(szCmdLine, PFX_RCLK _T(":"), ARRAYSIZE(PFX_RCLK)))
+    if (0==m_fsf.LStrnicmp(szCmdLine, PFX_RCLK L":", ARRAYSIZE(PFX_RCLK)))
     {
       szParams=szCmdLine+ARRAYSIZE(PFX_RCLK);
     }
-    else if (0==m_fsf.LStrnicmp(szCmdLine, PFX_RCLK_TXT _T(":"), ARRAYSIZE(PFX_RCLK_TXT)))
+    else if (0==m_fsf.LStrnicmp(szCmdLine, PFX_RCLK_TXT L":", ARRAYSIZE(PFX_RCLK_TXT)))
     {
       szParams=szCmdLine+ARRAYSIZE(PFX_RCLK_TXT);
       m_UseGUI=0;
     }
-    else if (0==m_fsf.LStrnicmp(szCmdLine, PFX_RCLK_GUI _T(":"), ARRAYSIZE(PFX_RCLK_GUI)))
+    else if (0==m_fsf.LStrnicmp(szCmdLine, PFX_RCLK_GUI L":", ARRAYSIZE(PFX_RCLK_GUI)))
     {
       szParams=szCmdLine+ARRAYSIZE(PFX_RCLK_GUI);
       m_UseGUI=1;
     }
-    else if (0==m_fsf.LStrnicmp(szCmdLine, PFX_RCLK_CMD _T(":"), ARRAYSIZE(PFX_RCLK_CMD)))
+    else if (0==m_fsf.LStrnicmp(szCmdLine, PFX_RCLK_CMD L":", ARRAYSIZE(PFX_RCLK_CMD)))
     {
       szParams=szCmdLine+ARRAYSIZE(PFX_RCLK_CMD);
       m_UseGUI=0;
       enAutoItem=AI_VERB;
     }
-    else if (0==m_fsf.LStrnicmp(szCmdLine, PFX_RCLK_ITEM _T(":"), ARRAYSIZE(PFX_RCLK_ITEM)))
+    else if (0==m_fsf.LStrnicmp(szCmdLine, PFX_RCLK_ITEM L":", ARRAYSIZE(PFX_RCLK_ITEM)))
     {
       szParams=szCmdLine+ARRAYSIZE(PFX_RCLK_ITEM);
       m_UseGUI=0;
@@ -507,14 +448,12 @@ CPlugin::EDoMenu CPlugin::SelectDrive()
     szMenuTitle=auto_sz(sr, oPidlMyComp);
   }
   IShellFolderPtr pMyComputer;
-  if (FAILED(m_pDesktop->BindToObject(oPidlMyComp, NULL, IID_IShellFolder
-    , reinterpret_cast<void**>(&pMyComputer))))
+  if (FAILED(m_pDesktop->BindToObject(oPidlMyComp, NULL, IID_IShellFolder, reinterpret_cast<void**>(&pMyComputer))))
   {
     return DOMNU_ERR_SHOW;
   }
   IEnumIDListPtr pEnum;
-  if (FAILED(pMyComputer->EnumObjects(NULL_HWND, SHCONTF_FOLDERS
-    |SHCONTF_NONFOLDERS|SHCONTF_INCLUDEHIDDEN, &pEnum)))
+  if (FAILED(pMyComputer->EnumObjects(NULL_HWND, SHCONTF_FOLDERS|SHCONTF_NONFOLDERS|SHCONTF_INCLUDEHIDDEN, &pEnum)))
   {
     return DOMNU_ERR_SHOW;
   }
@@ -557,25 +496,24 @@ CPlugin::EDoMenu CPlugin::SelectDrive()
   case CFarMenu::SHOW_BACK:
     return DOMENU_BACK;
   }
-  LPCTSTR sz=oDrivesMenu[nItem];
+  LPCWSTR sz=oDrivesMenu[nItem];
   return DoMenu(pMyComputer, oPiids.GetArray()+nItem, &sz, 0, 1);
 }
 
-CPlugin::EDoMenu CPlugin::MenuForPanelOrCmdLine(LPTSTR szCmdLine/*=NULL*/
+CPlugin::EDoMenu CPlugin::MenuForPanelOrCmdLine(LPWSTR szCmdLine/*=NULL*/
                       , EAutoItem enAutoItem/*=AI_NONE*/)
 {
   EDoMenu enRet=DOMNU_ERR_SHOW;
-  LPCTSTR* pParams=NULL;
-  LPCTSTR* pFiles=NULL;
-  LPCTSTR szCommand=NULL;
+  LPCWSTR* pParams=NULL;
+  LPCWSTR* pFiles=NULL;
+  LPCWSTR szCommand=NULL;
   auto_sz strCommand;
   do
   {
     unsigned nFiles=0, nFolders=0;
     auto_sz strCurDir;
     bool bGetFromPanel=true;
-    if (szCmdLine && GetFilesFromParams(szCmdLine, &pParams
-      , &nFiles, &nFolders, &strCurDir, enAutoItem!=AI_NONE))
+    if (szCmdLine && GetFilesFromParams(szCmdLine, &pParams, &nFiles, &nFolders, &strCurDir, enAutoItem!=AI_NONE))
     {
       assert(pParams);
       pFiles=pParams;
@@ -586,9 +524,6 @@ CPlugin::EDoMenu CPlugin::MenuForPanelOrCmdLine(LPTSTR szCmdLine/*=NULL*/
       else
       {
         strCommand=pParams[0];
-#ifndef UNICODE
-        strCommand.Oem2Ansi();
-#endif
         szCommand=strCommand;
         pFiles=pParams+1;
         if (nFiles+nFolders>0)
@@ -618,7 +553,7 @@ CPlugin::EDoMenu CPlugin::MenuForPanelOrCmdLine(LPTSTR szCmdLine/*=NULL*/
     unsigned i;
     for (i=0; i<nFiles+nFolders; i++)
     {
-      LPCTSTR szFName=m_fsf.PointToName(pFiles[i]);
+      LPCWSTR szFName=m_fsf.PointToName(pFiles[i]);
       if (pFiles[i]==szFName)
       {
         if (!bMenuAssigned)
@@ -634,7 +569,7 @@ CPlugin::EDoMenu CPlugin::MenuForPanelOrCmdLine(LPTSTR szCmdLine/*=NULL*/
       }
       else
       {
-        if (*szFName==_T('\0'))
+        if (*szFName==L'\0')
         {
           // это бывает для дисков (c:, c:\)
           szFName=pFiles[i];
@@ -660,16 +595,13 @@ CPlugin::EDoMenu CPlugin::MenuForPanelOrCmdLine(LPTSTR szCmdLine/*=NULL*/
     }
     CPidl oDirPidl(m_pMalloc);
     ULONG nCount;
-//__asm int 3;
-    if (FAILED(m_pDesktop->ParseDisplayName(NULL_HWND, NULL, strFilesDir, &nCount
-      , &oDirPidl, NULL)))
+    if (FAILED(m_pDesktop->ParseDisplayName(NULL_HWND, NULL, strFilesDir, &nCount, &oDirPidl, NULL)))
     {
       enRet=DOMNU_ERR_SHOW;
       break;
     }
     IShellFolderPtr pCurFolder;
-    if (FAILED(m_pDesktop->BindToObject(oDirPidl, NULL, IID_IShellFolder
-      , reinterpret_cast<void**>(&pCurFolder))))
+    if (FAILED(m_pDesktop->BindToObject(oDirPidl, NULL, IID_IShellFolder, reinterpret_cast<void**>(&pCurFolder))))
     {
       enRet=DOMNU_ERR_SHOW;
       break;
@@ -679,14 +611,13 @@ CPlugin::EDoMenu CPlugin::MenuForPanelOrCmdLine(LPTSTR szCmdLine/*=NULL*/
     {
       LPITEMIDLIST pidl;
       auto_sz szFile(pFiles[i]);
-      if (szFile.Len()==2 && _T(':')==szFile[1])
+      if (szFile.Len()==2 && L':'==szFile[1])
       {
         // диск (c:)
-        szFile+=_T("\\");
+        szFile+=L"\\";
       }
       HRESULT hr=0;
-      if (FAILED(hr=pCurFolder->ParseDisplayName(NULL_HWND, NULL, szFile
-        , &nCount, &pidl, NULL)))
+      if (FAILED(hr=pCurFolder->ParseDisplayName(NULL_HWND, NULL, szFile, &nCount, &pidl, NULL)))
       {
         enRet=DOMNU_ERR_SHOW;
         break;
@@ -695,37 +626,24 @@ CPlugin::EDoMenu CPlugin::MenuForPanelOrCmdLine(LPTSTR szCmdLine/*=NULL*/
     }
     if (oPidl.Count()==nFolders+nFiles)
     {
-      enRet=DoMenu(pCurFolder, oPidl.GetArray(), pFiles, nFiles
-        , nFolders, szCommand, enAutoItem);
+      enRet=DoMenu(pCurFolder, oPidl.GetArray(), pFiles, nFiles, nFolders, szCommand, enAutoItem);
     }
   } while (0);
   delete[] pParams;
   return enRet;
 }
 
-bool CPlugin::GetFilesFromParams(LPTSTR szCmdLine
-                 , LPCTSTR** ppFiles
-                 , unsigned* pnFiles
-                 , unsigned* pnFolders
-                 , auto_sz* pstrCurDir
-                 , bool bSkipFirst)
+bool CPlugin::GetFilesFromParams(LPWSTR szCmdLine, LPCWSTR** ppFiles, unsigned* pnFiles, unsigned* pnFolders, auto_sz* pstrCurDir, bool bSkipFirst)
 {
-#ifndef UNICODE
-  PanelInfo pi;
-  if (!Control(FCTL_GETPANELSHORTINFO, &pi))
-    return false;
-  *pstrCurDir=auto_sz(pi.CurDir, lstrlen(pi.CurDir)+1);
-#else
   int Size=Control(FCTL_GETPANELDIR,0,NULL);
   wchar_t *CurDir=new wchar_t[Size];
   Control(FCTL_GETPANELDIR,Size,(LONG_PTR)CurDir);
   *pstrCurDir=auto_sz(CurDir,Size);
   delete[] CurDir;
-#endif
   if (pstrCurDir->Len()) m_fsf.AddEndSlash(*pstrCurDir);
   unsigned nCnt=ParseParams(szCmdLine);
   if (!nCnt) return false;
-  *ppFiles=new LPCTSTR[nCnt];
+  *ppFiles=new LPCWSTR[nCnt];
   ParseParams(szCmdLine, *ppFiles);
   for (unsigned i=bSkipFirst?1:0; i<nCnt; i++)
   {
@@ -738,7 +656,7 @@ bool CPlugin::GetFilesFromParams(LPTSTR szCmdLine
   return true;
 }
 
-unsigned CPlugin::ParseParams(LPTSTR szParams, LPCTSTR* pFiles/*=NULL*/)
+unsigned CPlugin::ParseParams(LPWSTR szParams, LPCWSTR* pFiles/*=NULL*/)
 {
   unsigned nCnt=0;
   bool bStartNew=true;
@@ -748,14 +666,14 @@ unsigned CPlugin::ParseParams(LPTSTR szParams, LPCTSTR* pFiles/*=NULL*/)
     if (IsSpace(*szParams) && !bInsideQuotes)
     {
       bStartNew=true;
-      if (pFiles) *szParams=_T('\0');
+      if (pFiles) *szParams=L'\0';
     }
     else
     {
-      if (_T('\"')==*szParams)
+      if (L'\"'==*szParams)
       {
         bStartNew=true;
-        if (pFiles) *szParams=_T('\0');
+        if (pFiles) *szParams=L'\0';
         bInsideQuotes=!bInsideQuotes;
       }
       else if (bStartNew)
@@ -769,46 +687,29 @@ unsigned CPlugin::ParseParams(LPTSTR szParams, LPCTSTR* pFiles/*=NULL*/)
   return nCnt;
 }
 
-bool CPlugin::GetFilesFromPanel(LPCTSTR** ppFiles, unsigned* pnFiles
-    , unsigned* pnFolders, auto_sz* pstrCurDir)
+bool CPlugin::GetFilesFromPanel(LPCWSTR** ppFiles, unsigned* pnFiles, unsigned* pnFolders, auto_sz* pstrCurDir)
 {
-#ifdef UNICODE
   if(SelectedItems && SelectedItemsCount)
   {
-   for(int i=0;i<SelectedItemsCount;i++)
-    if(SelectedItems[i])
-     delete[] SelectedItems[i];
-   delete[] SelectedItems;
-   SelectedItems=NULL;
-   SelectedItemsCount=0;
+    for(int i=0;i<SelectedItemsCount;i++)
+      if(SelectedItems[i])
+       delete[] SelectedItems[i];
+    delete[] SelectedItems;
+    SelectedItems=NULL;
+    SelectedItemsCount=0;
   }
-#endif
   PanelInfo pi;
-#ifndef UNICODE
-  if (!Control(FCTL_GETPANELINFO, &pi))
-#else
   if (!Control(FCTL_GETPANELINFO,0,(LONG_PTR)&pi))
-#endif
   {
     return false;
   }
-#ifndef UNICODE
-  // preserve space for AddEndSlash
-  *pstrCurDir = auto_sz(pi.CurDir, lstrlen(pi.CurDir)+1);
-#else
   int Size=Control(FCTL_GETPANELDIR,0,NULL);
   wchar_t *CurDir=new wchar_t[Size];
   Control(FCTL_GETPANELDIR,Size,(LONG_PTR)CurDir);
   // preserve space for AddEndSlash
   *pstrCurDir=auto_sz(CurDir,Size);
   delete[] CurDir;
-#endif
 
-#ifndef UNICODE
-  if (!pi.SelectedItemsNumber ||
-    (1==pi.SelectedItemsNumber && 0==lstrcmp(pi.SelectedItems[0].FindData.cFileName, ".."))
-    )
-#else
   bool Root=!pi.SelectedItemsNumber;
   if(!Root)
   {
@@ -825,35 +726,28 @@ bool CPlugin::GetFilesFromPanel(LPCTSTR** ppFiles, unsigned* pnFiles
     }
   }
   if(Root)
-#endif
   {
     *pnFolders=1;
-    LPCTSTR szFName=m_fsf.PointToName(*pstrCurDir);
-    if (*szFName==_T('\0'))
+    LPCWSTR szFName=m_fsf.PointToName(*pstrCurDir);
+    if (*szFName==L'\0')
     {
       // это бывает для дисков (c:, c:\)
       szFName=*pstrCurDir;
     }
-    static TCHAR szFNameTmp[1024];
+    static wchar_t szFNameTmp[1024];
     lstrcpy(szFNameTmp,szFName);
-    (*ppFiles)=new LPCTSTR[1];
+    (*ppFiles)=new LPCWSTR[1];
     (*ppFiles)[0]=szFNameTmp;
-    pstrCurDir->Trunc(szFName-pstrCurDir->operator LPCTSTR());
+    pstrCurDir->Trunc(szFName-pstrCurDir->operator LPCWSTR());
   }
   else
   {
     if (pstrCurDir->Len()) m_fsf.AddEndSlash(*pstrCurDir);
-    *ppFiles=new LPCTSTR[pi.SelectedItemsNumber];
-#ifdef UNICODE
+    *ppFiles=new LPCWSTR[pi.SelectedItemsNumber];
     SelectedItemsCount=pi.SelectedItemsNumber;
     SelectedItems=new PluginPanelItem*[SelectedItemsCount];
-#endif
     for (int i=0; i<pi.SelectedItemsNumber; i++)
     {
-#ifndef UNICODE
-      LPCTSTR szPath=pi.SelectedItems[i].FindData.cFileName;
-      if (!lstrcmp(pi.PanelItems[pi.CurrentItem].FindData.cFileName, szPath))
-#else
       SelectedItems[i]=(PluginPanelItem*)new char[Control(FCTL_GETSELECTEDPANELITEM,i,NULL)];
       Control(FCTL_GETSELECTEDPANELITEM,i,(LONG_PTR)SelectedItems[i]);
       LPCTSTR szPath=SelectedItems[i]->FindData.lpwszFileName;
@@ -862,7 +756,6 @@ bool CPlugin::GetFilesFromPanel(LPCTSTR** ppFiles, unsigned* pnFiles
       bool Equal=!lstrcmp(PPI->FindData.lpwszFileName,szPath);
       delete[] PPI;
       if(Equal)
-#endif
       {
         (*ppFiles)[i]=(*ppFiles)[0];
         (*ppFiles)[0]=szPath;
@@ -871,12 +764,7 @@ bool CPlugin::GetFilesFromPanel(LPCTSTR** ppFiles, unsigned* pnFiles
       {
         (*ppFiles)[i]=szPath;
       }
-      if (FILE_ATTRIBUTE_DIRECTORY
-#ifndef UNICODE
-        & pi.SelectedItems[i].FindData.dwFileAttributes)
-#else
-        & SelectedItems[i]->FindData.dwFileAttributes)
-#endif
+      if (FILE_ATTRIBUTE_DIRECTORY&SelectedItems[i]->FindData.dwFileAttributes)
       {
         (*pnFolders)++;
       }
@@ -889,10 +777,7 @@ bool CPlugin::GetFilesFromPanel(LPCTSTR** ppFiles, unsigned* pnFiles
   return true;
 }// CurDir
 
-CPlugin::EDoMenu CPlugin::DoMenu(LPSHELLFOLDER pCurFolder, LPCITEMIDLIST* pPiids
-                 , LPCTSTR pFiles[], unsigned nFiles
-                 , unsigned nFolders, LPCTSTR szCommand/*=NULL*/
-                 , EAutoItem enAutoItem/*=AI_NONE*/)
+CPlugin::EDoMenu CPlugin::DoMenu(LPSHELLFOLDER pCurFolder, LPCITEMIDLIST* pPiids, LPCWSTR pFiles[], unsigned nFiles, unsigned nFolders, LPCWSTR szCommand/*=NULL*/, EAutoItem enAutoItem/*=AI_NONE*/)
 {
   assert(nFolders+nFiles);
   auto_sz strMnuTitle;
@@ -901,19 +786,19 @@ CPlugin::EDoMenu CPlugin::DoMenu(LPSHELLFOLDER pCurFolder, LPCITEMIDLIST* pPiids
     strMnuTitle=pFiles[0];
     if (nFolders)
     {
-      strMnuTitle.RemoveTrailing(_T('\\'));
-      strMnuTitle+=_T("\\");
+      strMnuTitle.RemoveTrailing(L'\\');
+      strMnuTitle+=L"\\";
     }
   }
   else
   {
     auto_sz strFiles;
     strFiles.Realloc(20);
-    wsprintf(strFiles, _T("%d %s"), nFiles, GetMsg(LNG_FILES));
+    wsprintf(strFiles, L"%d %s", nFiles, GetMsg(LNG_FILES));
 
     auto_sz strFolders;
     strFolders.Realloc(20);
-    wsprintf(strFolders, _T("%d %s"), nFolders, GetMsg(LNG_FOLDERS));
+    wsprintf(strFolders, L"%d %s", nFolders, GetMsg(LNG_FOLDERS));
 
     if (nFiles)
     {
@@ -921,14 +806,13 @@ CPlugin::EDoMenu CPlugin::DoMenu(LPSHELLFOLDER pCurFolder, LPCITEMIDLIST* pPiids
     }
     if (nFolders)
     {
-      if (nFiles) strMnuTitle+=_T(", ");
+      if (nFiles) strMnuTitle+=L", ";
       strMnuTitle+=strFolders;
     }
   }
   IContextMenuPtr pCMenu1;
 
-  if (FAILED(pCurFolder->GetUIObjectOf(NULL_HWND, nFolders+nFiles, pPiids
-    , IID_IContextMenu, 0, reinterpret_cast<void**>(&pCMenu1))))
+  if (FAILED(pCurFolder->GetUIObjectOf(NULL_HWND, nFolders+nFiles, pPiids, IID_IContextMenu, 0, reinterpret_cast<void**>(&pCMenu1))))
   {
     return DOMNU_ERR_SHOW;
   }
@@ -952,8 +836,7 @@ CPlugin::EDoMenu CPlugin::DoMenu(LPSHELLFOLDER pCurFolder, LPCITEMIDLIST* pPiids
   CHMenu oHMenu;
   if (!oHMenu) return DOMNU_ERR_SHOW;
   enum {EMENU_CMF_EXTENDEDVERBS=0x00000100}; // rarely used verbs
-  if (!pPreferredMenu || FAILED(pPreferredMenu->QueryContextMenu(oHMenu
-    , 0, MENUID_CMDOFFSET, 0x7FFF, CMF_CANRENAME|(GetKeyState(VK_SHIFT)&0xF000?EMENU_CMF_EXTENDEDVERBS:0))))
+  if (!pPreferredMenu || FAILED(pPreferredMenu->QueryContextMenu(oHMenu, 0, MENUID_CMDOFFSET, 0x7FFF, CMF_CANRENAME|(GetKeyState(VK_SHIFT)&0xF000?EMENU_CMF_EXTENDEDVERBS:0))))
   {
     return DOMNU_ERR_SHOW;
   }
@@ -972,8 +855,7 @@ CPlugin::EDoMenu CPlugin::DoMenu(LPSHELLFOLDER pCurFolder, LPCITEMIDLIST* pPiids
       switch (enAutoItem)
       {
       case AI_VERB:
-        if (!GetAdditionalString(pPreferredMenu, mii.wID-MENUID_CMDOFFSET
-          , AS_VERB, &strAutoItem, FALSE))
+        if (!GetAdditionalString(pPreferredMenu, mii.wID-MENUID_CMDOFFSET, AS_VERB, &strAutoItem))
         {
           continue;
         }
@@ -994,7 +876,7 @@ CPlugin::EDoMenu CPlugin::DoMenu(LPSHELLFOLDER pCurFolder, LPCITEMIDLIST* pPiids
         assert(0);
         break;
       }
-      if (strAutoItem.CompareExcluding(szCommand, _T('&')))
+      if (strAutoItem.CompareExcluding(szCommand, L'&'))
       {
         nCmd=mii.wID;
         break;
@@ -1041,8 +923,7 @@ CPlugin::EDoMenu CPlugin::DoMenu(LPSHELLFOLDER pCurFolder, LPCITEMIDLIST* pPiids
       }
       else
       {
-        if (!ShowTextMenu(oHMenu, pPreferredMenu, pCMenu2, pCMenu3, &nCmd, strMnuTitle
-          , pCurFolder, pPiids, nFolders+nFiles))
+        if (!ShowTextMenu(oHMenu, pPreferredMenu, pCMenu2, pCMenu3, &nCmd, strMnuTitle, pCurFolder, pPiids, nFolders+nFiles))
         {
           return DOMNU_ERR_SHOW;
         }
@@ -1062,10 +943,9 @@ CPlugin::EDoMenu CPlugin::DoMenu(LPSHELLFOLDER pCurFolder, LPCITEMIDLIST* pPiids
   {
     int nId=nCmd-MENUID_CMDOFFSET;
     CHAR szVerb[100];
-    if (FAILED(pPreferredMenu->GetCommandString(nId, GCS_VERBA, NULL, szVerb
-      , ARRAYSIZE(szVerb))))
+    if (FAILED(pPreferredMenu->GetCommandString(nId, GCS_VERBA, NULL, szVerb, ARRAYSIZE(szVerb))))
     {
-      szVerb[0]=_T('\0');
+      szVerb[0]='\0';
     }
     if (lstrcmpA(szVerb, "rename")==0)
     {
@@ -1129,11 +1009,7 @@ CPlugin::EDoMenu CPlugin::DoMenu(LPSHELLFOLDER pCurFolder, LPCITEMIDLIST* pPiids
   return DOMNU_OK;
 }
 
-bool CPlugin::ShowGuiMenu(HMENU hMenu
-              , LPCONTEXTMENU pMenu1
-              , LPCONTEXTMENU2 pMenu2
-              , LPCONTEXTMENU3 pMenu3
-              , int* pnCmd)
+bool CPlugin::ShowGuiMenu(HMENU hMenu, LPCONTEXTMENU pMenu1, LPCONTEXTMENU2 pMenu2, LPCONTEXTMENU3 pMenu3, int* pnCmd)
 {
   SMenuDlgParam DlgParam;
   DlgParam.pMenu1=pMenu1;
@@ -1160,20 +1036,16 @@ bool CPlugin::ShowGuiMenu(HMENU hMenu
   }
   // Не устанавливаем родительское окно hFarWnd, т.к.
   // окно мелькает если консольных окон несколько
-  HWND hWnd=CreateDialogParam(m_hModule, MAKEINTRESOURCE(IDD_NULL), NULL
-    , (DLGPROC)MenuDlgProc, (LPARAM)&DlgParam);
+  HWND hWnd=CreateDialogParam(m_hModule, MAKEINTRESOURCE(IDD_NULL), NULL, (DLGPROC)MenuDlgProc, (LPARAM)&DlgParam);
   assert(hWnd);
-  if (!hWnd) return false;
+  if (!hWnd)
+    return false;
   RECT rc;
-  if (!GetWindowRect(hWnd, &rc)
-    || !SetWindowPos(hWnd, HWND_TOPMOST, pt.x-(rc.right-rc.left)/2
-      , pt.y-(rc.bottom-rc.top)/2
-      , 0, 0, SWP_NOSIZE))
+  if (!GetWindowRect(hWnd, &rc) || !SetWindowPos(hWnd, HWND_TOPMOST, pt.x-(rc.right-rc.left)/2, pt.y-(rc.bottom-rc.top)/2, 0, 0, SWP_NOSIZE))
   {
     assert(0);
   }
-  *pnCmd=TrackPopupMenu(hMenu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON
-    , pt.x, pt.y, 0, hWnd, NULL);
+  *pnCmd=TrackPopupMenu(hMenu, TPM_LEFTALIGN|TPM_RETURNCMD|TPM_RIGHTBUTTON, pt.x, pt.y, 0, hWnd, NULL);
   if (!DestroyWindow(hWnd))
   {
     assert(0);
@@ -1181,52 +1053,31 @@ bool CPlugin::ShowGuiMenu(HMENU hMenu
   return true;
 }
 
-bool CPlugin::GetAdditionalString(IContextMenu* pContextMenu, UINT nID
-                  , EAdditionalStr enAdditionalString
-                  , auto_sz* pstr, BOOL bToOEM/*=TRUE*/)
+bool CPlugin::GetAdditionalString(IContextMenu* pContextMenu, UINT nID, EAdditionalStr enAdditionalString, auto_sz* pstr)
 {
   UINT nType;
   switch (enAdditionalString)
   {
   case AS_HELPTEXT:
-    nType=m_bWin9x?GCS_HELPTEXTA:GCS_HELPTEXTW;
+    nType=GCS_HELPTEXTW;
     break;
   case AS_VERB:
-    nType=m_bWin9x?GCS_VERBA:GCS_VERBW;
+    nType=GCS_VERBW;
     break;
   default:
     return false;
   }
   WCHAR szwAddInfo[200]=L"\0";
-  if (FAILED(pContextMenu->GetCommandString(nID, nType, NULL
-    , reinterpret_cast<LPSTR>(szwAddInfo), ARRAYSIZE(szwAddInfo))))
+  if (FAILED(pContextMenu->GetCommandString(nID, nType, NULL, reinterpret_cast<LPSTR>(szwAddInfo), ARRAYSIZE(szwAddInfo))))
   {
     return false;
   }
-  if (m_bWin9x)
-  {
-    *pstr=reinterpret_cast<LPCTSTR>(szwAddInfo);
-#ifndef UNICODE
-    if (bToOEM) pstr->Ansi2Oem();
-#endif
-  }
-  else
-  {
-    *pstr=szwAddInfo;
-  }
-  if (AS_HELPTEXT==enAdditionalString) pstr->RemoveTrailing(_T('.'));
+  *pstr=szwAddInfo;
+  if (AS_HELPTEXT==enAdditionalString) pstr->RemoveTrailing(L'.');
   return !pstr->IsEmpty();
 }
 
-bool CPlugin::ShowTextMenu(HMENU hMenu
-              , LPCONTEXTMENU pPreferredMenu
-              , LPCONTEXTMENU2 pMenu2
-              , LPCONTEXTMENU3 pMenu3
-              , int* pnCmd
-              , LPCTSTR szTitle
-              , LPSHELLFOLDER pCurFolder
-              , LPCITEMIDLIST* ppiid
-              , unsigned nPiidCnt)
+bool CPlugin::ShowTextMenu(HMENU hMenu, LPCONTEXTMENU pPreferredMenu, LPCONTEXTMENU2 pMenu2, LPCONTEXTMENU3 pMenu3, int* pnCmd, LPCWSTR szTitle, LPSHELLFOLDER pCurFolder, LPCITEMIDLIST* ppiid, unsigned nPiidCnt)
 {
   int nItems=GetMenuItemCount(hMenu);
   if (nItems<1) return false;
@@ -1270,9 +1121,6 @@ bool CPlugin::ShowTextMenu(HMENU hMenu
       {
         return false;
       }
-#ifndef UNICODE
-      szItem.Ansi2Oem();
-#endif
     }
     else if (mii.fType&MFT_BITMAP)
     {
@@ -1289,28 +1137,36 @@ bool CPlugin::ShowTextMenu(HMENU hMenu
     }
     if (grphid != -1)
     {
+	  TCHAR szDbg[2048]; szDbg[0] = 0; bool lb1 = false, lb2 = false;
       if (m_enHelptext != AS_HELPTEXT /*&& m_enHelptext != AS_VERB*/) {
         auto_sz szSub;
-        if (GetAdditionalString(pPreferredMenu, mii.wID-MENUID_CMDOFFSET, AS_HELPTEXT, &szSub)
-            || GetAdditionalString(pPreferredMenu, mii.wID-MENUID_CMDOFFSET, AS_VERB, &szSub, FALSE))
+        if ((lb1 = GetAdditionalString(pPreferredMenu, mii.wID-MENUID_CMDOFFSET, AS_HELPTEXT, &szSub))
+            || (lb2 = GetAdditionalString(pPreferredMenu, mii.wID-MENUID_CMDOFFSET, AS_VERB, &szSub)))
         {
-          szItem=_T("{");
+          szItem=L"{";
 
-          TCHAR *Buf=(TCHAR*)malloc((szSub.Len()+1)*sizeof(TCHAR));
+		  lstrcpy(szDbg+lstrlen(szDbg), _T("GetAdditionalString: ")); lstrcpyn(szDbg+lstrlen(szDbg), szSub, 64); lstrcpy(szDbg+lstrlen(szDbg), _T("\n"));
+
+          wchar_t *Buf=(wchar_t*)malloc((szSub.Len()+1)*sizeof(wchar_t));
           if (Buf)
           {
             //Получаем из shell32.dll шаблон, по которому формируются эти подсказки,
             //(строковый ресурс #5380, "Opens the document with %s."),
             //и убираем его из сабжевых строк. Для XP/2003.
             *Buf=0;
-            LoadString(GetModuleHandle(_T("shell32.dll")),5380,Buf,int(szSub.Len()+1));
+            int lRc = LoadString(GetModuleHandle(L"shell32.dll"),5380,Buf,int(szSub.Len()+1));
+			TCHAR szTmp[64]; lstrcpyn(szTmp, Buf, 64);
+			wsprintf(szDbg+lstrlen(szDbg), _T("LoadString=%i: %s\n"), lRc, Buf);
             int i=0;
-            while(Buf[i] && Buf[i]!=_T('%'))
+            while(Buf[i] && Buf[i]!=L'%')
               i++;
-            if (Buf[i] == _T('%') && !_tcsncmp(Buf,szSub,i))
+            if (Buf[i] == L'%' && !wcsncmp(Buf,szSub,i))
             {
               lstrcpy(Buf,szSub);
+			  lstrcpy(szDbg+lstrlen(szDbg), _T("lstrcpy(Buf,szSub): ")); lstrcpyn(szDbg+lstrlen(szDbg), Buf, 64); lstrcpy(szDbg+lstrlen(szDbg), _T("\n"));
               m_fsf.Unquote(Buf+i);
+			  lstrcpyn(szTmp, Buf+i, 64);
+			  wsprintf(szDbg+lstrlen(szDbg), _T("Unquote(+%i): %s\n"), i, szTmp);
               szSub=Buf+i;
             }
             free(Buf);
@@ -1324,9 +1180,11 @@ bool CPlugin::ShowTextMenu(HMENU hMenu
 
             szLeft = szSub;
             szLeft.Trunc(szLeft.Len()/2);
-            szRight = ((LPCTSTR)szSub)+szSub.Len()/2;
-            if (szLeft.CompareExcluding(szRight, _T('&')))
+			lstrcpy(szDbg+lstrlen(szDbg), _T("Trunc: ")); lstrcpyn(szDbg+lstrlen(szDbg), szLeft, 64); lstrcpy(szDbg+lstrlen(szDbg), _T("\n"));
+            szRight = ((LPCWSTR)szSub)+szSub.Len()/2;
+            if (szLeft.CompareExcluding(szRight, L'&'))
             {
+				lstrcpy(szDbg+lstrlen(szDbg), _T("Right: ")); lstrcpyn(szDbg+lstrlen(szDbg), szRight, 64); lstrcpy(szDbg+lstrlen(szDbg), _T("\n"));
               //if (szLeft.Len() > szRight.Len())
                 //szSub = szLeft;
               //else
@@ -1335,20 +1193,29 @@ bool CPlugin::ShowTextMenu(HMENU hMenu
           }
 
           szItem+=szSub;
-          szItem+=_T("}");
+          szItem+=L"}";
+		  lstrcpy(szDbg+lstrlen(szDbg), _T("szItem: ")); lstrcpyn(szDbg+lstrlen(szDbg), szItem, 64); lstrcpy(szDbg+lstrlen(szDbg), _T("\n"));
+		  
         }
       }
-      if (0==szItem.Len()) szItem = GetMsg(grphid);
+      if (0==szItem.Len())
+	  {
+		  szItem = GetMsg(grphid);
+		  lstrcpy(szDbg+lstrlen(szDbg), _T("GetMsg(grphid): ")); lstrcpyn(szDbg+lstrlen(szDbg), GetMsg(grphid), 64); lstrcpy(szDbg+lstrlen(szDbg), _T("\n"));
+	  }
+#ifdef DBG_SHOW_INFO
+	  MessageBox(NULL, szDbg, L"EMenu debug message", MB_ICONEXCLAMATION|MB_SYSTEMMODAL);
+#endif
     }
     if (m_enHelptext != AS_NONE) {
       auto_sz szAddInfo;
       if (GetAdditionalString(pPreferredMenu, mii.wID-MENUID_CMDOFFSET, m_enHelptext, &szAddInfo))
       {
-        if (!m_DifferentOnly || !szItem.CompareExcluding(szAddInfo, _T('&')))
+        if (!m_DifferentOnly || !szItem.CompareExcluding(szAddInfo, L'&'))
         {
-          szItem+=_T(" (");
+          szItem+=L" (";
           szItem+=szAddInfo;
-          szItem+=_T(")");
+          szItem+=L")";
         }
       }
     }
@@ -1376,20 +1243,16 @@ bool CPlugin::ShowTextMenu(HMENU hMenu
     else if (mii.hSubMenu)
     {
       bool bShowMenuRes;
-      if ( ((m_bWin95 || m_bWinNT) && MENUID_SENDTO_WIN95NT4==mii.wID)
-        || ((m_bWin98 || !m_bWin9x) && MENUID_SENDTO_WIN98==mii.wID)
-        || (m_bWinME && MENUID_SENDTO_WINME==mii.wID) )
+      if (MENUID_SENDTO_WIN98==mii.wID)
       {
         if (!m_pMalloc) return false;
         CPidl oSendtoPidl(m_pMalloc);
-        if (FAILED(SHGetSpecialFolderLocation(NULL, CSIDL_SENDTO
-          , &oSendtoPidl)))
+        if (FAILED(SHGetSpecialFolderLocation(NULL, CSIDL_SENDTO, &oSendtoPidl)))
         {
           return false;
         }
         IDropTargetPtr pDropTarget;
-        bShowMenuRes=ShowFolder(m_pDesktop, oSendtoPidl, pnCmd
-          , szTitle, &pDropTarget);
+        bShowMenuRes=ShowFolder(m_pDesktop, oSendtoPidl, pnCmd, szTitle, &pDropTarget);
         if (!bShowMenuRes)
         {
           return false;
@@ -1397,25 +1260,17 @@ bool CPlugin::ShowTextMenu(HMENU hMenu
         if (*pnCmd!=MENUID_CANCELLED)
         {
           IDataObjectPtr pDataObject;
-          if (FAILED(pCurFolder->GetUIObjectOf(
-            NULL_HWND
-            , nPiidCnt
-            , ppiid
-            , IID_IDataObject
-            , NULL
-            , reinterpret_cast<void**>(&pDataObject))))
+          if (FAILED(pCurFolder->GetUIObjectOf(NULL_HWND, nPiidCnt, ppiid, IID_IDataObject, NULL, reinterpret_cast<void**>(&pDataObject))))
           {
             return false;
           }
           POINTL pt={0};
           DWORD nEffect=DROPEFFECT_COPY;
-          if (FAILED(pDropTarget->DragEnter(pDataObject, MK_LBUTTON
-            , pt, &nEffect)))
+          if (FAILED(pDropTarget->DragEnter(pDataObject, MK_LBUTTON, pt, &nEffect)))
           {
             return false;
           }
-          if (FAILED(pDropTarget->Drop(pDataObject, MK_LBUTTON
-            , pt, &nEffect)))
+          if (FAILED(pDropTarget->Drop(pDataObject, MK_LBUTTON, pt, &nEffect)))
           {
             return false;
           }
@@ -1426,20 +1281,17 @@ bool CPlugin::ShowTextMenu(HMENU hMenu
         // generic submenu selected
         if (pMenu3)
         {
-          if (NOERROR!=pMenu3->HandleMenuMsg(WM_INITMENUPOPUP
-            , (WPARAM)mii.hSubMenu, nItem))
+          if (NOERROR!=pMenu3->HandleMenuMsg(WM_INITMENUPOPUP, (WPARAM)mii.hSubMenu, nItem))
           {
           }
         }
         else if (pMenu2)
         {
-          if (NOERROR!=pMenu2->HandleMenuMsg(WM_INITMENUPOPUP
-            , (WPARAM)mii.hSubMenu, nItem))
+          if (NOERROR!=pMenu2->HandleMenuMsg(WM_INITMENUPOPUP, (WPARAM)mii.hSubMenu, nItem))
           {
           }
         }
-        bShowMenuRes=ShowTextMenu(mii.hSubMenu, pPreferredMenu, pMenu2
-          , pMenu3, pnCmd, szTitle, pCurFolder, ppiid, nPiidCnt);
+        bShowMenuRes=ShowTextMenu(mii.hSubMenu, pPreferredMenu, pMenu2, pMenu3, pnCmd, szTitle, pCurFolder, ppiid, nPiidCnt);
       }
       if (!bShowMenuRes)
       {
@@ -1459,18 +1311,15 @@ bool CPlugin::ShowTextMenu(HMENU hMenu
   }
 }
 
-bool CPlugin::ShowFolder(LPSHELLFOLDER pParentFolder, LPCITEMIDLIST piid
-             , int* pnCmd, LPCTSTR szTitle, LPDROPTARGET* ppDropTarget)
+bool CPlugin::ShowFolder(LPSHELLFOLDER pParentFolder, LPCITEMIDLIST piid, int* pnCmd, LPCWSTR szTitle, LPDROPTARGET* ppDropTarget)
 {
   IShellFolderPtr pFolder;
-  if (FAILED(pParentFolder->BindToObject(piid, NULL, IID_IShellFolder
-    , reinterpret_cast<void**>(&pFolder))))
+  if (FAILED(pParentFolder->BindToObject(piid, NULL, IID_IShellFolder, reinterpret_cast<void**>(&pFolder))))
   {
     return false;
   }
   IEnumIDListPtr pEnum;
-  if (FAILED(pFolder->EnumObjects(NULL_HWND, SHCONTF_FOLDERS|SHCONTF_NONFOLDERS
-    |SHCONTF_INCLUDEHIDDEN, &pEnum)))
+  if (FAILED(pFolder->EnumObjects(NULL_HWND, SHCONTF_FOLDERS|SHCONTF_NONFOLDERS|SHCONTF_INCLUDEHIDDEN, &pEnum)))
   {
     return false;
   }
@@ -1524,13 +1373,7 @@ bool CPlugin::ShowFolder(LPSHELLFOLDER pParentFolder, LPCITEMIDLIST piid
     }
     else
     {
-      if (FAILED(pFolder->GetUIObjectOf(
-        NULL_HWND
-        , 1
-        , &pSelPiid
-        , IID_IDropTarget
-        , NULL
-        , (LPVOID*)ppDropTarget)))
+      if (FAILED(pFolder->GetUIObjectOf(NULL_HWND, 1, &pSelPiid, IID_IDropTarget, NULL, (LPVOID*)ppDropTarget)))
       {
         return false;
       }

@@ -8,6 +8,7 @@ class CHMenu
 public:
   CHMenu() : m_hMenu(CreatePopupMenu()) {}
   ~CHMenu() {Destroy();}
+  
   void Destroy()
   {
     if (m_hMenu && !DestroyMenu(m_hMenu))
