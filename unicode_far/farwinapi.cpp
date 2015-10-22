@@ -282,9 +282,14 @@ bool File::Open(LPCWSTR Object, DWORD DesiredAccess, DWORD ShareMode, LPSECURITY
 
 inline void File::SyncPointer()
 {
+	DWORD dwSyncErr = 0;
 	if(NeedSyncPointer)
 	{
-		SetFilePointerEx(Handle, *reinterpret_cast<PLARGE_INTEGER>(&Pointer), reinterpret_cast<PLARGE_INTEGER>(&Pointer), FILE_BEGIN);
+		if (!SetFilePointerEx(Handle, *reinterpret_cast<PLARGE_INTEGER>(&Pointer), reinterpret_cast<PLARGE_INTEGER>(&Pointer), FILE_BEGIN))
+		{
+			dwSyncErr = GetLastError();
+			_ASSERTE(FALSE && !dwSyncErr);
+		}
 		NeedSyncPointer = false;
 	}
 }
@@ -304,10 +309,16 @@ bool File::Read(LPVOID Buffer, DWORD NumberOfBytesToRead, DWORD& NumberOfBytesRe
 bool File::Write(LPCVOID Buffer, DWORD NumberOfBytesToWrite, DWORD& NumberOfBytesWritten, LPOVERLAPPED Overlapped)
 {
 	SyncPointer();
+	DWORD dwWriteErr = 0;
 	bool Result = WriteFile(Handle, Buffer, NumberOfBytesToWrite, &NumberOfBytesWritten, Overlapped) != FALSE;
 	if(Result)
 	{
 		Pointer += NumberOfBytesWritten;
+	}
+	else
+	{
+		dwWriteErr = GetLastError();
+		_ASSERTE(FALSE && !dwWriteErr);
 	}
 	return Result;
 }

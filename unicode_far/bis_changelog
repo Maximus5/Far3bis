@@ -3,6 +3,16 @@ http://code.google.com/p/conemu-maximus5/downloads/list
 За основу взята официальная сборка Far2 (build 1807)
 Полный список изменений: http://conemu-maximus5.googlecode.com/svn/trunk/Far2bis/bis_changelog
 
+=== Far 2.1 build 1807 bis21 ===
+
+Поддержка плагина EditWrap (виртуальная свертка строк).
+
+В CtrlL текстовые метки из плагина отрисовывались цветом рамки.
+
+From DAtaMan
+- Mantis#0001843: Ошибка отрисовки панели при menu.show
++ Mantis#0001852: Добавлена переменная "Far.UpTime" - сколько времени (в миллисекундах) работает Far Manager (своё значение для каждой запущенной копии)
+
 === Far 2.1 build 1807 bis20 ===
 
 Mantis#1833: Поиск файлов - не ThreadSafe

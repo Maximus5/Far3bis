@@ -258,6 +258,10 @@ bool CachedWrite::Flush()
 				Flushed=true;
 				FreeSize=BufferSize;
 			}
+			else
+			{
+				_ASSERTE(BufferSize-FreeSize==WrittenSize);
+			}
 		}
 	}
 

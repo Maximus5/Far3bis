@@ -1797,6 +1797,7 @@ int FileEditor::SaveFile(const wchar_t *Name,int Ask, bool bSaveAs, int TextForm
 	if (apiGetFileAttributes(Name) == INVALID_FILE_ATTRIBUTES)
 		Flags.Set(FFILEEDIT_NEW);
 
+	//
 	{
 		//SaveScreen SaveScr;
 		/* $ 11.10.2001 IS
@@ -1869,11 +1870,41 @@ int FileEditor::SaveFile(const wchar_t *Name,int Ask, bool bSaveAs, int TextForm
 		File EditFile;
 		DWORD dwWritten=0;
 		// Don't use CreationDisposition=CREATE_ALWAYS here - it's kills alternate streams
-		if(!EditFile.Open(Name, GENERIC_WRITE, FILE_SHARE_READ, nullptr, Flags.Check(FFILEEDIT_NEW)?CREATE_NEW:TRUNCATE_EXISTING, FILE_ATTRIBUTE_ARCHIVE|FILE_FLAG_SEQUENTIAL_SCAN))
+		// TRUNCATE_EXISTING may cause errors - http://forum.farmanager.com/viewtopic.php?p=84675#p84675
+		bool bOpen = EditFile.Open(Name, GENERIC_WRITE, FILE_SHARE_READ, nullptr, Flags.Check(FFILEEDIT_NEW)?CREATE_NEW:TRUNCATE_EXISTING, FILE_ATTRIBUTE_ARCHIVE|FILE_FLAG_SEQUENTIAL_SCAN);
+		DWORD nSysErr = 0;
+		#ifdef _DEBUG
+		DWORD nErr1 = bOpen?0:GetLastError();
+		if (!bOpen) bOpen = EditFile.Open(Name, GENERIC_WRITE, FILE_SHARE_READ, nullptr, Flags.Check(FFILEEDIT_NEW)?CREATE_NEW:TRUNCATE_EXISTING, FILE_ATTRIBUTE_ARCHIVE);
+		DWORD nErr2 = bOpen?0:GetLastError();
+		if (!bOpen) bOpen = EditFile.Open(Name, GENERIC_WRITE, FILE_SHARE_READ, nullptr, Flags.Check(FFILEEDIT_NEW)?CREATE_NEW:TRUNCATE_EXISTING, 0);
+		DWORD nErr3 = bOpen?0:GetLastError();
+		bool bNeedTruncate = !bOpen;
+		if (!bOpen) bOpen = EditFile.Open(Name, GENERIC_WRITE, FILE_SHARE_READ, nullptr, Flags.Check(FFILEEDIT_NEW)?CREATE_NEW:OPEN_EXISTING, FILE_ATTRIBUTE_ARCHIVE|FILE_FLAG_SEQUENTIAL_SCAN);
+		DWORD nErr4 = bOpen?0:GetLastError();
+		if (!bOpen) bOpen = EditFile.Open(Name, GENERIC_WRITE, FILE_SHARE_READ, nullptr, Flags.Check(FFILEEDIT_NEW)?CREATE_NEW:OPEN_EXISTING, FILE_ATTRIBUTE_ARCHIVE);
+		DWORD nErr5 = bOpen?0:GetLastError();
+		if (!bOpen) bOpen = EditFile.Open(Name, GENERIC_WRITE, FILE_SHARE_READ, nullptr, Flags.Check(FFILEEDIT_NEW)?CREATE_NEW:OPEN_EXISTING, 0);
+		DWORD nErr6 = bOpen?0:GetLastError();
+		if (!bOpen) bOpen = EditFile.Open(Name, GENERIC_WRITE, FILE_SHARE_READ, nullptr, Flags.Check(FFILEEDIT_NEW)?CREATE_NEW:CREATE_ALWAYS, FILE_ATTRIBUTE_ARCHIVE|FILE_FLAG_SEQUENTIAL_SCAN);
+		DWORD nErr7 = bOpen?0:GetLastError();
+		if (!bOpen) bOpen = EditFile.Open(Name, GENERIC_WRITE, FILE_SHARE_READ, nullptr, Flags.Check(FFILEEDIT_NEW)?CREATE_NEW:CREATE_ALWAYS, FILE_ATTRIBUTE_ARCHIVE);
+		DWORD nErr8 = bOpen?0:GetLastError();
+		if (!bOpen) bOpen = EditFile.Open(Name, GENERIC_WRITE, FILE_SHARE_READ, nullptr, Flags.Check(FFILEEDIT_NEW)?CREATE_NEW:CREATE_ALWAYS, 0);
+		DWORD nErr9 = bOpen?0:GetLastError();
+		#endif
+
+		bool bRetry;
+retry:
+	{
+		bRetry = false;
+
+		if(!bOpen)
 		{
+			_ASSERTE(bOpen);
 			//_SVS(SysLogLastError();SysLog(L"Name='%s',FileAttributes=%d",Name,FileAttributes));
 			RetCode=SAVEFILE_ERROR;
-			SysErrorCode=GetLastError();
+			nSysErr = SysErrorCode=GetLastError();
 			goto end;
 		}
 
@@ -1915,8 +1946,11 @@ int FileEditor::SaveFile(const wchar_t *Name,int Ask, bool bSaveAs, int TextForm
 					break;
 			}
 
-			if (!EditFile.Write(&dwSignature,SignLength,dwWritten,nullptr)||dwWritten!=SignLength)
+			bool lbWriteSign = EditFile.Write(&dwSignature,SignLength,dwWritten,nullptr);
+			if (!lbWriteSign||dwWritten!=SignLength)
 			{
+				DWORD dwErrWriteSign = GetLastError();
+				_ASSERTE(lbWriteSign && (dwWritten==SignLength));
 				EditFile.Close();
 				apiDeleteFile(Name);
 				RetCode=SAVEFILE_ERROR;
@@ -1944,7 +1978,8 @@ int FileEditor::SaveFile(const wchar_t *Name,int Ask, bool bSaveAs, int TextForm
 
 			CurPtr->GetBinaryString(&SaveStr,&EndSeq,Length);
 
-			if (!*EndSeq && CurPtr->m_next)
+			//Maximus5: ≈сли плагин сказал - EOL не нужен - зачем фар его пишет?
+			if (!*EndSeq && CurPtr->m_next && (*CurPtr->GetEOL()))
 				EndSeq=*m_editor->GlobalEOL ? m_editor->GlobalEOL:DOS_EOL_fmt;
 
 			if (TextFormat && *EndSeq)
@@ -1963,8 +1998,9 @@ int FileEditor::SaveFile(const wchar_t *Name,int Ask, bool bSaveAs, int TextForm
 				    (EndLength && !Cache.Write(EndSeq,EndLength*sizeof(wchar_t)))
 						)
 				{
-					SysErrorCode=GetLastError();
+					nSysErr = SysErrorCode=GetLastError();
 					bError = true;
+					_ASSERTE(!bError && !SysErrorCode);
 				}
 			}
 			else
@@ -1984,15 +2020,21 @@ int FileEditor::SaveFile(const wchar_t *Name,int Ask, bool bSaveAs, int TextForm
 						if (!Cache.Write(SaveStrCopy,length))
 						{
 							bError = true;
-							SysErrorCode=GetLastError();
+							nSysErr = SysErrorCode=GetLastError();
+							_ASSERTE(!bError && !SysErrorCode);
 						}
 
 						xf_free(SaveStrCopy);
 					}
 					else
+					{
 						bError = true;
+						DWORD dwErr11 = GetLastError();
+						_ASSERTE(!bError);
+					}
 				}
 
+				
 				if (!bError)
 				{
 					if (EndLength)
@@ -2010,7 +2052,8 @@ int FileEditor::SaveFile(const wchar_t *Name,int Ask, bool bSaveAs, int TextForm
 							if (!Cache.Write(EndSeqCopy,endlength))
 							{
 								bError = true;
-								SysErrorCode=GetLastError();
+								nSysErr = SysErrorCode=GetLastError();
+								_ASSERTE(!bError && !SysErrorCode);
 							}
 
 							xf_free(EndSeqCopy);
@@ -2037,11 +2080,24 @@ int FileEditor::SaveFile(const wchar_t *Name,int Ask, bool bSaveAs, int TextForm
 		}
 		else
 		{
-			SysErrorCode=GetLastError();
+			nSysErr = SysErrorCode=GetLastError();
+			_ASSERTE(FALSE && SysErrorCode);
 			EditFile.Close();
+			if (!Flags.Check(FFILEEDIT_NEW))
+			{
+				bOpen = EditFile.Open(Name, GENERIC_WRITE, FILE_SHARE_READ, nullptr, Flags.Check(FFILEEDIT_NEW)?CREATE_NEW:OPEN_EXISTING, FILE_ATTRIBUTE_ARCHIVE);
+				if (bOpen)
+					bRetry = true;
+			}
+			if (!bRetry)
+			{
 			apiDeleteFile(Name);
 			RetCode=SAVEFILE_ERROR;
+			}
 		}
+	} // retry:
+		if (bRetry)
+			goto retry;
 	}
 
 end:

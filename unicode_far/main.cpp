@@ -307,6 +307,7 @@ int MainProcessSEH(string& strEditName,string& strViewName,string& DestName1,str
 DWORD gnMainThreadId = 0;
 int _cdecl wmain(int Argc, wchar_t *Argv[])
 {
+	QueryPerformanceCounter((LARGE_INTEGER *) &FarUpTime);
 	apiEnableLowFragmentationHeap();
 	gnMainThreadId = GetCurrentThreadId();
 
