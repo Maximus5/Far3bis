@@ -62,6 +62,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "constitle.hpp"
 #include "console.hpp"
 #include "constitle.hpp"
+#include "palette.hpp"
 
 static const wchar_t strSystemExecutor[]=L"System\\Executor";
 
@@ -1248,6 +1249,7 @@ int Execute(const wchar_t *CmdStr, // Ком.строка для исполнения
 			Console.SetOutputCodepage(ConsoleOutputCP);
 		}
 	}
+	Console.SetTextAttributes(FarColorToReal(COL_COMMANDLINEUSERSCREEN));
 	return nResult;
 }
 

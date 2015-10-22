@@ -3,6 +3,14 @@ http://code.google.com/p/conemu-maximus5/downloads/list
 За основу взята официальная сборка Far2 (build 1807)
 Полный список изменений: http://conemu-maximus5.googlecode.com/svn/trunk/Far2bis/bis_changelog
 
+=== Far 2.1 build 1807 bis22 ===
+
+Продолжение виртуальной свертки строк.
+
+При "[x] Show white space" отображаются концы строк.
+
+После завершения консольной программы восстанавливается цвет консоли, который был до запуска.
+
 === Far 2.1 build 1807 bis21 ===
 
 Поддержка плагина EditWrap (виртуальная свертка строк).
