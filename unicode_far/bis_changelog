@@ -3,6 +3,19 @@ http://code.google.com/p/conemu-maximus5/downloads/list
 За основу взята официальная сборка Far2 (build 1807)
 Полный список изменений: http://conemu-maximus5.googlecode.com/svn/trunk/Far2bis/bis_changelog
 
+=== Far 2.1 build 1807 bis23 ===
+
+#1923: Исправлено падение при Del/F4/... на отфильтрованном (пустом) списке CtrlI в панелях.
+
+From Denis "по мелочам из мантиса"
+0001-1766-viewer-change.patch
+0002-Viewer-fix.patch
+0004-Viewer-fix-2.patch
+0005-Drawing-bugs-after-executing-macros.patch
+0006-Viewer-fix.patch
+0007-Save-pos-in-View-Edit-using-F6.patch
+0008-WWrap.diff.patch
+
 === Far 2.1 build 1807 bis22 ===
 
 Продолжение виртуальной свертки строк.

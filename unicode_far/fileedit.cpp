@@ -911,7 +911,7 @@ int FileEditor::ReProcessKey(int Key,int CalledFromControl)
 
 				if (!FirstSave || m_editor->IsFileChanged() || apiGetFileAttributes(strFullFileName)!=INVALID_FILE_ATTRIBUTES)
 				{
-					long FilePos=m_editor->GetCurPos();
+					long FilePos=m_editor->GetCurPos(true, m_bAddSignature);
 
 					/* $ 01.02.2001 IS
 					   ! Открываем вьюер с указанием длинного имени файла, а не короткого
@@ -1626,7 +1626,7 @@ int FileEditor::LoadFile(const wchar_t *Name,int &UserBreak)
 
 	EditFile.Close();
 	//if ( bCached )
-	m_editor->SetCacheParams(&cp);
+	m_editor->SetCacheParams(&cp, m_bAddSignature);
 	SysErrorCode=GetLastError();
 	apiGetFindDataEx(Name, FileInfo);
 	EditorGetFileAttributes(Name);

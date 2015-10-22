@@ -402,6 +402,9 @@ int Viewer::OpenFile(const wchar_t *Name,int warning)
 
 	if (FilePos > FileSize)
 		FilePos=0;
+	
+  if ( FilePos )
+		AdjustFilePos();
 
 	ChangeViewKeyBar();
 	AdjustWidth();
@@ -982,26 +985,38 @@ void Viewer::ReadString( ViewerString *pString, int MaxSize, bool update_cache )
 		if (!VM.Wrap)
 			continue;
 
-		if (OutPtr >= Width)
+		if ( VM.WordWrap && OutPtr <= Width && wrapped_char(ch) >= 0 )
 		{
-			if (VM.WordWrap && wrap_out > 0)
-			{
-				OutPtr = wrap_out;
-				vseek(wrap_pos, SEEK_SET);
-				while (OutPtr > 0 && is_space_or_nul(pString->lpData[OutPtr-1]))
-					--OutPtr;
-				skip_space = true;
-			}
-			break;
+      wrap_out = OutPtr;
+      wrap_pos = fpos1;
 		}
 
-		if (!VM.WordWrap)
+		if ( OutPtr < Width )
 			continue;
+    
+    if ( !VM.WordWrap )
+      break;
 
-		if (wrapped_char(ch) >= 0)
+		if ( OutPtr > Width )
 		{
-			wrap_out = OutPtr;
-			wrap_pos = vtell();
+			if ( wrap_out <= 0 || is_space_or_nul(ch) )
+			{
+				wrap_out = OutPtr - 1;
+				wrap_pos = fpos;
+			}
+
+			OutPtr = wrap_out;
+			vseek(wrap_pos, SEEK_SET);
+			while (OutPtr > 0 && is_space_or_nul(pString->lpData[OutPtr-1]))
+				--OutPtr;
+
+			if ( bSelEndFound && pString->nSelEnd > OutPtr )
+				pString->nSelEnd = OutPtr;
+			if ( bSelStartFound && pString->nSelStart >= OutPtr )
+				bSelStartFound = bSelEndFound = false;
+
+			skip_space = true;
+			break;
 		}
 	}
 
@@ -1278,37 +1293,46 @@ int Viewer::ProcessKey(int Key)
 				if (!apiGetFindDataEx(strFullFileName, NewViewFindData))
 					return TRUE;
 
-				ViewFile.GetSize(NewViewFindData.nFileSize); // Required! -- thanks Dzirt2005
-
-				if (ViewFindData.ftLastWriteTime.dwLowDateTime!=NewViewFindData.ftLastWriteTime.dwLowDateTime
-				 || ViewFindData.ftLastWriteTime.dwHighDateTime!=NewViewFindData.ftLastWriteTime.dwHighDateTime
-				 || ViewFindData.nFileSize != NewViewFindData.nFileSize)
+ 				// Smart file change check -- thanks Dzirt2005
+ 				//
+ 				bool changed = (
+ 					ViewFindData.ftLastWriteTime.dwLowDateTime!=NewViewFindData.ftLastWriteTime.dwLowDateTime ||
+ 					ViewFindData.ftLastWriteTime.dwHighDateTime!=NewViewFindData.ftLastWriteTime.dwHighDateTime ||
+ 					ViewFindData.nFileSize != NewViewFindData.nFileSize
+ 				);
+ 				if ( changed )
+ 					ViewFindData = NewViewFindData;
+ 				else {
+ 					if ( !ViewFile.GetSize(NewViewFindData.nFileSize) || FileSize == static_cast<__int64>(NewViewFindData.nFileSize) )
+ 						return TRUE;
+ 					changed = FileSize > static_cast<__int64>(NewViewFindData.nFileSize); // true if file shrank
+ 				}
+ 				
+ 				SetFileSize();
+ 				if ( changed ) // do not reset caches if file just enlarged [make sense on Win7, doesn't matter on XP]
 				{
-					ViewFindData = NewViewFindData;
-					SetFileSize();
-
 					Reader.Clear(); // иначе зачем вся эта возня?
 					ViewFile.FlushBuffers();
 					vseek(0, SEEK_CUR); // reset vgetc state
 					lcache_ready = false; // reset start-lines cache
+        }
 
-					if (FilePos>FileSize)
+				if (FilePos > FileSize)
+				{
+					ProcessKey(KEY_CTRLEND);
+				}
+				else
+				{
+					__int64 PrevLastPage=LastPage;
+					LastPage = 0;
+					Show();
+
+					if (PrevLastPage && !LastPage)
 					{
 						ProcessKey(KEY_CTRLEND);
-					}
-					else
-					{
-						__int64 PrevLastPage=LastPage;
-						LastPage = 0;
-						Show();
-
-						if (PrevLastPage && !LastPage)
-						{
-							ProcessKey(KEY_CTRLEND);
-							LastPage=TRUE;
-						}
-					}
-				}
+						LastPage=TRUE;				
+          }
+        }
 			}
 
 			if (Opt.ViewerEditorClock && HostFileViewer && HostFileViewer->IsFullScreen() && Opt.ViOpt.ShowTitleBar)
@@ -1437,6 +1461,7 @@ int Viewer::ProcessKey(int Key)
 		{
 			VM.CodePage = VM.CodePage==GetOEMCP() ? GetACP() : GetOEMCP();
 			lcache_ready = false;
+      AdjustFilePos();
 			ChangeViewKeyBar();
 			Show();
 			CodePageChangedByUser=TRUE;
@@ -1445,8 +1470,6 @@ int Viewer::ProcessKey(int Key)
 		case KEY_SHIFTF8:
 		{
 			UINT nCodePage = SelectCodePage(VM.CodePage, true, true, false, true);
-			lcache_ready = false;
-
 			if (nCodePage != static_cast<UINT>(-1))
 			{
 				if (nCodePage == (CP_AUTODETECT & 0xffff))
@@ -1459,7 +1482,8 @@ int Viewer::ProcessKey(int Key)
 				}
 				CodePageChangedByUser=TRUE;
 				VM.CodePage=nCodePage;
-				SetFileSize();
+				lcache_ready = false;
+				AdjustFilePos();
 				ChangeViewKeyBar();
 				Show();
 			}
@@ -2240,9 +2264,9 @@ enum
 struct MyDialogData
 {
    Viewer      *viewer;
-	bool edit_autofocus;
+	 bool edit_autofocus;
    bool       hex_mode;
-	bool      recursive;
+	 bool      recursive;
 };
 
 LONG_PTR WINAPI ViewerSearchDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
@@ -2270,7 +2294,7 @@ LONG_PTR WINAPI ViewerSearchDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Para
 		}
 		case DM_SDREXVISIBILITY:
 		{
-		   int show = 1;
+		  int show = 1;
 			if ( Param1 )
 			{
 				int tlen = (int)SendDlgMessage(hDlg, DM_GETTEXTPTR, SD_EDIT_TEXT, 0);
@@ -3374,6 +3398,7 @@ void Viewer::SetTitle(const wchar_t *Title)
 void Viewer::SetFilePos(__int64 Pos)
 {
 	FilePos=Pos;
+  AdjustFilePos();
 };
 
 void Viewer::SetPluginData(const wchar_t *PluginData)

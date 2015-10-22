@@ -219,7 +219,7 @@ bool FileFilter::FilterEdit()
 			{
 				int SelPos=FilterList.GetSelectPos();
 
-				if (SelPos==(int)FilterData.getCount())
+				if (SelPos<0 || SelPos==(int)FilterData.getCount())
 					break;
 
 				int Check=FilterList.GetCheck(SelPos);
@@ -254,6 +254,8 @@ bool FileFilter::FilterEdit()
 			case KEY_F4:
 			{
 				int SelPos=FilterList.GetSelectPos();
+				if (SelPos<0)
+					break;
 
 				if (SelPos<(int)FilterData.getCount())
 				{
@@ -285,8 +287,11 @@ bool FileFilter::FilterEdit()
 			case KEY_INS:
 			case KEY_F5:
 			{
-				size_t SelPos=FilterList.GetSelectPos();
-				size_t SelPos2=SelPos+1;
+				int pos=FilterList.GetSelectPos();
+				if (pos<0)
+					break;
+				size_t SelPos=pos;
+				size_t SelPos2=pos+1;
 
 				SelPos = Min(FilterData.getCount(), SelPos);
 
@@ -348,7 +353,9 @@ bool FileFilter::FilterEdit()
 			case KEY_DEL:
 			{
 				int SelPos=FilterList.GetSelectPos();
-
+				if (SelPos<0)
+					break;
+				
 				if (SelPos<(int)FilterData.getCount())
 				{
 					string strQuotedTitle=FilterData.getItem(SelPos)->GetTitle();
@@ -376,6 +383,8 @@ bool FileFilter::FilterEdit()
 			case KEY_CTRLDOWN:
 			{
 				int SelPos=FilterList.GetSelectPos();
+				if (SelPos<0)
+					break;
 
 				if (SelPos<(int)FilterData.getCount() && !(Key==KEY_CTRLUP && !SelPos) && !(Key==KEY_CTRLDOWN && SelPos==(int)(FilterData.getCount()-1)))
 				{
