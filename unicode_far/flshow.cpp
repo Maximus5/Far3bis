@@ -444,7 +444,8 @@ void FileList::ShowFileList(int Fast)
 
 	ShowScreensCount();
 
-	if (!ProcessingPluginCommand && LastCurFile!=CurFile)
+	//Maximus: убрал "!ProcessingPluginCommand", а то QView не обновляется после UpdatePos/Redraw из плагина
+	if (/*!ProcessingPluginCommand &&*/ LastCurFile!=CurFile)
 	{
 		LastCurFile=CurFile;
 		UpdateViewPanel();

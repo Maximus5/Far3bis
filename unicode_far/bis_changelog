@@ -3,6 +3,12 @@ http://code.google.com/p/conemu-maximus5/downloads/list
 За основу взята официальная сборка Far2 (build 1807)
 Полный список изменений: http://conemu-maximus5.googlecode.com/svn/trunk/Far2bis/bis_changelog
 
+=== Far 2.1 build 1807 bis26 ===
+
+QView не обновлялся при обновлении позиции на панели из плагина.
+
+Поправлен запуск GUI приложений с аргументом, содержащим "&".
+
 === Far 2.1 build 1807 bis25 ===
 
 #1953: Не вызывать "cmd.exe /c ..." при запуске консольного приложения с аргументами.

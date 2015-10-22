@@ -725,12 +725,12 @@ static bool WINAPI FindModule(const wchar_t *Module, string &strDest,DWORD &Imag
 }
 
 /*
- возвращает PipeFound
+ возвращает 2*PipeFound + 1*Escaped
 */
-int PartCmdLine(const wchar_t *CmdStr, string &strNewCmdStr, string &strNewCmdPar)
+int PartCmdLine(const string& CmdStr, string &strNewCmdStr, string &strNewCmdPar)
 {
-	int PipeFound = FALSE;
-	int QuoteFound = FALSE;
+	int PipeFound = 0, Escaped = 0;
+	bool quoted = false;
 	apiExpandEnvironmentStrings(CmdStr, strNewCmdStr);
 	RemoveExternalSpaces(strNewCmdStr);
 	wchar_t *NewCmdStr = strNewCmdStr.GetBuffer();
@@ -740,35 +740,32 @@ int PartCmdLine(const wchar_t *CmdStr, string &strNewCmdStr, string &strNewCmdPa
 	// ѕри этом заодно определим наличие символов переопределени€ потоков
 	// –аботаем с учетом кавычек. “.е. пайп в кавычках - не пайп.
 
+	static const wchar_t ending_chars[] = L"/ <>|&";
+
 	while (*CmdPtr)
 	{
 		if (*CmdPtr == L'"')
-			QuoteFound = !QuoteFound;
+			quoted = !quoted;
 
-		if (!QuoteFound && *CmdPtr == L'^') // дл€ "^>" и еже с ним
+		if (!quoted && *CmdPtr == L'^' && CmdPtr[1] > L' ') // "^>" и иже с ним
 		{
-			CmdPtr++;
+			Escaped = 1; // 
+			CmdPtr++;    // ??? может быть '^' надо удалить...
 		}
-		else if (!QuoteFound && CmdPtr != NewCmdStr)
+		else if (!quoted && CmdPtr != NewCmdStr)
 		{
-			if (*CmdPtr == L'>' ||
-			        *CmdPtr == L'<' ||
-			        *CmdPtr == L'|' ||
-			        *CmdPtr == L' ' ||
-			        *CmdPtr == L'/' || // вариант "far.exe/?"
-			        *CmdPtr == L'&'    // обработаем разделитель команд
-			   )
+			const wchar_t *ending = wcschr(ending_chars, *CmdPtr);
+			if ( ending )
 			{
 				if (!ParPtr)
 					ParPtr = CmdPtr;
 
-				if (*CmdPtr != L' ' && *CmdPtr != L'/')
-					PipeFound = TRUE;
+				if (ending >= ending_chars+2)
+					PipeFound = 1;
 			}
 		}
 
-		if (ParPtr && PipeFound)
-			// Ќам больше ничего не надо узнавать
+		if (ParPtr && PipeFound) // Ќам больше ничего не надо узнавать
 			break;
 
 		CmdPtr++;
@@ -777,7 +774,7 @@ int PartCmdLine(const wchar_t *CmdStr, string &strNewCmdStr, string &strNewCmdPa
 	if (ParPtr) // ћы нашли параметры и отдел€ем мух от котлет
 	{
 		if (*ParPtr == L' ') //AY: первый пробел между командой и параметрами не нужен,
-			*(ParPtr++)=0;   //    он добавл€етс€ заново в Execute.
+			*(ParPtr++)=0;    //    он добавл€етс€ заново в Execute.
 
 		strNewCmdPar = ParPtr;
 		*ParPtr = 0;
@@ -785,7 +782,8 @@ int PartCmdLine(const wchar_t *CmdStr, string &strNewCmdStr, string &strNewCmdPa
 
 	strNewCmdStr.ReleaseBuffer();
 	Unquote(strNewCmdStr);
-	return PipeFound;
+
+	return 2*PipeFound + 1*Escaped;
 }
 
 bool RunAsSupported(LPCWSTR Name)
@@ -826,7 +824,8 @@ int Execute(const wchar_t *CmdStr, //  ом.строка дл€ исполнени€
 	int nResult = -1;
 	string strNewCmdStr;
 	string strNewCmdPar;
-	PartCmdLine(CmdStr, strNewCmdStr, strNewCmdPar);
+
+	int PipeOrEscaped = PartCmdLine(CmdStr, strNewCmdStr, strNewCmdPar);
 
 	DWORD dwAttr = apiGetFileAttributes(strNewCmdStr);
 
@@ -862,7 +861,7 @@ int Execute(const wchar_t *CmdStr, //  ом.строка дл€ исполнени€
 		return -1;
 	}
 
-	DWORD dwSubSystem;
+	DWORD dwSubSystem = IMAGE_SUBSYSTEM_UNKNOWN;
 	DWORD dwError = 0;
 	HANDLE hProcess = nullptr;
 	LPCWSTR lpVerb = nullptr;
@@ -879,11 +878,10 @@ int Execute(const wchar_t *CmdStr, //  ом.строка дл€ исполнени€
 		if (/*!*NewCmdPar && */ dwSubSystem == IMAGE_SUBSYSTEM_UNKNOWN)
 		{
 			DWORD Error=0, dwSubSystem2=0;
-			size_t pos;
 
-			if (strNewCmdStr.RPos(pos,L'.'))
+			const wchar_t *ExtPtr=wcsrchr(PointToName(strNewCmdStr), L'.');
+			if (ExtPtr)
 			{
-				const wchar_t *ExtPtr=strNewCmdStr.CPtr()+pos;
 				if (!(!StrCmpI(ExtPtr,L".exe") || !StrCmpI(ExtPtr,L".com") || IsBatchExtType(ExtPtr)))
 				{
 					lpVerb=GetShellAction(strNewCmdStr,dwSubSystem2,Error);
@@ -896,7 +894,7 @@ int Execute(const wchar_t *CmdStr, //  ом.строка дл€ исполнени€
 
 				if (dwSubSystem == IMAGE_SUBSYSTEM_UNKNOWN && !StrCmpNI(strNewCmdStr,L"ECHO.",5)) // вариант "echo."
 				{
-					strNewCmdStr.Replace(pos,1,L' ');
+					strNewCmdStr.Replace(4,1,L' ');
 					PartCmdLine(strNewCmdStr,strNewCmdStr,strNewCmdPar);
 
 					if (strNewCmdPar.IsEmpty())
@@ -907,26 +905,21 @@ int Execute(const wchar_t *CmdStr, //  ом.строка дл€ исполнени€
 			}
 		}
 
-		const wchar_t* ComspecSpecific  = L"&<>|";
-
 		if (dwSubSystem == IMAGE_SUBSYSTEM_WINDOWS_GUI)
 		{
 			if(DirectRun && Opt.ExecuteSilentExternal)
 			{
 				Silent = true;
 			}
-			if (!DirectRun && wcspbrk(CmdStr, ComspecSpecific) == nullptr)
+			if ( !DirectRun )
 			{
-				DirectRun = true;
+				DirectRun = (PipeOrEscaped < 1); //??? <= 1 если бы '^' были удалены
 			}
 			SeparateWindow = true;
 		}
-		else if (dwSubSystem == IMAGE_SUBSYSTEM_WINDOWS_CUI && !DirectRun)
+		else if (dwSubSystem == IMAGE_SUBSYSTEM_WINDOWS_CUI && !DirectRun && !internal)
 		{
-			if (wcspbrk(CmdStr, ComspecSpecific) == nullptr && !internal)
-			{
-				DirectRun = true;
-			}
+			DirectRun = (PipeOrEscaped < 1); //??? <= 1 если бы '^' были удалены
 		}
 	}
 
