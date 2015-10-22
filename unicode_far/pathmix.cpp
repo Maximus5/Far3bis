@@ -72,13 +72,6 @@ NTPath::NTPath(LPCWSTR Src)
 		LPWSTR Buffer = Str.GetBuffer();
 		Buffer[4] = Lower(Buffer[4]);
 		Str.ReleaseBuffer(Str.GetLength());
-
-		if(Str.GetLength() == 6)
-		{
-			// "\\?\c:" -> "\\?\c:\"
-			// Root path must end with slash
-			AddEndSlash(Str);
-		}
 	}
 }
 

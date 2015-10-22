@@ -464,6 +464,12 @@ HANDLE apiCreateFile(const wchar_t* Object, DWORD DesiredAccess, DWORD ShareMode
 			FlagsAndAttributes&=~FILE_FLAG_POSIX_SEMANTICS;
 			Handle = CreateFile(strObject, DesiredAccess, ShareMode, SecurityAttributes, CreationDistribution, FlagsAndAttributes, TemplateFile);
 		}
+		else if(Error==ERROR_ACCESS_DENIED && !ForceElevation && strObject.GetLength()==7)
+		{
+			string strNoSlash(strObject);
+			DeleteEndSlash(strNoSlash);
+			Handle=CreateFile(strNoSlash, DesiredAccess, ShareMode, SecurityAttributes, CreationDistribution, FlagsAndAttributes, TemplateFile);
+		}
 	}
 
 	if((Handle == INVALID_HANDLE_VALUE && ElevationRequired(DesiredAccess&(GENERIC_ALL|GENERIC_WRITE|WRITE_OWNER|WRITE_DAC|DELETE|FILE_WRITE_DATA|FILE_ADD_FILE|FILE_APPEND_DATA|FILE_ADD_SUBDIRECTORY|FILE_CREATE_PIPE_INSTANCE|FILE_WRITE_EA|FILE_DELETE_CHILD|FILE_WRITE_ATTRIBUTES)?ELEVATION_MODIFY_REQUEST:ELEVATION_READ_REQUEST)) || ForceElevation)

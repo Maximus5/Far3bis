@@ -189,7 +189,12 @@ void MixToFullPath(string& strPath)
 				//fragment "." at the end
 				case 0:
 				{
-					pstPath[m-1] = 0;
+					pstPath[m] = 0;
+					// don't change x:\ to x:
+					if (pstPath[m-2] != L':')
+					{
+						pstPath[m-1] = 0;
+					}
 					continue;
 				}
 				break;

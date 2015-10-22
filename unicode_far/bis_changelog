@@ -3,6 +3,17 @@ http://code.google.com/p/conemu-maximus5/downloads/list
 За основу взята официальная сборка Far2 (build 1807)
 Полный список изменений: http://conemu-maximus5.googlecode.com/svn/trunk/Far2bis/bis_changelog
 
+=== Far 2.1 build 1807 bis16 ===
+
+Изменен fix: после загрузки Far не загружались колонки C0. Предыдущий вариант
+приводил к падению, если кто-то показывал диалог в SetStartupInfo.
+
+=== Far 2.1 build 1807 bis15 ===
+
+Mantis#1814: Артефакты после автодополнения.
+
+Mantis#1824: Лишний elevation в Drive menu.
+
 === Far 2.1 build 1807 bis14 ===
 
 Viewer: настройка "Autorefresh on removable drives".

@@ -687,7 +687,10 @@ void Manager::SetLastInputRecord(INPUT_RECORD *Rec)
 void Manager::ProcessMainLoop()
 {
 	if ( CurrentFrame )
-		CtrlObject->Macro.SetMode(CurrentFrame->GetMacroMode());
+	{
+		int iMode = CurrentFrame->GetMacroMode();
+		CtrlObject->Macro.SetMode(iMode);
+	}
 
 	if ( CurrentFrame && !CurrentFrame->ProcessEvents() )
 	{
@@ -1547,12 +1550,20 @@ void Manager::DeleteCommit()
 	*/
 	DeletedFrame->OnDestroy();
 
+	//110706
+#if 0
+	if (CurrentFrame==DeletedFrame)
+		CurrentFrame=0;
+#endif
+
 	if (DeletedFrame->GetDynamicallyBorn())
 	{
 		_MANAGER(SysLog(L"delete DeletedFrame %p, CurrentFrame=%p",DeletedFrame,CurrentFrame));
 
+#if 1
 		if (CurrentFrame==DeletedFrame)
 			CurrentFrame=0;
+#endif
 
 		/* $ 14.05.2002 SKV
 		  Так как в деструкторе фрэйма неявно может быть

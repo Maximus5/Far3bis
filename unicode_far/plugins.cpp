@@ -600,6 +600,23 @@ void PluginManager::LoadPlugins()
 
 	Flags.Set(PSIF_PLUGINSLOADDED);
 	far_qsort(PluginsData, PluginsCount, sizeof(*PluginsData), PluginsSort);
+
+	// »наче после загрузка Far в панел€х не загруз€тс€ колонки C0
+	if (HasGetCustomData())
+	{
+		Panel *ActivePanel=CtrlObject->Cp()->ActivePanel;
+		if (ActivePanel->GetType()==FILE_PANEL && ActivePanel->GetMode()==NORMAL_PANEL)
+		{
+			ActivePanel->ClearCustomData();
+			ActivePanel->Redraw();
+		}
+		Panel *AnotherPanel=CtrlObject->Cp()->GetAnotherPanel(ActivePanel);
+		if (AnotherPanel->GetType()==FILE_PANEL && AnotherPanel->GetMode()==NORMAL_PANEL)
+		{
+			AnotherPanel->ClearCustomData();
+			AnotherPanel->Redraw();
+		}
+	}
 }
 
 /* $ 01.09.2000 tran
@@ -2258,4 +2275,16 @@ void PluginManager::GetCustomData(FileListItem *ListItem)
 	}
 
 	ListItem->CustomDataLoaded = true;
+}
+
+bool PluginManager::HasGetCustomData()
+{
+	for (int i=0; i<PluginsCount; i++)
+	{
+		if (PluginsData[i]->HasGetCustomData())
+		{
+			return true;
+		}
+	}
+	return false;
 }

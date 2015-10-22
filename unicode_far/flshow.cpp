@@ -1550,3 +1550,14 @@ int FileList::GetPanelStatusHeight()
 	}
 	return Count+2; // <Number of status lines> + 1 (delimiter line)
 }
+
+void FileList::ClearCustomData()
+{
+	if (GetType()==FILE_PANEL && GetMode()==NORMAL_PANEL && ListData)
+	{
+		for (int i=0; i < FileCount; i++)
+		{
+			ListData[i]->ClearCustomData();
+		}
+	}
+}

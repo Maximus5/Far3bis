@@ -301,4 +301,5 @@ class Panel:public ScreenObject
 		BOOL NeedUpdatePanel(Panel *AnotherPanel);
 
 		virtual int GetPanelStatusHeight() { return 0; };
+		virtual void ClearCustomData() {};
 };
