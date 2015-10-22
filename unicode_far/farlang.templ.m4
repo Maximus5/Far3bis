@@ -6468,6 +6468,15 @@ l:
 "Nazwa"
 "Nombre"
 
+MColumnExtension
+"Расширение"
+"Extension"
+upd:"Extension"
+upd:"Extension"
+upd:"Extension"
+upd:"Extension"
+upd:"Extension"
+
 MColumnSize
 "Размер"
 "Size"

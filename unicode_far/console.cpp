@@ -255,7 +255,7 @@ bool console::PeekInput(INPUT_RECORD& Buffer, DWORD Length, DWORD& NumberOfEvent
 	if(Opt.WindowMode && Buffer.EventType==MOUSE_EVENT)
 	{
 		Buffer.Event.MouseEvent.dwMousePosition.Y=Max(0, Buffer.Event.MouseEvent.dwMousePosition.Y-GetDelta());
-		COORD Size;
+		COORD Size={};
 		GetSize(Size);
 		Buffer.Event.MouseEvent.dwMousePosition.X=Min(Buffer.Event.MouseEvent.dwMousePosition.X, static_cast<SHORT>(Size.X-1));
 	}
@@ -268,7 +268,7 @@ bool console::ReadInput(INPUT_RECORD& Buffer, DWORD Length, DWORD& NumberOfEvent
 	if(Opt.WindowMode && Buffer.EventType==MOUSE_EVENT)
 	{
 		Buffer.Event.MouseEvent.dwMousePosition.Y=Max(0, Buffer.Event.MouseEvent.dwMousePosition.Y-GetDelta());
-		COORD Size;
+		COORD Size={};
 		GetSize(Size);
 		Buffer.Event.MouseEvent.dwMousePosition.X=Min(Buffer.Event.MouseEvent.dwMousePosition.X, static_cast<SHORT>(Size.X-1));
 	}

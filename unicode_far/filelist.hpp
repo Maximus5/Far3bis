@@ -276,7 +276,7 @@ class FileList:public Panel
 		HANDLE OpenPluginForFile(const wchar_t *FileName,DWORD FileAttr, OPENFILEPLUGINTYPE Type);
 		int PreparePanelView(PanelViewSettings *PanelView);
 		int PrepareColumnWidths(unsigned int *ColumnTypes,int *ColumnWidths,
-		                        int *ColumnWidthsTypes,int &ColumnCount,int FullScreen);
+		                        int *ColumnWidthsTypes,int &ColumnCount,int FullScreen,BOOL StatusLine);
 		void PrepareViewSettings(int ViewMode,OpenPluginInfo *PlugInfo);
 
 		void PluginDelete();
@@ -417,4 +417,6 @@ class FileList:public Panel
 		static void PluginToFileListItem(PluginPanelItem *pi,FileListItem *fi);
 		static int IsModeFullScreen(int Mode);
 		static string &AddPluginPrefix(FileList *SrcPanel,string &strPrefix);
+
+		int GetPanelStatusHeight();
 };

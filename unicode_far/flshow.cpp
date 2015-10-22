@@ -77,7 +77,10 @@ static int __FormatEndSelectedPhrase(int Count)
 
 void FileList::DisplayObject()
 {
+	#if 0
 	Height=Y2-Y1-4+!Opt.ShowColumnTitles+(Opt.ShowPanelStatus ? 0:2);
+	#endif
+	Height=Y2-Y1+!Opt.ShowColumnTitles-(Opt.ShowPanelStatus ? (GetPanelStatusHeight()+2) : 2);
 	_OT(SysLog(L"[%p] FileList::DisplayObject()",this));
 
 	if (UpdateRequired)
@@ -148,6 +151,9 @@ void FileList::ShowFileList(int Fast)
 			{
 				case NAME_COLUMN:
 					IDMessage=MColumnName;
+					break;
+				case EXTENSION_COLUMN:
+					IDMessage=MColumnExtension;
 					break;
 				case SIZE_COLUMN:
 					IDMessage=MColumnSize;
@@ -413,6 +419,7 @@ void FileList::ShowFileList(int Fast)
 	if ((Opt.ShowPanelTotals || Opt.ShowPanelFree) &&
 	        (Opt.ShowPanelStatus || !SelFileCount))
 	{
+		//Maximus5: ѕри старте сюда приходит неинициализированна€ структура (0xCCCCCCCCC)
 		ShowTotalSize(Info);
 	}
 
@@ -476,7 +483,8 @@ void FileList::ShowSelectedSize()
 	if (Opt.ShowPanelStatus)
 	{
 		SetColor(COL_PANELBOX);
-		DrawSeparator(Y2-2);
+		int StatusHeight = GetPanelStatusHeight();
+		DrawSeparator(Y2-StatusHeight);
 
 		for (int I=0,ColumnPos=X1+1; I<ViewSettings.ColumnCount-1; I++)
 		{
@@ -485,7 +493,7 @@ void FileList::ShowSelectedSize()
 				continue;
 
 			ColumnPos+=ViewSettings.ColumnWidth[I];
-			GotoXY(ColumnPos,Y2-2);
+			GotoXY(ColumnPos,Y2-StatusHeight);
 			BoxText(BoxSymbols[BS_B_H1V1]);
 			ColumnPos++;
 		}
@@ -498,12 +506,12 @@ void FileList::ShowSelectedSize()
 		TruncStr(strSelStr,X2-X1-1);
 		Length=(int)strSelStr.GetLength();
 		SetColor(COL_PANELSELECTEDINFO);
-		GotoXY(X1+(X2-X1+1-Length)/2,Y2-2*Opt.ShowPanelStatus);
+		GotoXY(X1+(X2-X1+1-Length)/2,Y2-GetPanelStatusHeight());
 		Text(strSelStr);
 	}
 }
 
-
+//Maximus5: ѕри старте сюда приходит неинициализированна€ структура (0xCCCCCCCCC)
 void FileList::ShowTotalSize(OpenPluginInfo &Info)
 {
 	if (!Opt.ShowPanelTotals && PanelMode==PLUGIN_PANEL && !(Info.Flags & OPIF_REALNAMES))
@@ -628,14 +636,14 @@ void FileList::PrepareViewSettings(int ViewMode,OpenPluginInfo *PlugInfo)
 		{
 			TextToViewSettings(Info.PanelModesArray[ViewMode].ColumnTypes,
 			                   Info.PanelModesArray[ViewMode].ColumnWidths,
-			                   ViewSettings.ColumnType,ViewSettings.ColumnWidth,
+			                   FALSE,ViewSettings.ColumnType,ViewSettings.ColumnWidth,
 			                   ViewSettings.ColumnWidthType,ViewSettings.ColumnCount);
 
 			if (Info.PanelModesArray[ViewMode].StatusColumnTypes &&
 			        Info.PanelModesArray[ViewMode].StatusColumnWidths)
 				TextToViewSettings(Info.PanelModesArray[ViewMode].StatusColumnTypes,
 				                   Info.PanelModesArray[ViewMode].StatusColumnWidths,
-				                   ViewSettings.StatusColumnType,ViewSettings.StatusColumnWidth,
+				                   TRUE,ViewSettings.StatusColumnType,ViewSettings.StatusColumnWidth,
 				                   ViewSettings.StatusColumnWidthType,ViewSettings.StatusColumnCount);
 			else if (Info.PanelModesArray[ViewMode].DetailedStatus)
 			{
@@ -686,27 +694,46 @@ void FileList::PrepareViewSettings(int ViewMode,OpenPluginInfo *PlugInfo)
 	}
 
 	Columns=PreparePanelView(&ViewSettings);
+	#if 0
 	Height=Y2-Y1-4;
+	#endif
+	Height=Y2-Y1-(Opt.ShowPanelStatus ? (GetPanelStatusHeight()+2) : 2);
 
 	if (!Opt.ShowColumnTitles)
 		Height++;
 
 	if (!Opt.ShowPanelStatus)
-		Height+=2;
+		Height+=GetPanelStatusHeight(); //Maximus5: BUGBUG: ???
 }
 
 
 int FileList::PreparePanelView(PanelViewSettings *PanelView)
 {
-	PrepareColumnWidths(PanelView->StatusColumnType,PanelView->StatusColumnWidth,PanelView->StatusColumnWidthType,
-	                    PanelView->StatusColumnCount,PanelView->FullScreen);
+	for (int S=0; S<PanelView->StatusColumnCount;)
+	{
+		int Columns=PanelView->StatusColumnCount-S;
+		int NextLine=PanelView->StatusColumnCount+1;
+		for (int I=S; I<PanelView->StatusColumnCount; I++)
+		{
+			if (PanelView->StatusColumnType[I]==LINEBREAK_COLUMN)
+			{
+				Columns=I-S;
+				NextLine=S+Columns+1;
+				break;
+			}
+		}
+		if (Columns>0)
+			PrepareColumnWidths(PanelView->StatusColumnType+S,PanelView->StatusColumnWidth+S,
+				PanelView->StatusColumnWidthType+S,Columns,PanelView->FullScreen,TRUE);
+		S=NextLine; //количество колонок+<BR>
+	}
 	return(PrepareColumnWidths(PanelView->ColumnType,PanelView->ColumnWidth,PanelView->ColumnWidthType,
-	                           PanelView->ColumnCount,PanelView->FullScreen));
+	                           PanelView->ColumnCount,PanelView->FullScreen,FALSE));
 }
 
 
 int FileList::PrepareColumnWidths(unsigned int *ColumnTypes,int *ColumnWidths,
-                                  int *ColumnWidthsTypes,int &ColumnCount,int FullScreen)
+                                  int *ColumnWidthsTypes,int &ColumnCount,int FullScreen,BOOL StatusLine)
 {
 	int TotalWidth,TotalPercentWidth,TotalPercentCount,ZeroLengthCount,EmptyColumns,I;
 	ZeroLengthCount=EmptyColumns=0;
@@ -715,6 +742,11 @@ int FileList::PrepareColumnWidths(unsigned int *ColumnTypes,int *ColumnWidths,
 
 	for (I=0; I<ColumnCount; I++)
 	{
+		if (ColumnTypes[I]==LINEBREAK_COLUMN)
+		{
+			ColumnCount=I;
+			break;
+		}
 		if (ColumnWidths[I]<0)
 		{
 			EmptyColumns++;
@@ -755,6 +787,7 @@ int FileList::PrepareColumnWidths(unsigned int *ColumnTypes,int *ColumnWidths,
 
 	TotalWidth-=EmptyColumns;
 	int PanelTextWidth=X2-X1-1;
+	//Maximus5: BUGBUG: “ут получаетс€ "-1" при старте!
 
 	if (FullScreen)
 		PanelTextWidth=ScrX-1;
@@ -864,15 +897,42 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 	int StatusShown=FALSE;
 	int MaxLeftPos=0,MinLeftPos=FALSE;
 	int ColumnCount=ShowStatus ? ViewSettings.StatusColumnCount:ViewSettings.ColumnCount;
+	int StatusHeight=GetPanelStatusHeight();
+	unsigned int *ColumnTypes=ShowStatus ? ViewSettings.StatusColumnType:ViewSettings.ColumnType;
+	int *ColumnWidths=ShowStatus ? ViewSettings.StatusColumnWidth:ViewSettings.ColumnWidth;
+	int K0=0;
 
-	for (int I=Y1+1+Opt.ShowColumnTitles,J=CurTopFile; I<Y2-2*Opt.ShowPanelStatus; I++,J++)
+	if (ShowStatus)
+	{
+		// ѕолучить индекс первой колонки расположенной на строке ShowStatus (1 based)
+		for (int S=1; S<ShowStatus; S++)
+		{
+			while (K0<ColumnCount)
+			{
+				if (ColumnTypes[K0++]==LINEBREAK_COLUMN)
+					break;
+			}
+		}
+		// ѕосчитать количество колонок в этой строке
+		int K1=K0;
+		while (K1<ColumnCount && ColumnTypes[K1]!=LINEBREAK_COLUMN)
+			K1++;
+		ColumnCount=K1-K0;
+		if (K0)
+		{
+			ColumnTypes+=K0;
+			ColumnWidths+=K0;
+		}
+	}
+
+	for (int I=Y1+1+Opt.ShowColumnTitles,J=CurTopFile; I<Y2-StatusHeight; I++,J++)
 	{
 		int CurColumn=StartColumn;
 
 		if (ShowStatus)
 		{
 			SetColor(COL_PANELTEXT);
-			GotoXY(X1+1,Y2-1);
+			GotoXY(X1+1,Y2-StatusHeight+ShowStatus);
 		}
 		else
 		{
@@ -901,8 +961,6 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 			int CurX=WhereX();
 			int CurY=WhereY();
 			int ShowDivider=TRUE;
-			unsigned int *ColumnTypes=ShowStatus ? ViewSettings.StatusColumnType:ViewSettings.ColumnType;
-			int *ColumnWidths=ShowStatus ? ViewSettings.StatusColumnWidth:ViewSettings.ColumnWidth;
 			int ColumnType=ColumnTypes[K] & 0xff;
 			int ColumnWidth=ColumnWidths[K];
 
@@ -922,7 +980,8 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 			{
 				if (!ShowStatus && !StatusShown && CurFile==ListPos && Opt.ShowPanelStatus)
 				{
-					ShowList(TRUE,CurColumn);
+					for (int S=1; S<StatusHeight; S++)
+						ShowList(S,CurColumn);
 					GotoXY(CurX,CurY);
 					StatusShown=TRUE;
 					SetShowColor(ListPos);
@@ -1104,6 +1163,19 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 										SetShowColor(J);
 								}
 							}
+						}
+						break;
+						case EXTENSION_COLUMN:
+						{
+							const wchar_t *ExtPtr = nullptr;
+							if (!(ListData[ListPos]->FileAttr & FILE_ATTRIBUTE_DIRECTORY))
+							{
+								const wchar_t *NamePtr = ShowShortNames && !ListData[ListPos]->strShortName.IsEmpty() && !ShowStatus ? ListData[ListPos]->strShortName:ListData[ListPos]->strName;
+								ExtPtr = PointToExt(NamePtr);
+							}
+							if (ExtPtr && *ExtPtr) ExtPtr++; else ExtPtr = L"";
+							FS<<fmt::LeftAlign()<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<ExtPtr;
+							break;
 						}
 						break;
 						case SIZE_COLUMN:
@@ -1344,4 +1416,15 @@ int FileList::IsColumnDisplayed(int Type)
 			return TRUE;
 
 	return FALSE;
+}
+
+int FileList::GetPanelStatusHeight()
+{
+	if (!Opt.ShowPanelStatus)
+		return 0;
+	int Count=0;
+	for (int I=0; I<ViewSettings.StatusColumnCount; I++)
+		if (ViewSettings.StatusColumnType[I]==LINEBREAK_COLUMN)
+			Count++;
+	return Count+2; // <Number of status lines> + 1 (delimiter line)
 }

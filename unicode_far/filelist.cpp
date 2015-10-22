@@ -2803,7 +2803,7 @@ int FileList::ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent)
 		return(RetCode);
 
 	if (MouseEvent->dwMousePosition.Y>Y1+Opt.ShowColumnTitles &&
-	        MouseEvent->dwMousePosition.Y<Y2-2*Opt.ShowPanelStatus)
+	        MouseEvent->dwMousePosition.Y<Y2-GetPanelStatusHeight())
 	{
 		SetFocus();
 
@@ -3041,7 +3041,7 @@ void FileList::SetViewMode(int ViewMode)
 		string strColumnTypes,strColumnWidths;
 //    SetScreenPosition();
 		ViewSettingsToText(ViewSettings.ColumnType,ViewSettings.ColumnWidth,ViewSettings.ColumnWidthType,
-		                   ViewSettings.ColumnCount,strColumnTypes,strColumnWidths);
+		                   ViewSettings.ColumnCount,FALSE,strColumnTypes,strColumnWidths);
 		ProcessPluginEvent(FE_CHANGEVIEWMODE,(void*)strColumnTypes.CPtr());
 	}
 
