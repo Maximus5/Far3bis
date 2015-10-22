@@ -113,4 +113,5 @@ class History
 		bool GetAllSimilar(VMenu &HistoryMenu,const wchar_t *Str);
 		void SetAddMode(bool EnableAdd, int RemoveDups, bool KeepSelectedPos);
 		void ResetPosition() { CurrentItem = nullptr; }
+		void Delete(HistoryRecord* Item){HistoryList.Delete(Item); ResetPosition(); SaveHistory();}
 };

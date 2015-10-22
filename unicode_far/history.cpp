@@ -723,9 +723,7 @@ int History::ProcessMenu(string &strStr, const wchar_t *Title, VMenu &HistoryMen
 						if (!CurrentRecord->Lock)
 						{
 							HistoryMenu.Hide();
-							HistoryList.Delete(CurrentRecord);
-							ResetPosition();
-							SaveHistory();
+							Delete(CurrentRecord);
 							HistoryMenu.Modal::SetExitCode(Pos.SelectPos);
 							HistoryMenu.SetUpdateRequired(TRUE);
 							IsUpdate=true;
@@ -898,9 +896,16 @@ bool History::GetAllSimilar(VMenu &HistoryMenu,const wchar_t *Str)
 	int Length=StrLength(Str);
 	for (HistoryRecord *HistoryItem=HistoryList.Last();HistoryItem;HistoryItem=HistoryList.Prev(HistoryItem))
 	{
+		//Maximus5: в Far3.0 здесь другое условие: "if (!StrCmpNI(Str,HistoryItem->strName,Length))"
 		if (!StrCmpNI(Str,HistoryItem->strName,Length) && StrCmp(Str,HistoryItem->strName))
 		{
-			HistoryMenu.AddItem(HistoryItem->strName);
+			MenuItemEx NewItem={};
+			NewItem.strName = HistoryItem->strName;
+			if(HistoryItem->Lock)
+			{
+				NewItem.Flags|=LIF_CHECKED;
+			}
+			HistoryMenu.SetUserData(HistoryItem,sizeof(HistoryItem),HistoryMenu.AddItem(&NewItem));
 		}
 	}
 	return false;

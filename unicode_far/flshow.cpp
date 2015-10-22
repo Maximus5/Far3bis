@@ -942,6 +942,13 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 		int StatusLine=FALSE;
 		int Level = 1;
 
+		if (ShowStatus)
+		{
+			//Maximus: TODO: выставить цвет N-ой строки статуса
+		}
+		
+		FormatString strLine;
+				
 		for (int K=0; K<ColumnCount; K++)
 		{
 			int ListPos=J+CurColumn*Height;
@@ -1018,7 +1025,7 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 						}
 					}
 
-					FS<<fmt::LeftAlign()<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<ColumnData+CurLeftPos;
+					strLine<<fmt::LeftAlign()<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<ColumnData+CurLeftPos;
 				}
 				else
 				{
@@ -1031,7 +1038,11 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 
 							if ((ViewFlags & COLUMN_MARK) && Width>2)
 							{
-								Text(ListData[ListPos]->Selected?L"\x221A ":L"  ");
+								const wchar_t *MarkPtr = ListData[ListPos]->Selected?L"\x221A ":L"  ";
+								if (!ShowStatus)
+									Text(MarkPtr);
+								else
+									strLine.Append(MarkPtr);
 								Width-=2;
 							}
 
@@ -1042,10 +1053,15 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 								int OldColor=GetColor();
 
 								if (!ShowStatus)
+								{
 									SetShowColor(ListPos,HIGHLIGHTCOLORTYPE_MARKCHAR);
-
-								Text(OutCharacter);
-								SetColor(OldColor);
+									Text(OutCharacter);
+									SetColor(OldColor);
+								}
+								else
+								{
+									strLine.Append(OutCharacter);
+								}
 							}
 
 							const wchar_t *NamePtr = ShowShortNames && !ListData[ListPos]->strShortName.IsEmpty() && !ShowStatus ? ListData[ListPos]->strShortName:ListData[ListPos]->strName;
@@ -1142,11 +1158,15 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 									strName.Lower();
 							}
 
-							Text(strName);
-							int NameX=WhereX();
+							if (!ShowStatus)
+								Text(strName);
+							else
+								strLine.Append(strName);
 
 							if (!ShowStatus)
 							{
+								int NameX=WhereX();
+								
 								if (LeftBracket)
 								{
 									GotoXY(CurX-1,CurY);
@@ -1187,63 +1207,27 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 
 							int ExtLen = (int)wcslen(ExtPtr);
 							bool TooLong = ExtLen > ColumnWidth;
-							int LeftBracket=false,RightBracket=TooLong;
 
-							//if (TooLong)
-							//{
-							//	if (LeftPos>0)
-							//	{
-							//		LeftBracket = true;
-							//		if (LeftPos<(ExtLen-ColumnWidth))
-							//		{
-							//			RightBracket = true;
-							//			ExtPtr += LeftPos;
-							//		}
-							//		else
-							//		{
-							//			ExtPtr += ExtLen-ColumnWidth;
-							//		}
-							//	}
-							//	else
-							//	{
-							//		RightBracket = true;
-							//	}
-							//}
-
-							//FormatString strExt;
-							//strExt << fmt::LeftAlign() << fmt::Width(ColumnWidth) << fmt::Precision(ColumnWidth) << ExtPtr;
-							//Text(strExt);
-							FS<<fmt::LeftAlign()<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<ExtPtr;
+							strLine<<fmt::LeftAlign()<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<ExtPtr;
 
 							if (!ShowStatus && TooLong)
 							{
+								Text(strLine);
+								strLine.Clear();
+								
 								int NameX=WhereX();
 								
-								if (LeftBracket)
-								{
-									GotoXY(CurX-1,CurY);
+								if (Level == ColumnsInGlobal)
+									SetColor(COL_PANELBOX);
 
-									if (Level == 1)
-										SetColor(COL_PANELBOX);
+								GotoXY(NameX,CurY);
+								Text(closeBracket);
+								ShowDivider=FALSE;
 
-									Text(openBracket);
+								if (Level == ColumnsInGlobal)
+									SetColor(COL_PANELTEXT);
+								else
 									SetShowColor(J);
-								}
-
-								if (RightBracket)
-								{
-									if (Level == ColumnsInGlobal)
-										SetColor(COL_PANELBOX);
-
-									GotoXY(NameX,CurY);
-									Text(closeBracket);
-									ShowDivider=FALSE;
-
-									if (Level == ColumnsInGlobal)
-										SetColor(COL_PANELTEXT);
-									else
-										SetShowColor(J);
-								}
 							}
 							break;
 						}
@@ -1252,7 +1236,7 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 						case PACKED_COLUMN:
 						case STREAMSSIZE_COLUMN:
 						{
-                            Text(FormatStr_Size(
+                            strLine.Append(FormatStr_Size(
                             		ListData[ListPos]->UnpSize,
                             		ListData[ListPos]->PackSize,
                             		ListData[ListPos]->StreamsSize,
@@ -1294,13 +1278,13 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 									break;
 							}
 
-							FS<<FormatStr_DateTime(FileTime,ColumnType,ColumnTypes[K],ColumnWidth);
+							strLine<<FormatStr_DateTime(FileTime,ColumnType,ColumnTypes[K],ColumnWidth);
 							break;
 						}
 
 						case ATTR_COLUMN:
 						{
-							FS<<FormatStr_Attribute(ListData[ListPos]->FileAttr,ColumnWidth);
+							strLine<<FormatStr_Attribute(ListData[ListPos]->FileAttr,ColumnWidth);
 							break;
 						}
 
@@ -1330,7 +1314,7 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 							if (strDizText.Pos(pos,L'\4'))
 								strDizText.SetLength(pos);
 
-							FS<<fmt::LeftAlign()<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<strDizText;
+							strLine<<fmt::LeftAlign()<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<strDizText;
 							break;
 						}
 
@@ -1368,19 +1352,19 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 								}
 							}
 
-							FS<<fmt::LeftAlign()<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<Owner+CurLeftPos;
+							strLine<<fmt::LeftAlign()<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<Owner+CurLeftPos;
 							break;
 						}
 
 						case NUMLINK_COLUMN:
 						{
-							FS<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<ListData[ListPos]->NumberOfLinks;
+							strLine<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<ListData[ListPos]->NumberOfLinks;
 							break;
 						}
 
 						case NUMSTREAMS_COLUMN:
 						{
-							FS<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<ListData[ListPos]->NumberOfStreams;
+							strLine<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<ListData[ListPos]->NumberOfStreams;
 							break;
 						}
 
@@ -1389,7 +1373,13 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 			}
 			else
 			{
-				FS<<fmt::Width(ColumnWidth)<<L"";
+				strLine<<fmt::Width(ColumnWidth)<<L"";
+			}
+			
+			if (!ShowStatus)
+			{
+		        Text(strLine);
+		        strLine.Clear();
 			}
 
 			if (ShowDivider==FALSE)
@@ -1411,8 +1401,10 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 
 				if (K==ColumnCount-1)
 					BoxText(CurX+ColumnWidth==X2 ? BoxSymbols[BS_V2]:L' ');
+				else if (!ShowStatus)
+					BoxText(BoxSymbols[BS_V1]);
 				else
-					BoxText(ShowStatus ? L' ':BoxSymbols[BS_V1]);
+					strLine.Append(L" ");
 
 				if (!ShowStatus)
 					SetColor(COL_PANELTEXT);
@@ -1429,6 +1421,30 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 				Level++;
 			}
 		}
+		
+		if (ShowStatus && !strLine.IsEmpty())
+		{
+			GotoXY(X1+1,WhereY());
+			#if 0 // Left
+	        Text(strLine);
+	        #else
+			int LineLen = static_cast<int>(strLine.GetLength());
+			const wchar_t *LinePtr = strLine;
+			while (*LinePtr==L' ')
+			{
+				LinePtr++;
+				LineLen--;
+			}
+			while (LineLen>0 && LinePtr[LineLen-1]==L' ')
+				LineLen--;
+			if (LineLen<(X2-X1-1))
+				FS<<fmt::Width((X2-X1-1-LineLen)>>1)<<L"";
+			else if (LineLen>(X2-X1-1))
+				LineLen = X2-X1-1;
+	        FS<<fmt::Width(LineLen)<<fmt::Precision(LineLen)<<LinePtr;
+			//FS<<L"*";
+	        #endif
+        }
 
 		if ((!ShowStatus || StatusLine) && WhereX()<X2)
 		{
@@ -1493,7 +1509,8 @@ int FileList::GetPanelStatusHeight()
 	if (!Opt.ShowPanelStatus)
 		return 0;
 	int Count=0;
-	for (int I=0; I<ViewSettings.StatusColumnCount; I++)
+	int CountMax = Y2-Y1-5;
+	for (int I=0; I<ViewSettings.StatusColumnCount && Count<CountMax; I++)
 		if (ViewSettings.StatusColumnType[I]==LINEBREAK_COLUMN)
 			Count++;
 	return Count+2; // <Number of status lines> + 1 (delimiter line)
