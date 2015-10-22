@@ -23,7 +23,6 @@ DEF = far.def
 DEPFILE = bootstrap/far.gcc.dep
 
 SRCS = \
-	elevation.cpp \
 	cache.cpp \
 	cddrv.cpp \
 	CFileMask.cpp \
@@ -52,12 +51,12 @@ SRCS = \
 	edit.cpp \
 	editor.cpp \
 	eject.cpp \
+	elevation.cpp \
 	execute.cpp \
 	farexcpt.cpp \
 	farqueue.cpp \
 	farrtl.cpp \
 	farwinapi.cpp \
-	ffolders.cpp \
 	fileattr.cpp \
 	fileedit.cpp \
 	filefilter.cpp \
@@ -135,10 +134,11 @@ SRCS = \
 	scrsaver.cpp \
 	setattr.cpp \
 	setcolor.cpp \
+	shortcuts.cpp \
 	stddlg.cpp \
 	strmix.cpp \
 	synchro.cpp \
-	syntax.cpp \
+	macrocompiler.cpp \
 	syslog.cpp \
 	TaskBar.cpp \
 	TPreRedrawFunc.cpp \

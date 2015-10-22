@@ -1605,6 +1605,12 @@ LONG_PTR WINAPI FindDlgProc(HANDLE hDlg, int Msg, int Param1, LONG_PTR Param2)
 
 	switch (Msg)
 	{
+	case DN_INITDIALOG:
+		{
+			static_cast<Dialog*>(hDlg)->GetAllItem()[FD_LISTBOX]->ListPtr->SetFlags(VMENU_NOMERGEBORDER);
+		}
+		break;
+
 	case DN_DRAWDIALOGDONE:
 		{
 			DefDlgProc(hDlg,Msg,Param1,Param2);

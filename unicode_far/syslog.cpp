@@ -1127,6 +1127,7 @@ string __MCODE_ToName(int OpCode)
 		DEF_MCODE_(F_AKEY),
 		DEF_MCODE_(F_ASC),
 		DEF_MCODE_(F_CHR),
+		DEF_MCODE_(F_FMATCH),
 		DEF_MCODE_(F_CLIP),
 		DEF_MCODE_(F_DATE),
 		DEF_MCODE_(F_DLG_GETVALUE),
@@ -1258,6 +1259,7 @@ string __MCODE_ToName(int OpCode)
 		DEF_MCODE_(V_CMDLINE_VALUE),
 		DEF_MCODE_(V_CURPOS),
 		DEF_MCODE_(V_DLGCURPOS),
+		DEF_MCODE_(V_DLGINFOID),
 		DEF_MCODE_(V_DLGITEMCOUNT),
 		DEF_MCODE_(V_DLGITEMTYPE),
 		DEF_MCODE_(V_DRVSHOWMODE),
@@ -1310,6 +1312,12 @@ string __MCODE_ToName(int OpCode)
 		DEF_MCODE_(F_BEEP),                     // N=beep([N])
 		DEF_MCODE_(F_KBDLAYOUT),                // N=kbdLayout([N])
 		DEF_MCODE_(F_WINDOW_SCROLL),               // N=Window.Scroll(Lines[,Axis])
+		DEF_MCODE_(F_KEYBAR_SHOW),              // N=KeyBar.Show([N])
+		DEF_MCODE_(F_HISTIORY_ENABLE),           // N=History.Enable([State])
+		DEF_MCODE_(F_PLUGIN_LOAD),              // N=Plugin.Load(DllPath[,ForceLoad])
+		DEF_MCODE_(F_PLUGIN_UNLOAD),            // N=Plugin.UnLoad(DllPath)
+		DEF_MCODE_(F_MENU_FILTER),              // N=Menu.Filter(Action[,Mode])
+		DEF_MCODE_(F_MENU_FILTERSTR),           // S=Menu.FilterStr([Action[,S]])
 
 	};
 	string Name;

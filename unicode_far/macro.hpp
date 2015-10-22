@@ -33,7 +33,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "syntax.hpp"
+#include "macrocompiler.hpp"
 #include "tvar.hpp"
 #include "macroopcode.hpp"
 
@@ -214,6 +214,8 @@ class KeyMacro
 		struct MacroState PCStack[STACKLEVEL];
 		int CurPCStack;
 
+		bool StopMacro;
+
 		// сюда "могут" писать только при чтении макросов (занесение нового),
 		// а исполнять через MacroWORK
 		int MacroLIBCount;
@@ -279,6 +281,9 @@ class KeyMacro
 		int  GetMode() {return(Mode);};
 
 		void DropProcess();
+
+		// послать сигнал на прерывание макроса
+		void SendDropProcess();
 
 		void RunStartMacro();
 

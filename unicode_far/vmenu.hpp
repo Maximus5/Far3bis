@@ -88,6 +88,7 @@ enum VMENU_FLAGS
 	VMENU_CHANGECONSOLETITLE   =0x01000000, //
 	VMENU_MOUSEREACTION        =0x02000000, // реагировать на движение мыши? (перемещать позицию при перемещении курсора мыши?)
 	VMENU_DISABLED             =0x04000000, //
+	VMENU_NOMERGEBORDER        =0x08000000, //
 	VMENU_REFILTERREQUIRED     =0x10000000, // перед отрисовкой необходимо обновить фильтр
 };
 
@@ -238,13 +239,17 @@ class VMenu: public Modal
 
 		bool bFilterEnabled;
 		bool bFilterLocked;
+		bool bFilterMaskMode;
 		string strFilter;
+		string strMaskFilter;
 
 		MenuItemEx **Item;
 
 		int ItemCount;
 		int ItemHiddenCount;
 		int ItemSubMenusCount;
+		int SeparatorCount;
+		int SeparatorHiddenCount;
 
 		BYTE Colors[VMENU_COLOR_COUNT];
 
@@ -267,13 +272,10 @@ class VMenu: public Modal
 		bool ItemIsVisible(DWORD Flags);
 		void UpdateMaxLengthFromTitles();
 		void UpdateMaxLength(int Length);
-		void UpdateItemFlags(int Pos, DWORD NewFlags);
 		void UpdateInternalCounters(DWORD OldFlags, DWORD NewFlags);
-		//void RestoreFilteredItems();
-		//void FilterStringUpdated(bool bLonger);
 		bool IsFilterEditKey(int Key);
 		bool ShouldSendKeyToFilter(int Key);
-		//bool AddToFilter(const wchar_t *str);
+		void ShortenFilterString(int Key);
 		//коректировка текущей позиции и флагов SELECTED
 		void UpdateSelectPos();
 
@@ -334,15 +336,18 @@ class VMenu: public Modal
 		int  FindItem(const FarListFind *FindItem);
 		int  FindItem(int StartIndex,const wchar_t *Pattern,DWORD Flags=0);
 		void RestoreFilteredItems();
-		void FilterStringUpdated(bool bLonger);
+		void FilterStringUpdated();
 		void FilterUpdateHeight(bool bShrink=false);
 		void SetFilterEnabled(bool bEnabled) { bFilterEnabled=bEnabled; };
 		void SetFilterLocked(bool bLocked) { bFilterEnabled=bLocked; };
+		void SetFilterMaskMode(bool bMaskMode) { bFilterMaskMode=bMaskMode; };
  		bool AddToFilter(const wchar_t *str);
+ 		const wchar_t *GetFilterString();
  		void SetFilterString(const wchar_t *str);
 
 		int  GetItemCount() { return ItemCount; };
 		int  GetShowItemCount() { return ItemCount-ItemHiddenCount; };
+		int  GetShowSeparatorCount() { return SeparatorCount-SeparatorHiddenCount; };
 		int  GetVisualPos(int Pos);
 		int  VisualPosToReal(int VPos);
 
@@ -358,6 +363,7 @@ class VMenu: public Modal
 		void SetCheck(int Check, int Position=-1);
 
 		bool UpdateRequired();
+		void UpdateItemFlags(int Pos, DWORD NewFlags);
 
 		virtual void ResizeConsole();
 
@@ -385,5 +391,3 @@ class VMenu: public Modal
 		static LONG_PTR WINAPI DefMenuProc(HANDLE hVMenu,int Msg,int Param1,LONG_PTR Param2);
 		static LONG_PTR WINAPI SendMenuMessage(HANDLE hVMenu,int Msg,int Param1,LONG_PTR Param2);
 };
-
-void EnumFiles(VMenu& Menu, const wchar_t* Str);

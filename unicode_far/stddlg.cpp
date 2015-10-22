@@ -42,6 +42,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "farexcpt.hpp"
 #include "registry.hpp"
 #include "strmix.hpp"
+#include "macro.hpp"
 
 int WINAPI GetSearchReplaceString(
     int IsReplaceMode,
@@ -569,6 +570,9 @@ int WINAPI GetString(
 		}
 
 		ExitCode=Dlg.GetExitCode();
+
+		if (ExitCode == -2 && CtrlObject->Macro.IsExecuting() != MACROMODE_NOMACRO)
+			CtrlObject->Macro.SendDropProcess();
 	}
 
 	if (ExitCode == 2 || ExitCode == 4 || (addCheckBox && ExitCode == 6))

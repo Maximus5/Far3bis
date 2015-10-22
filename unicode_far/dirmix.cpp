@@ -48,6 +48,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pathmix.hpp"
 #include "strmix.hpp"
 #include "interf.hpp"
+#include "elevation.hpp"
 
 BOOL FarChDir(const wchar_t *NewDir, BOOL ChangeDir)
 {
@@ -107,9 +108,9 @@ BOOL FarChDir(const wchar_t *NewDir, BOOL ChangeDir)
 /*
   Функция TestFolder возвращает одно состояний тестируемого каталога:
 
-    TSTFLD_NOTFOUND   (2) - нет такого
-    TSTFLD_NOTEMPTY   (1) - не пусто
-    TSTFLD_EMPTY      (0) - пусто
+    TSTFLD_NOTEMPTY   (2) - не пусто
+    TSTFLD_EMPTY      (1) - пусто
+    TSTFLD_NOTFOUND   (0) - нет такого
     TSTFLD_NOTACCESS (-1) - нет доступа
     TSTFLD_ERROR     (-2) - ошибка (кривые параметры или нехватило памяти для выделения промежуточных буферов)
 */
@@ -137,8 +138,11 @@ int TestFolder(const wchar_t *Path)
 	{
 		GuardLastError lstError;
 
-		if (lstError.Get() == ERROR_FILE_NOT_FOUND)
+		if (lstError.Get() == ERROR_FILE_NOT_FOUND || lstError.Get() == ERROR_NO_MORE_FILES)
 			return TSTFLD_EMPTY;
+
+		if (lstError.Get() == ERROR_PATH_NOT_FOUND)
+			return TSTFLD_NOTFOUND;
 
 		// собственно... не факт, что диск не читаем, т.к. на чистом диске в корне нету даже "."
 		// поэтому посмотрим на Root
@@ -164,6 +168,14 @@ int TestFolder(const wchar_t *Path)
 				return TSTFLD_NOTFOUND;
 		}
 
+		{
+			DisableElevation de;
+
+			DWORD Attr=apiGetFileAttributes(strFindPath);
+
+			if (Attr!=INVALID_FILE_ATTRIBUTES && !(Attr&FILE_ATTRIBUTE_DIRECTORY))
+				return TSTFLD_ERROR;
+		}
 		return TSTFLD_NOTACCESS;
 	}
 

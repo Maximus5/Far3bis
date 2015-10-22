@@ -2285,8 +2285,8 @@ COPY_CODES ShellCopy::ShellCopyOneFile(
 	if (!*NamePtr || TestParentFolderName(NamePtr))
 		DestAttr=FILE_ATTRIBUTE_DIRECTORY;
 
-	FAR_FIND_DATA_EX DestData;
-	if (DestAttr==INVALID_FILE_ATTRIBUTES)
+	FAR_FIND_DATA_EX DestData={};
+	if (DestAttr==INVALID_FILE_ATTRIBUTES && !(Flags&FCOPY_COPYTONUL))
 	{
 		if (apiGetFindDataEx(strDestPath,DestData))
 			DestAttr=DestData.dwFileAttributes;
@@ -3255,7 +3255,7 @@ int ShellCopy::ShellCopyFile(const wchar_t *SrcName,const FAR_FIND_DATA_EX &SrcD
 					DestFile.SetEnd();
 					DestFile.Close();
 
-					if (!Append)
+					if (!Append && !(Flags&FCOPY_COPYTONUL))
 					{
 						apiSetFileAttributes(strDestName,FILE_ATTRIBUTE_NORMAL);
 						apiDeleteFile(strDestName); //BUGBUG

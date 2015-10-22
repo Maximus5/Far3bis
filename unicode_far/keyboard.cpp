@@ -1678,8 +1678,14 @@ int CheckForEscSilent()
 		}
 		else
 		*/
-		if (Key==KEY_ESC || Key==KEY_BREAK)
+		if (Key==KEY_ESC)
 			return TRUE;
+		if (Key==KEY_BREAK)
+		{
+			if (CtrlObject->Macro.IsExecuting() != MACROMODE_NOMACRO)
+				CtrlObject->Macro.SendDropProcess();
+			return TRUE;
+		}
 		else if (Key==KEY_ALTF9)
 			FrameManager->ProcessKey(KEY_ALTF9);
 	}
@@ -2920,6 +2926,7 @@ DWORD CalcKeyCode(INPUT_RECORD *rec,int RealKey,int *NotMacros,bool ProcessCtrlC
 			case VK_DIVIDE:
 				return(KEY_DIVIDE);
 			case VK_CANCEL:
+				CtrlObject->Macro.SendDropProcess();
 				return(KEY_BREAK);
 			case VK_MULTIPLY:
 				return(KEY_MULTIPLY);
@@ -2930,6 +2937,11 @@ DWORD CalcKeyCode(INPUT_RECORD *rec,int RealKey,int *NotMacros,bool ProcessCtrlC
 			case VK_SNAPSHOT:
 				return KEY_PRNTSCRN;
 		}
+	}
+	else if (KeyCode == VK_CANCEL && IntKeyState.CtrlPressed && !IntKeyState.AltPressed && !IntKeyState.ShiftPressed)
+	{
+		CtrlObject->Macro.SendDropProcess();
+		return KEY_BREAK;
 	}
 
 	/* ------------------------------------------------------------- */
@@ -2968,8 +2980,8 @@ DWORD CalcKeyCode(INPUT_RECORD *rec,int RealKey,int *NotMacros,bool ProcessCtrlC
 
 				if (CtrlState&ENHANCED_KEY)
 					return KEY_CTRL|KEY_NUMLOCK;
-
-				return(KEY_BREAK);
+				CtrlObject->Macro.SendDropProcess();
+				return KEY_BREAK;
 			case VK_SLEEP:
 				return KEY_CTRL|KEY_STANDBY;
 			case VK_SNAPSHOT:

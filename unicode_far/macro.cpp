@@ -354,6 +354,8 @@ static bool usersFunc(const TMacroFunction*);
 static bool waitkeyFunc(const TMacroFunction*);
 static bool windowscrollFunc(const TMacroFunction*);
 static bool xlatFunc(const TMacroFunction*);
+static bool pluginloadFunc(const TMacroFunction*);
+static bool pluginunloadFunc(const TMacroFunction*);
 
 static bool __CheckCondForSkip(DWORD Op);
 
@@ -426,6 +428,8 @@ static TMacroFunction intMacroFunction[]=
 	{L"PANEL.SETPOS",     2, 0,   MCODE_F_PANEL_SETPOS,     nullptr, 0,nullptr,L"N=panel.SetPos(panelType,fileName)",IMFF_UNLOCKSCREEN|IMFF_DISABLEINTINPUT,panelsetposFunc},
 	{L"PANEL.SETPOSIDX",  3, 1,   MCODE_F_PANEL_SETPOSIDX,  nullptr, 0,nullptr,L"N=Panel.SetPosIdx(panelType,Idx[,InSelection])",IMFF_UNLOCKSCREEN|IMFF_DISABLEINTINPUT,panelsetposidxFunc},
 	{L"PANELITEM",        3, 0,   MCODE_F_PANELITEM,        nullptr, 0,nullptr,L"V=PanelItem(Panel,Index,TypeInfo)",0,panelitemFunc},
+	{L"PLUGIN.LOAD",      2, 1,   MCODE_F_PLUGIN_LOAD,      nullptr, 0,nullptr,L"N=Plugin.Load(DllPath[,ForceLoad])",0,pluginloadFunc},
+	{L"PLUGIN.UNLOAD",    1, 0,   MCODE_F_PLUGIN_UNLOAD,    nullptr, 0,nullptr,L"N=Plugin.UnLoad(DllPath)",0,pluginunloadFunc},
 	{L"PRINT",            1, 0,   MCODE_F_PRINT,            nullptr, 0,nullptr,L"N=Print(Str)",0,usersFunc},
 	{L"PROMPT",           5, 4,   MCODE_F_PROMPT,           nullptr, 0,nullptr,L"S=Prompt(Title[,Prompt[,flags[,Src[,History]]]])",IMFF_UNLOCKSCREEN|IMFF_DISABLEINTINPUT,promptFunc},
 	{L"REPLACE",          5, 2,   MCODE_F_REPLACE,          nullptr, 0,nullptr,L"S=Replace(Str,Find,Replace[,Cnt[,Mode]])",0,replaceFunc},
@@ -541,6 +545,7 @@ KeyMacro::KeyMacro():
 	Recording(MACROMODE_NOMACRO),
 	Mode(MACRO_SHELL),
 	CurPCStack(-1),
+	StopMacro(false),
 	MacroLIB(nullptr),
 	RecBufferSize(0),
 	RecBuffer(nullptr),
@@ -912,6 +917,8 @@ int KeyMacro::ProcessKey(int Key)
 			//_KEYMACRO(CleverSysLog Clev(L"MACRO find..."));
 			//_KEYMACRO(SysLog(L"Param Key=%s",_FARKEY_ToName(Key)));
 			DWORD CurFlags;
+
+			StopMacro=false;
 
 			if ((Key&(~KEY_CTRLMASK)) > 0x01 && (Key&(~KEY_CTRLMASK)) < KEY_FKEY_BEGIN) // 0xFFFF ??
 			{
@@ -2460,6 +2467,9 @@ static bool msgBoxFunc(const TMacroFunction*)
 
 static int __cdecl CompareItems(const MenuItemEx **el1, const MenuItemEx **el2, const SortItemParam *Param)
 {
+	if (((*el1)->Flags & LIF_SEPARATOR) || ((*el2)->Flags & LIF_SEPARATOR))
+		return 0;
+
 	string strName1((*el1)->strName);
 	string strName2((*el2)->strName);
 	RemoveChar(strName1,L'&',TRUE);
@@ -2489,46 +2499,54 @@ static bool menushowFunc(const TMacroFunction*)
 	TVar VFindOrFilter; VMStack.Pop(VFindOrFilter);
 	DWORD Flags = (DWORD)VMStack.Pop().getInteger();
 	TVar Title; VMStack.Pop(Title);
+
+	if (Title.isUnknown())
+		Title=L"";
+
 	string strTitle=Title.toString();
 	string strBottom;
 	TVar Items; VMStack.Pop(Items);
 	string strItems = Items.toString();
 	ReplaceStrings(strItems,L"\r\n",L"\n");
+	if (!strItems.Equal(strItems.GetLength()-1,L"\n"))
 	strItems.Append(L"\n");
-	TVar Result = -1;
 
+	TVar Result = -1;
 	int BoxType = (Flags & 0x7)?(Flags & 0x7)-1:3;
+	bool bResultAsIndex = (Flags & 0x08)?true:false;
+	bool bMultiSelect = (Flags & 0x010)?true:false;
+	bool bSorting = (Flags & 0x20)?true:false;
+	bool bPacking = (Flags & 0x40)?true:false;
+	bool bAutohighlight = (Flags & 0x80)?true:false;
+	bool bSetMenuFilter = (Flags & 0x100)?true:false;
 	bool bAutoNumbering = (Flags & 0x200)?true:false;
+	bool bExitAfterNavigate = (Flags & 0x400)?true:false;
 	int nLeftShift=bAutoNumbering?9:0;
 	int X = -1;
 	int Y = -1;
-	DWORD MenuFlags = VMENU_WRAPMODE;
+	unsigned __int64 MenuFlags = VMENU_WRAPMODE;
 
 	if (!VX.isUnknown())
-		X=(int)VX.toInteger();
+		X=VX.toInteger();
 
 	if (!VY.isUnknown())
-		Y=(int)VY.toInteger();
+		Y=VY.toInteger();
 
-	if (Title.isUnknown())
-		Title=L"";
-
-	bool MultiSelect = (Flags & 0x010)?true:false;
-
-	if (Flags & 0x080)
+	if (bAutohighlight)
 		MenuFlags |= VMENU_AUTOHIGHLIGHT;
 
 	int SelectedPos=0;
 	int LineCount=0;
 	size_t CurrentPos=0;
+	size_t PosLF;
+	size_t SubstrLen;
 	ReplaceStrings(strTitle,L"\r\n",L"\n");
-	size_t PosCRLF;
-	bool CRFound=strTitle.Pos(PosCRLF, L"\n");
+	bool CRFound=strTitle.Pos(PosLF, L"\n");
 
 	if(CRFound)
 	{
-		strBottom=strTitle.SubStr(PosCRLF+1);
-		strTitle=strTitle.SubStr(0,PosCRLF);
+		strBottom=strTitle.SubStr(PosLF+1);
+		strTitle=strTitle.SubStr(0,PosLF);
 	}
 	VMenu Menu(strTitle.CPtr(),nullptr,0,ScrY-4);
 	Menu.SetBottomTitle(strBottom.CPtr());
@@ -2536,13 +2554,20 @@ static bool menushowFunc(const TMacroFunction*)
 	Menu.SetPosition(X,Y,0,0);
 	Menu.SetBoxType(BoxType);
 
-	CRFound=strItems.Pos(PosCRLF, L"\n");
+	CRFound=strItems.Pos(PosLF, L"\n");
 	while(CRFound)
 	{
 		MenuItemEx NewItem;
 		NewItem.Clear();
+		SubstrLen=PosLF-CurrentPos;
 
-		NewItem.strName=strItems.SubStr(CurrentPos,PosCRLF-CurrentPos);
+		if (SubstrLen==0)
+			SubstrLen=1;
+
+		NewItem.strName=strItems.SubStr(CurrentPos,SubstrLen);
+
+		if (NewItem.strName!=L"\n")
+		{
 		wchar_t *CurrentChar=(wchar_t *)NewItem.strName.CPtr();
 		bool bContunue=(*CurrentChar<=L'\x4');
 		while(*CurrentChar && bContunue)
@@ -2576,29 +2601,46 @@ static bool menushowFunc(const TMacroFunction*)
 			}
 		}
 		NewItem.strName=CurrentChar;
-		if (bAutoNumbering)
+		}
+		else
+			NewItem.strName.Clear();
+
+		if (bAutoNumbering && !(bSorting || bPacking) && !(NewItem.Flags & LIF_SEPARATOR))
 		{
 			LineCount++;
 			NewItem.strName.Format(L"%6d - %s", LineCount, NewItem.strName.CPtr());
 		}
 		Menu.AddItem(&NewItem);
-		CurrentPos=PosCRLF+1;
-		CRFound=strItems.Pos(PosCRLF, L"\n",CurrentPos+1);
+		CurrentPos=PosLF+1;
+		CRFound=strItems.Pos(PosLF, L"\n",CurrentPos);
 	}
 
-	if (Flags & 0x020)
+	if (bSorting)
 		Menu.SortItems(reinterpret_cast<TMENUITEMEXCMPFUNC>(CompareItems));
 
-	if (Flags & 0x040)
+	if (bPacking)
 		Menu.Pack();
+
+	if ((bAutoNumbering) && (bSorting || bPacking))
+	{
+		for (int i = 0; i < Menu.GetShowItemCount(); i++)
+		{
+			MenuItemEx *Item=Menu.GetItemPtr(i);
+			if (!(Item->Flags & LIF_SEPARATOR))
+			{
+				LineCount++;
+				Item->strName.Format(L"%6d - %s", LineCount, Item->strName.CPtr());
+			}
+		}
+	}
 
 	if (!VFindOrFilter.isUnknown())
 	{
-		if (Flags & 0x100)
+		if (bSetMenuFilter)
 		{
 			Menu.SetFilterEnabled(true);
 			Menu.SetFilterString(VFindOrFilter.toString());
-			Menu.FilterStringUpdated(true);
+			Menu.FilterStringUpdated();
 			Menu.Show();
 		}
 		else
@@ -2627,7 +2669,7 @@ static bool menushowFunc(const TMacroFunction*)
 		{
 			case KEY_NUMPAD0:
 			case KEY_INS:
-				if (MultiSelect)
+				if (bMultiSelect)
 				{
 					Menu.SetCheck(!Menu.GetCheck(SelectedPos));
 					Menu.Show();
@@ -2636,7 +2678,7 @@ static bool menushowFunc(const TMacroFunction*)
 
 			case KEY_CTRLADD:
 			case KEY_CTRLSUBTRACT:
-				if (MultiSelect)
+				if (bMultiSelect)
 				{
 					for(int i=0; i<Menu.GetShowItemCount(); i++)
 					{
@@ -2644,13 +2686,19 @@ static bool menushowFunc(const TMacroFunction*)
 					}
 					Menu.Show();
 				}
+				break;
+
+			case KEY_BREAK:
+				CtrlObject->Macro.SendDropProcess();
+				Menu.SetExitCode(-1);
+				break;
 
 			default:
 				Menu.ProcessInput();
 				break;
 		}
 
-		if ((Flags & 0x400) && (PrevSelectedPos!=SelectedPos))
+		if (bExitAfterNavigate && (PrevSelectedPos!=SelectedPos))
 		{
 			SelectedPos=Menu.GetSelectPos();
 			break;
@@ -2664,14 +2712,14 @@ static bool menushowFunc(const TMacroFunction*)
 	if (Menu.Modal::GetExitCode() >= 0)
 	{
 		SelectedPos=Menu.GetExitCode();
-		if (MultiSelect)
+		if (bMultiSelect)
 		{
 			Result=L"";
 			for(int i=0; i<Menu.GetItemCount(); i++)
 			{
 				if (Menu.GetCheck(i))
 				{
-					if (Flags & 0x8)
+					if (bResultAsIndex)
 					{
 						_i64tow(i+1,temp,10);
 						Result+=temp;
@@ -2683,7 +2731,7 @@ static bool menushowFunc(const TMacroFunction*)
 			}
 			if(Result==L"")
 			{
-				if (Flags & 0x8)
+				if (bResultAsIndex)
 				{
 					_i64tow(SelectedPos+1,temp,10);
 					Result=temp;
@@ -2693,7 +2741,7 @@ static bool menushowFunc(const TMacroFunction*)
 			}
 		}
 		else
-			if(!(Flags & 0x8))
+			if(!bResultAsIndex)
 				Result=(*Menu.GetItemPtr(SelectedPos)).strName.CPtr()+nLeftShift;
 			else
 				Result=SelectedPos+1;
@@ -2703,7 +2751,7 @@ static bool menushowFunc(const TMacroFunction*)
 	{
 		Menu.Hide();
 		Result=0;
-		if (Flags & 0x400)
+		if (bExitAfterNavigate)
 		{
 			Result=SelectedPos+1;
 			if ((Key == KEY_ESC) || (Key == KEY_F10) || (Key == KEY_BREAK))
@@ -4136,6 +4184,30 @@ static bool editorsettitleFunc(const TMacroFunction*)
 	return Ret.i()!=0;
 }
 
+// N=Plugin.Load(DllPath[,ForceLoad])
+static bool pluginloadFunc(const TMacroFunction*)
+{
+	TVar Ret(0ll);
+	TVar ForceLoad; VMStack.Pop(ForceLoad);
+	TVar DllPath; VMStack.Pop(DllPath);
+	if (DllPath.s())
+		Ret=(__int64)farPluginsControl(INVALID_HANDLE_VALUE, !ForceLoad.i()?PCTL_LOADPLUGIN:PCTL_FORCEDLOADPLUGIN, 0, (LONG_PTR)DllPath.s());
+	VMStack.Push(Ret);
+	return Ret.i()!=0;
+}
+
+// N=Plugin.UnLoad(DllPath)
+static bool pluginunloadFunc(const TMacroFunction*)
+{
+	TVar Ret(0ll);
+	TVar DllPath; VMStack.Pop(DllPath);
+	if (DllPath.s())
+		Ret=(__int64)farPluginsControl(INVALID_HANDLE_VALUE, PCTL_UNLOADPLUGIN, 0, (LONG_PTR)DllPath.s());
+	VMStack.Push(Ret);
+	return Ret.i()!=0;
+}
+
+
 // V=callplugin(SysID[,param])
 #if 0
 static bool callpluginFunc(const TMacroFunction*)
@@ -4587,6 +4659,8 @@ done:
 		ScrBuf.RestoreMacroChar();
 		Work.HistroyEnable=0;
 
+		StopMacro=false;
+
 		return KEY_NONE; // Здесь ВСЕГДА!
 	}
 
@@ -4597,7 +4671,8 @@ done:
 	{
 		INPUT_RECORD rec;
 
-		if (PeekInputRecord(&rec) && rec.EventType==KEY_EVENT && rec.Event.KeyEvent.wVirtualKeyCode == VK_CANCEL)
+		//if (PeekInputRecord(&rec) && rec.EventType==KEY_EVENT && rec.Event.KeyEvent.wVirtualKeyCode == VK_CANCEL)
+		if (StopMacro)
 		{
 			GetInputRecord(&rec,true);  // удаляем из очереди эту "клавишу"...
 			Work.KeyProcess=0;
@@ -7596,6 +7671,13 @@ int KeyMacro::IsExecutingLastKey()
 	}
 
 	return FALSE;
+}
+
+
+void KeyMacro::SendDropProcess()
+{
+	if (Work.Executing)
+		StopMacro=true;
 }
 
 void KeyMacro::DropProcess()

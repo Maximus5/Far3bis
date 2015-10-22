@@ -605,13 +605,13 @@ void PluginManager::LoadPlugins()
 	if (HasGetCustomData())
 	{
 		Panel *ActivePanel=CtrlObject->Cp()->ActivePanel;
-		if (ActivePanel->GetType()==FILE_PANEL && ActivePanel->GetMode()==NORMAL_PANEL)
+		if (ActivePanel->GetType()==FILE_PANEL && ActivePanel->GetMode()==NORMAL_PANEL && ActivePanel->IsColumnDisplayed(CUSTOM_COLUMN0))
 		{
 			ActivePanel->ClearCustomData();
 			ActivePanel->Redraw();
 		}
 		Panel *AnotherPanel=CtrlObject->Cp()->GetAnotherPanel(ActivePanel);
-		if (AnotherPanel->GetType()==FILE_PANEL && AnotherPanel->GetMode()==NORMAL_PANEL)
+		if (AnotherPanel->GetType()==FILE_PANEL && AnotherPanel->GetMode()==NORMAL_PANEL && AnotherPanel->IsColumnDisplayed(CUSTOM_COLUMN0))
 		{
 			AnotherPanel->ClearCustomData();
 			AnotherPanel->Redraw();

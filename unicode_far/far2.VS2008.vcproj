@@ -1027,6 +1027,7 @@
 				RelativePath="macro.cpp"
 				>
 			</File>
+			<File RelativePath="macrocompiler.cpp"></File>
 			<File
 				RelativePath="main.cpp"
 				>
@@ -1179,6 +1180,7 @@
 				RelativePath="setcolor.cpp"
 				>
 			</File>
+			<File RelativePath="shortcuts.cpp"></File>
 			<File
 				RelativePath="stddlg.cpp"
 				>
@@ -3272,6 +3274,7 @@
 				RelativePath="macro.hpp"
 				>
 			</File>
+			<File RelativePath="macrocompiler.hpp"></File>
 			<File
 				RelativePath="macroopcode.hpp"
 				>
@@ -3506,6 +3509,7 @@
 				RelativePath="setcolor.hpp"
 				>
 			</File>
+			<File RelativePath="shortcuts.hpp"></File>
 			<File
 				RelativePath="stddlg.hpp"
 				>
