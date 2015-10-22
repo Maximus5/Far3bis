@@ -37,17 +37,21 @@ class CachedRead
 public:
 	CachedRead(File& file);
 	~CachedRead();
+	bool AdjustAlignment(); // file have to be opened already
 	bool Read(LPVOID Data, DWORD DataSize, LPDWORD BytesRead);
 	bool FillBuffer();
+	bool Unread(DWORD BytesUnread);
 	void Clear();
 
 private:
 	LPBYTE Buffer;
 	File& file;
-	enum {BufferSize=0x10000};
+	enum {DefaultBufferSize=0x10000};
 	DWORD ReadSize;
 	DWORD BytesLeft;
 	INT64 LastPtr;
+	DWORD BufferSize; // = 2*k*Alignment (k >= 2)
+	int   Alignment;  //
 };
 
 

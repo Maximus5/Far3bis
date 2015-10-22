@@ -33,6 +33,10 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+extern BOOL gbInOpenPlugin, gbInEditorEvent;
+extern DWORD gnMainThreadId;
+extern void ReportThreadUnsafeCall(const wchar_t* asFormat, DWORD anCommand);
+
 //----------- PLUGIN API/FSF ---------------------------------------------------
 //все эти функции, за исключение sprintf/sscanf имеют тип вызова __stdcall
 

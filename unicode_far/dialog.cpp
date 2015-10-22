@@ -59,6 +59,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "strmix.hpp"
 #include "history.hpp"
 
+// debug
+#include "plugapi.hpp"
+
 #define VTEXT_ADN_SEPARATORS	1
 
 // Флаги для функции ConvertItem
@@ -2465,7 +2468,7 @@ __int64 Dialog::VMProcess(int OpCode,void *vParam,__int64 iParam)
 		{
 			static string strId;
 			strId.Format(L"{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}",Id.Data1,Id.Data2,Id.Data3,Id.Data4[0],Id.Data4[1],Id.Data4[2],Id.Data4[3],Id.Data4[4],Id.Data4[5],Id.Data4[6],Id.Data4[7]);
-			return reinterpret_cast<INT64>(strId.CPtr());
+			return reinterpret_cast<INT_PTR>(strId.CPtr());
 		}
 		case MCODE_V_ITEMCOUNT:
 		case MCODE_V_CURPOS:
@@ -2539,7 +2542,7 @@ int Dialog::ProcessKey(int Key)
 		return TRUE;
 
 	// BugZ#488 - Shift=enter
-	if (ShiftPressed && (Key == KEY_ENTER||Key==KEY_NUMENTER) && !CtrlObject->Macro.IsExecuting() && Item[FocusPos]->Type != DI_BUTTON)
+	if (IntKeyState.ShiftPressed && (Key == KEY_ENTER||Key==KEY_NUMENTER) && !CtrlObject->Macro.IsExecuting() && Item[FocusPos]->Type != DI_BUTTON)
 	{
 		Key=Key == KEY_ENTER?KEY_SHIFTENTER:KEY_SHIFTNUMENTER;
 	}
@@ -3331,10 +3334,10 @@ int Dialog::ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent)
 				return FALSE;
 
 //      if (!(MouseEvent->dwButtonState & FROM_LEFT_1ST_BUTTON_PRESSED) && PrevLButtonPressed && ScreenObject::CaptureMouseObject)
-			if (!(MouseEvent->dwButtonState & FROM_LEFT_1ST_BUTTON_PRESSED) && (PrevMouseButtonState&FROM_LEFT_1ST_BUTTON_PRESSED) && (Opt.Dialogs.MouseButton&DMOUSEBUTTON_LEFT))
+			if (!(MouseEvent->dwButtonState & FROM_LEFT_1ST_BUTTON_PRESSED) && (IntKeyState.PrevMouseButtonState&FROM_LEFT_1ST_BUTTON_PRESSED) && (Opt.Dialogs.MouseButton&DMOUSEBUTTON_LEFT))
 				ProcessKey(KEY_ESC);
 //      else if (!(MouseEvent->dwButtonState & RIGHTMOST_BUTTON_PRESSED) && PrevRButtonPressed && ScreenObject::CaptureMouseObject)
-			else if (!(MouseEvent->dwButtonState & RIGHTMOST_BUTTON_PRESSED) && (PrevMouseButtonState&RIGHTMOST_BUTTON_PRESSED) && (Opt.Dialogs.MouseButton&DMOUSEBUTTON_RIGHT))
+			else if (!(MouseEvent->dwButtonState & RIGHTMOST_BUTTON_PRESSED) && (IntKeyState.PrevMouseButtonState&RIGHTMOST_BUTTON_PRESSED) && (Opt.Dialogs.MouseButton&DMOUSEBUTTON_RIGHT))
 				ProcessKey(KEY_ENTER);
 		}
 
@@ -3500,9 +3503,9 @@ int Dialog::ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent)
 
 						while (IsMouseButtonPressed());
 
-						if (MouseX <  X1 ||
-						        MouseX >  X1+Item[I]->X1+HiStrlen(Item[I]->strData)+4 ||
-						        MouseY != Y1+Item[I]->Y1)
+						if (IntKeyState.MouseX <  X1 ||
+						        IntKeyState.MouseX >  X1+Item[I]->X1+HiStrlen(Item[I]->strData)+4 ||
+						        IntKeyState.MouseY != Y1+Item[I]->Y1)
 						{
 							ChangeFocus2(I);
 							ShowDialog();
@@ -3536,8 +3539,8 @@ int Dialog::ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent)
 				//DialogMode.Set(DMODE_DRAGGED);
 				OldX1=X1; OldX2=X2; OldY1=Y1; OldY2=Y2;
 				// запомним delta места хватания и Left-Top диалогового окна
-				MsX=abs(X1-MouseX);
-				MsY=abs(Y1-MouseY);
+				MsX=abs(X1-IntKeyState.MouseX);
+				MsY=abs(Y1-IntKeyState.MouseY);
 				int NeedSendMsg=0;
 
 				for (;;)
@@ -3555,15 +3558,15 @@ int Dialog::ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent)
 						int NY1=Y0=Y1;
 						int NY2=Y2;
 
-						if (MouseX==PrevMouseX)
+						if (IntKeyState.MouseX==IntKeyState.PrevMouseX)
 							mx=X1;
 						else
-							mx=MouseX-MsX;
+							mx=IntKeyState.MouseX-MsX;
 
-						if (MouseY==PrevMouseY)
+						if (IntKeyState.MouseY==IntKeyState.PrevMouseY)
 							my=Y1;
 						else
-							my=MouseY-MsY;
+							my=IntKeyState.MouseY-MsY;
 
 						NX2=mx+(X2-X1);
 						NX1=mx;
@@ -4799,6 +4802,16 @@ LONG_PTR WINAPI SendDlgMessage(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 	if (!hDlg)
 		return 0;
 
+	if (gnMainThreadId != GetCurrentThreadId())
+	{
+		// для отлова недобросовестных плагинов
+		BOOL lbSafe = FALSE;
+		if (!lbSafe)
+		{
+			ReportThreadUnsafeCall(L"SendDlgMessage(%u)", Msg);
+		}
+	}
+
 	Dialog* Dlg=(Dialog*)hDlg;
 	CriticalSectionLock Lock(Dlg->CS);
 	_DIALOG(CleverSysLog CL(L"Dialog.SendDlgMessage()"));
@@ -5610,8 +5623,8 @@ LONG_PTR WINAPI SendDlgMessage(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 		//   Return MAKELONG(OldVisible,OldSize)
 		case DM_SETCURSORSIZE:
 		{
-			bool Visible;
-			DWORD Size;
+			bool Visible=0;
+			DWORD Size=0;
 
 			if (IsEdit(Type) && CurItem->ObjPtr)
 			{

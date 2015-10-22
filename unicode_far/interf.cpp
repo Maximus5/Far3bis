@@ -229,8 +229,8 @@ void RestoreConsoleWindowRect()
 void FlushInputBuffer()
 {
 	Console.FlushInputBuffer();
-	MouseButtonState=0;
-	MouseEventFlags=0;
+	IntKeyState.MouseButtonState=0;
+	IntKeyState.MouseEventFlags=0;
 }
 
 void SetVideoMode()
@@ -315,7 +315,7 @@ void ChangeVideoMode(int NumLines,int NumColumns)
 
 void GenerateWINDOW_BUFFER_SIZE_EVENT(int Sx, int Sy)
 {
-	COORD Size;
+	COORD Size={};
 	if (Sx==-1 || Sy==-1)
 	{
 		Console.GetSize(Size);
@@ -376,6 +376,7 @@ BOOL __stdcall CtrlHandler(DWORD CtrlType)
 	}
 
 	CloseFAR=TRUE;
+	AllowCancelExit=FALSE;
 
 	/* $ 30.08.2001 IS
 	   ѕри закрытии окна "по кресту" всегда возвращаем TRUE, в противном случае
@@ -383,16 +384,17 @@ BOOL __stdcall CtrlHandler(DWORD CtrlType)
 	   процедуры: оповещены плагины, вызваны деструкторы, сохранены настройки и
 	   т.п.
 	*/
-	if (!Opt.CloseConsoleRule)
+	if (Opt.CloseConsoleRule ||
+	    (!Opt.CloseConsoleRule &&
+	     ((FileEditor::CurrentEditor && FileEditor::CurrentEditor->IsFileModified()) ||
+	      (FrameManager && FrameManager->IsAnyFrameModified(FALSE)))))
 	{
-		if ((FileEditor::CurrentEditor && FileEditor::CurrentEditor->IsFileModified()) ||
-		        (FrameManager && FrameManager->IsAnyFrameModified(FALSE)))
-			return TRUE;
-
-		return FALSE;
+		// trick to let wmain() finish correctly
+		ExitThread(1);
+		//return TRUE;
 	}
 
-	return TRUE;
+	return FALSE;
 }
 
 

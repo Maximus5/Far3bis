@@ -600,6 +600,7 @@ int WINAPI GetString(
 int WINAPI GetNameAndPassword(const wchar_t *Title, string &strUserName, string &strPassword,const wchar_t *HelpTopic,DWORD Flags)
 {
 	static string strLastName, strLastPassword;
+	const wchar_t *HistoryName=L"NetworkUser";	
 	int ExitCode;
 	/*
 	  0         1         2         3         4         5         6         7
@@ -619,7 +620,7 @@ int WINAPI GetNameAndPassword(const wchar_t *Title, string &strUserName, string 
 	{
 		DI_DOUBLEBOX,  3, 1,72, 8,0,0,NullToEmpty(Title),
 		DI_TEXT,       5, 2, 0, 2,0,0,MSG(MNetUserName),
-		DI_EDIT,       5, 3,70, 3,0,DIF_FOCUS|DIF_USELASTHISTORY|DIF_HISTORY,(Flags&GNP_USELAST)?strLastName:strUserName,
+		DI_EDIT,       5, 3,70, 3,(DWORD_PTR)HistoryName,DIF_FOCUS|DIF_USELASTHISTORY|DIF_HISTORY,(Flags&GNP_USELAST)?strLastName:strUserName,
 		DI_TEXT,       5, 4, 0, 4,0,0,MSG(MNetUserPassword),
 		DI_PSWEDIT,    5, 5,70, 5,0,0,(Flags&GNP_USELAST)?strLastPassword:strPassword,
 		DI_TEXT,       3, 6, 0, 6,0,DIF_SEPARATOR,L"",

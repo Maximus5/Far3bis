@@ -289,6 +289,8 @@ struct ViewerOptions
 	int AnsiCodePageAsDefault;
 	int ShowTitleBar;
 	int SearchRegexp;
+	int MaxLineSize; // 80..16384, default=2048
+	int SearchEditFocus; // auto-focus on edit text/hex window
 };
 
 // "Полиция"
@@ -642,6 +644,12 @@ struct Options
 	InfoPanelOptions InfoPanel;
 
 	DWORD CPMenuMode;
+	string strNoAutoDetectCP;
+	// перечисленные здесь кодовые страницы будут исключены из детектирования nsUniversalDetectorEx.
+	// автодетект юникодных страниц от этого не зависит, поэтому UTF-8 будет определяться даже если
+	// 65001 здесь присутствует. Если UniversalDetector выдаст страницу из этого списка, она будет
+	// заменена на умолчательную ANSI или OEM, в зависимости от настроек.
+	// пример: L"1250,1252,1253,1255,855,10005,28592,28595,28597,28598,38598,65001"
 
 	bool IsUserAdmin;
 	string strTitleAddons;

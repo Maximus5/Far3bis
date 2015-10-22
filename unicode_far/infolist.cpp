@@ -92,7 +92,8 @@ void InfoList::Update(int Mode)
 
 string &InfoList::GetTitle(string &strTitle,int SubLen,int TruncSize)
 {
-	strTitle.Format(L" %s ", MSG(MInfoTitle));
+	strTitle.Clear();
+	strTitle.Append(L" ").Append(MSG(MInfoTitle)).Append(" ");
 	TruncStr(strTitle,X2-X1-3);
 	return strTitle;
 }
@@ -105,7 +106,7 @@ void InfoList::DisplayObject()
 	string strDriveRoot;
 	string strVolumeName, strFileSystemName;
 	DWORD MaxNameLength,FileSystemFlags,VolumeNumber;
-	string strDiskNumber;
+	FormatString strDiskNumber;
 	CloseFile();
 
 	Box(X1,Y1,X2,Y2,COL_PANELBOX,DOUBLE_BOX);
@@ -216,28 +217,27 @@ void InfoList::DisplayObject()
 		}
 
 		LPCWSTR DiskType=(IdxMsgID!=-1)?MSG(IdxMsgID):L"";
-		wchar_t LocalName[]={ExtractPathRoot(strCurDir).At(0),L':',L'\0'}; // strDriveRoot?
 		string strAssocPath;
 
-		if (GetSubstName(DriveType,LocalName,strAssocPath))
+		if (GetSubstName(DriveType,strDriveRoot,strAssocPath))
 		{
 			DiskType = MSG(MInfoSUBST);
 			DriveType=DRIVE_SUBSTITUTE;
 		}
-		else if(DriveType == DRIVE_FIXED && GetVHDName(LocalName,strAssocPath))
+		else if(DriveType == DRIVE_FIXED && GetVHDName(strDriveRoot,strAssocPath))
 		{
 			DiskType = MSG(MInfoVirtual);
 			DriveType=DRIVE_VIRTUAL;
 		}
 
 
-		strTitle=string(L" ")+DiskType+L" "+MSG(MInfoDisk)+L" "+((!strDriveRoot.IsEmpty() && strDriveRoot.At(1)==L':')?LocalName:strDriveRoot)+L" ("+strFileSystemName+L") ";
+		strTitle=string(L" ")+DiskType+L" "+MSG(MInfoDisk)+L" "+strDriveRoot+L" ("+strFileSystemName+L") ";
 
 		switch(DriveType)
 		{
 		case DRIVE_REMOTE:
 			{
-				apiWNetGetConnection(LocalName, strAssocPath);
+				apiWNetGetConnection(strDriveRoot, strAssocPath);
 			}
 			break;
 
@@ -250,7 +250,9 @@ void InfoList::DisplayObject()
 			break;
 		}
 
-		strDiskNumber.Format(L"%04X-%04X",VolumeNumber>>16,VolumeNumber & 0xffff);
+		strDiskNumber <<
+			fmt::Width(4) << fmt::FillChar(L'0') << fmt::Radix(16) << HIWORD(VolumeNumber) << L'-' <<
+			fmt::Width(4) << fmt::FillChar(L'0') << fmt::Radix(16) << LOWORD(VolumeNumber);
 	}
 	else // Error!
 		strTitle = strDriveRoot;

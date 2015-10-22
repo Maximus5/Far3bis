@@ -45,12 +45,29 @@ enum
 #define MOUSE_ANY_BUTTON_PRESSED (FROM_LEFT_1ST_BUTTON_PRESSED|RIGHTMOST_BUTTON_PRESSED|FROM_LEFT_2ND_BUTTON_PRESSED|FROM_LEFT_3RD_BUTTON_PRESSED|FROM_LEFT_4TH_BUTTON_PRESSED)
 
 extern FarQueue<DWORD> *KeyQueue;
-extern int AltPressed,CtrlPressed,ShiftPressed;
-extern int RightAltPressed,RightCtrlPressed,RightShiftPressed;
-extern DWORD MouseButtonState,PrevMouseButtonState;
-extern SHORT PrevMouseX,PrevMouseY,MouseX,MouseY;
-extern int PreMouseEventFlags,MouseEventFlags;
-extern int ReturnAltValue;
+
+struct FarKeyboardState {
+	int AltPressed;
+	int CtrlPressed;
+	int ShiftPressed;
+	int RightAltPressed;
+	int RightCtrlPressed;
+	int RightShiftPressed;
+	DWORD MouseButtonState;
+	DWORD PrevMouseButtonState;
+	int PrevLButtonPressed;
+	int PrevRButtonPressed;
+	int PrevMButtonPressed;
+	SHORT PrevMouseX;
+	SHORT PrevMouseY;
+	SHORT MouseX;
+	SHORT MouseY;
+	int PreMouseEventFlags;
+	int MouseEventFlags;
+	int ReturnAltValue;   // только что был ввод Alt-Цифира?
+};
+
+extern FarKeyboardState IntKeyState;
 
 void InitKeysArray();
 bool KeyToKeyLayoutCompare(int Key, int CompareKey);
@@ -64,7 +81,8 @@ BOOL WINAPI KeyToText(int Key, string &strKeyText);
 int WINAPI InputRecordToKey(const INPUT_RECORD *Rec);
 DWORD GetInputRecord(INPUT_RECORD *rec,bool ExcludeMacro=false,bool ProcessMouse=false,bool AllowSynchro=true);
 DWORD PeekInputRecord(INPUT_RECORD *rec,bool ExcludeMacro=true);
-DWORD CalcKeyCode(INPUT_RECORD *rec,int RealKey,int *NotMacros=nullptr);
+DWORD ShieldCalcKeyCode(INPUT_RECORD *rec,int RealKey,int *NotMacros=nullptr, bool ProcessCtrlCode=false);
+DWORD CalcKeyCode(INPUT_RECORD *rec,int RealKey,int *NotMacros=nullptr, bool ProcessCtrlCode=false);
 DWORD WaitKey(DWORD KeyWait=(DWORD)-1,DWORD delayMS=0,bool ExcludeMacro=true);
 int SetFLockState(UINT vkKey, int State);
 int WriteInput(int Key,DWORD Flags=0);

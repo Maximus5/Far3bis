@@ -100,7 +100,7 @@ enum MACROFLAGS_MFLAGS
 	MFLAGS_PNOFILES            =0x08000000, // пассивная: запускать, если текущий объект "папка"
 
 	MFLAGS_REG_MULTI_SZ        =0x10000000, // текст макроса многострочный (REG_MULTI_SZ)
-
+	MFLAGS_POSTFROMPLUGIN      =0x20000000, // последовательность пришла от АПИ
 	MFLAGS_NEEDSAVEMACRO       =0x40000000, // необходимо этот макрос запомнить
 	MFLAGS_DISABLEMACRO        =0x80000000, // этот макрос отключен
 };
@@ -165,6 +165,7 @@ struct MacroState
 	int MacroPC;
 	int ExecLIBPos;
 	int MacroWORKCount;
+	DWORD HistroyEnable;
 	bool UseInternalClipboard;
 	struct MacroRecord *MacroWORK; // т.н. текущее исполнение
 	INPUT_RECORD cRec; // "описание реально нажатой клавиши"
@@ -307,6 +308,8 @@ class KeyMacro
 		// проверить флаги текущего исполняемого макроса.
 		BOOL CheckCurMacroFlags(DWORD Flags);
 
+		bool IsHistroyEnable(int TypeHistory);
+
 		static const wchar_t* GetSubKey(int Mode);
 		static int   GetSubKey(const wchar_t *Mode);
 		static int   GetMacroKeyInfo(bool FromReg,int Mode,int Pos,string &strKeyName,string &strDescription);
@@ -316,7 +319,7 @@ class KeyMacro
 		BOOL GetMacroParseError(DWORD* ErrCode, COORD* ErrPos, string *ErrSrc);
 		BOOL GetMacroParseError(string *Err1, string *Err2, string *Err3, string *Err4);
 
-		static void SetMacroConst(const wchar_t *ConstName, const TVar Value);
+		static void SetMacroConst(const wchar_t *ConstName, const TVar& Value);
 		static DWORD GetNewOpCode();
 
 		static size_t GetCountMacroFunction();

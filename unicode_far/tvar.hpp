@@ -8,8 +8,8 @@ tvar.hpp
 
 */
 /*
-Copyright (c) 1996 Eugene Roshal
-Copyright (c) 2000 Far Group
+Copyright © 1996 Eugene Roshal
+Copyright © 2000 Far Group
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -123,7 +123,7 @@ class TVar
 		void SetType(TVarType newType) {vType=newType;};
 
 		int isString()   const { return vType == vtString;  }
-		int isInteger()  const { return vType == vtInteger; }
+		int isInteger()  const { return vType == vtInteger || vType == vtUnknown; }
 		int isDouble()   const { return vType == vtDouble;  }
 		int isUnknown()  const { return vType == vtUnknown;  }
 
@@ -179,7 +179,7 @@ class TVarSet : public TAbstractSet
 };
 
 extern int isVar(TVarTable, const wchar_t*);
-extern TVarSet *varEnum(TVarTable, int, int);
+extern TVarSet *varEnum(TVarTable, int);
 extern TVarSet *varLook(TVarTable worktable, const wchar_t* name, bool ins=false);
 extern void varKill(TVarTable, const wchar_t*);
 extern void initVTable(TVarTable);

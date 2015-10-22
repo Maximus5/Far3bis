@@ -726,7 +726,7 @@ int Edit::ProcessKey(int Key)
 	int _Macro_IsExecuting=CtrlObject->Macro.IsExecuting();
 
 	// $ 04.07.2000 IG - добавлена проврерка на запуск макроса (00025.edit.cpp.txt)
-	if (!ShiftPressed && (!_Macro_IsExecuting || (IsNavKey(Key) && _Macro_IsExecuting)) &&
+	if (!IntKeyState.ShiftPressed && (!_Macro_IsExecuting || (IsNavKey(Key) && _Macro_IsExecuting)) &&
 	        !IsShiftKey(Key) && !Recurse &&
 	        Key!=KEY_SHIFT && Key!=KEY_CTRL && Key!=KEY_ALT &&
 	        Key!=KEY_RCTRL && Key!=KEY_RALT && Key!=KEY_NONE &&
@@ -2159,11 +2159,11 @@ int Edit::Search(const string& Str,string& ReplaceStr,int Position,int Case,int 
 					*SearchLength = m[0].end - m[0].start;
 					CurPos = m[0].start;
 					ReplaceStr=ReplaceBrackets(this->Str,ReplaceStr,m,n);
-					free(m);
+					xf_free(m);
 					return TRUE;
 				}
 
-				free(m);
+				xf_free(m);
 			}
 
 			return FALSE;
@@ -2705,6 +2705,7 @@ void Edit::ApplyColor()
 		// с начала строки (с учётом корректировки относительно табов)
 		else if (EndPos < Pos)
 		{
+			// TODO: возможно так же нужна коррекция с учетом табов (на предмет Mantis#0001718)
 			RealEnd = RealPosToTab(0, 0, EndPos, &CorrectPos);
 			EndPos += CorrectPos;
 			End = RealEnd-LeftPos;
@@ -2713,8 +2714,15 @@ void Edit::ApplyColor()
 		// корректировки относительно табов)
 		else
 		{
-			RealEnd = RealPosToTab(TabPos, Pos, EndPos, &CorrectPos);
-			EndPos += CorrectPos;
+			// Mantis#0001718: Отсутствие ECF_TAB1 не всегда корректно отрабатывает
+			// Коррекция с учетом последнего таба
+			if (CorrectPos && EndPos < StrSize && Str[EndPos] == L'\t')
+				RealEnd = RealPosToTab(TabPos, Pos, ++EndPos, nullptr);
+			else
+			{
+				RealEnd = RealPosToTab(TabPos, Pos, EndPos, &CorrectPos);
+				EndPos += CorrectPos;
+			}
 			End = RealEnd-LeftPos;
 		}
 
@@ -3285,8 +3293,8 @@ int EditControl::ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent)
 		while(IsMouseButtonPressed()==FROM_LEFT_1ST_BUTTON_PRESSED)
 		{
 			Flags.Clear(FEDITLINE_CLEARFLAG);
-			SetTabCurPos(MouseX - X1 + LeftPos);
-			if(MouseEventFlags&MOUSE_MOVED)
+			SetTabCurPos(IntKeyState.MouseX - X1 + LeftPos);
+			if(IntKeyState.MouseEventFlags&MOUSE_MOVED)
 			{
 				if(!Selection)
 				{

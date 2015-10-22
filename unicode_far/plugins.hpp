@@ -204,13 +204,14 @@ class PluginManager
 
 		bool LoadPluginExternal(const wchar_t *lpwszModuleName, bool LoadToMem);
 
-		int UnloadPlugin(Plugin *pPlugin, DWORD dwException, bool bRemove = false);
+		int UnloadPlugin(Plugin *pPlugin, DWORD dwException, bool bRemove=false, bool bRunExitFARW=false);
 		int UnloadPluginExternal(const wchar_t *lpwszModuleName);
 
 		void LoadPlugins();
 
 		Plugin *GetPlugin(const wchar_t *lpwszModuleName);
 		Plugin *GetPlugin(int PluginNumber);
+		bool IsPluginValid(Plugin *pPlugin);
 
 		int GetPluginsCount() { return PluginsCount; }
 		int GetOemPluginsCount() { return OemPluginsCount; }

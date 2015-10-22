@@ -304,9 +304,11 @@ int MainProcessSEH(string& strEditName,string& strViewName,string& DestName1,str
 	return Result;
 }
 
+DWORD gnMainThreadId = 0;
 int _cdecl wmain(int Argc, wchar_t *Argv[])
 {
 	apiEnableLowFragmentationHeap();
+	gnMainThreadId = GetCurrentThreadId();
 
 	GetVersionEx(&WinVer);
 

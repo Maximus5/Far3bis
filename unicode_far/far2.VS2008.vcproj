@@ -83,18 +83,18 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="mpr.lib psapi.lib secur32.lib setupapi.lib"
-				OutputFile="$(OutDir)\far.exe"
+				OutputFile="$(OutDir)\Far.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
 				IgnoreDefaultLibraryNames=""
-				LargeAddressAware="2"
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\far.pdb"
 				GenerateMapFile="true"
 				MapFileName="$(OutDir)\far.map"
 				SubSystem="1"
+				LargeAddressAware="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="2"
 				TargetMachine="1"
@@ -174,7 +174,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
+				PreprocessorDefinitions="NDEBUG;_WIN64;WIN64"
 				Culture="1033"
 			/>
 			<Tool
@@ -183,17 +183,17 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="mpr.lib psapi.lib secur32.lib setupapi.lib"
-				OutputFile="$(OutDir)\far.exe"
+				OutputFile="$(OutDir)\Far.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				LargeAddressAware="2"
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\far.pdb"
 				GenerateMapFile="true"
 				MapFileName="$(OutDir)\far.map"
 				SubSystem="1"
+				LargeAddressAware="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="2"
 				TargetMachine="17"
@@ -286,13 +286,13 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				LargeAddressAware="2"
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\far.pdb"
 				GenerateMapFile="true"
 				MapFileName="$(OutDir)\far.map"
 				SubSystem="1"
+				LargeAddressAware="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="2"
 				TargetMachine="5"
@@ -386,13 +386,13 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				LargeAddressAware="2"
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\far.pdb"
 				GenerateMapFile="true"
 				MapFileName="$(OutDir)\far.map"
 				SubSystem="1"
+				LargeAddressAware="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="2"
 				TargetMachine="1"
@@ -473,7 +473,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
+				PreprocessorDefinitions="_DEBUG;_WIN64;WIN64"
 				Culture="1033"
 			/>
 			<Tool
@@ -486,13 +486,13 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				LargeAddressAware="2"
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\far.pdb"
 				GenerateMapFile="true"
 				MapFileName="$(OutDir)\far.map"
 				SubSystem="1"
+				LargeAddressAware="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="2"
 				TargetMachine="17"
@@ -586,13 +586,13 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				LargeAddressAware="2"
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\far.pdb"
 				GenerateMapFile="true"
 				MapFileName="$(OutDir)\far.map"
 				SubSystem="1"
+				LargeAddressAware="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="2"
 				TargetMachine="5"
@@ -627,10 +627,6 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
-			<File
-				RelativePath="elevation.cpp"
-				>
-			</File>
 			<File
 				RelativePath="cache.cpp"
 				>
@@ -741,6 +737,10 @@
 			</File>
 			<File
 				RelativePath="eject.cpp"
+				>
+			</File>
+			<File
+				RelativePath="elevation.cpp"
 				>
 			</File>
 			<File
@@ -2653,10 +2653,6 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
-				RelativePath="elevation.hpp"
-				>
-			</File>
-			<File
 				RelativePath="array.hpp"
 				>
 			</File>
@@ -2852,6 +2848,10 @@
 			</File>
 			<File
 				RelativePath="eject.hpp"
+				>
+			</File>
+			<File
+				RelativePath="elevation.hpp"
 				>
 			</File>
 			<File

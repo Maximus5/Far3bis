@@ -1,3 +1,4 @@
+
 /*
 elevation.cpp
 
@@ -50,6 +51,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "scrbuf.hpp"
 #include "event.hpp"
 
+#undef DEBUG_UAC
+
 const int CallbackMagic= 0xCA11BAC6;
 
 DWORD ParentPID;
@@ -90,7 +93,7 @@ public:
 
 	LPCWSTR GetStr()
 	{
-		return reinterpret_cast<wchar_t*>(Get());
+		return reinterpret_cast<LPCWSTR>(Get());
 	}
 
 private:
@@ -420,6 +423,8 @@ struct AAData
 	bool& AskApprove;
 	bool& Approve;
 	bool& DontAskAgain;
+	AAData(Event* pEvent, int Why, LPCWSTR Object, bool& AskApprove, bool& Approve, bool& DontAskAgain):
+		pEvent(pEvent), Why(Why), Object(Object), AskApprove(AskApprove), Approve(Approve), DontAskAgain(DontAskAgain){}
 };
 
 void AdminApproveDlgSync(LPVOID Param)
@@ -462,7 +467,7 @@ bool elevation::AdminApproveDlg(int Why, LPCWSTR Object)
 		Recurse = true;
 		GuardLastError error;
 		TaskBarPause TBP;
-		AAData Data={nullptr, Why, Object, AskApprove, Approve, DontAskAgain};
+		AAData Data(nullptr, Why, Object, AskApprove, Approve, DontAskAgain);
 		if(GetCurrentThreadId()!=MainThreadID)
 		{
 			Data.pEvent=new Event();
@@ -1422,6 +1427,13 @@ int AdminMain(LPCWSTR guid, DWORD PID, bool UsePrivileges)
 {
 	int Result = ERROR_SUCCESS;
 
+	#ifdef DEBUG_UAC
+	wchar_t szDbg[1024], szTitle[128];
+	wsprintf(szTitle, L"FarAdmin, PID=%u", GetCurrentProcessId());
+	wsprintf(szDbg, L"%s %u %u", guid, PID, (int)UsePrivileges);
+	MessageBox(NULL, szDbg, szTitle, MB_SYSTEMMODAL);
+	#endif
+
 	SetErrorMode(SEM_FAILCRITICALERRORS|SEM_NOOPENFILEERRORBOX);
 
 	Privilege
@@ -1445,6 +1457,14 @@ int AdminMain(LPCWSTR guid, DWORD PID, bool UsePrivileges)
 			{
 				string strCurrentProcess, strParentProcess;
 				bool TrustedServer = apiGetModuleFileName(nullptr, strCurrentProcess) && apiGetModuleFileNameEx(ParentProcess, nullptr, strParentProcess) && (!StrCmpI(strCurrentProcess, strParentProcess));
+				#ifdef DEBUG_UAC
+				if (!TrustedServer)
+				{
+					bool cmp = (strCurrentProcess == strParentProcess);
+					wsprintf(szDbg, L"Not Trusted Server!\nstrCurrentProcess=%s\nstrParentProcess=%s\nTrustedServer=%i", (LPCWSTR)strCurrentProcess, (LPCWSTR)strParentProcess, (int)cmp);
+					MessageBox(NULL, szDbg, szTitle, MB_SYSTEMMODAL);
+				}
+				#endif
 				CloseHandle(ParentProcess);
 				if(TrustedServer)
 				{

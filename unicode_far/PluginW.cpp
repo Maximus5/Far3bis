@@ -375,14 +375,14 @@ bool PluginW::Load()
 
 	if (!m_hModule)
 	{
+		//чтоб не пытаться загрузить опять а то ошибка будет постоянно показываться.
+		WorkFlags.Set(PIWF_DONTLOADAGAIN);
+
 		if (!Opt.LoadPlug.SilentLoadPlugin) //убрать в PluginSet
 		{
 			SetMessageHelp(L"ErrLoadPlugin");
-			Message(MSG_WARNING|MSG_ERRORTYPE,1,MSG(MError),MSG(MPlgLoadPluginError),m_strModuleName,MSG(MOk));
+			Message(MSG_WARNING|MSG_ERRORTYPE/*|MSG_NOPLUGINS*/,1,MSG(MError),MSG(MPlgLoadPluginError),m_strModuleName,MSG(MOk));
 		}
-
-		//чтоб не пытаться загрузить опять а то ошибка будет постоянно показываться.
-		WorkFlags.Set(PIWF_DONTLOADAGAIN);
 
 		return false;
 	}
@@ -750,7 +750,9 @@ HANDLE PluginW::OpenPlugin(int OpenFrom, INT_PTR Item)
 		es.id = EXCEPT_OPENPLUGIN;
 		es.hDefaultResult = INVALID_HANDLE_VALUE;
 		es.hResult = INVALID_HANDLE_VALUE;
+		gbInOpenPlugin = TRUE;
 		EXECUTE_FUNCTION_EX(pOpenPluginW(OpenFrom,Item), es);
+		gbInOpenPlugin = FALSE;
 		hResult = es.hResult;
 		//CurPluginItem=nullptr; //BUGBUG
 		/*    CtrlObject->Macro.SetRedrawEditor(TRUE); //BUGBUG
@@ -860,7 +862,9 @@ int PluginW::ProcessEditorEvent(
 		ExecuteStruct es;
 		es.id = EXCEPT_PROCESSEDITOREVENT;
 		es.nDefaultResult = 0;
+		gbInEditorEvent = TRUE;
 		EXECUTE_FUNCTION_EX(pProcessEditorEventW(Event, Param), es);
+		gbInEditorEvent = FALSE;
 	}
 
 	return 0; //oops!

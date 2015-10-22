@@ -413,7 +413,7 @@ bool PluginManager::LoadPluginExternal(const wchar_t *lpwszModuleName, bool Load
 	return true;
 }
 
-int PluginManager::UnloadPlugin(Plugin *pPlugin, DWORD dwException, bool bRemove)
+int PluginManager::UnloadPlugin(Plugin *pPlugin, DWORD dwException, bool bRemove, bool bRunExitFARW)
 {
 	int nResult = FALSE;
 
@@ -433,24 +433,44 @@ int PluginManager::UnloadPlugin(Plugin *pPlugin, DWORD dwException, bool bRemove
 			FrameManager->PluginCommit();
 		}
 
-		bool bPanelPlugin = pPlugin->IsPanelPlugin();
+      if (pPlugin->IsPanelPlugin())
+		{
+			Panel *ActivePanel=CtrlObject->Cp()->ActivePanel;
+			if (ActivePanel->GetMode()==PLUGIN_PANEL)
+			{
+				PluginHandle *ph=(PluginHandle*)ActivePanel->GetPluginHandle();
+				if (ph->pPlugin->GetModuleName()==pPlugin->GetModuleName())
+				{
+					ActivePanel=CtrlObject->Cp()->ChangePanel(ActivePanel,FILE_PANEL,TRUE,TRUE);
+					ActivePanel->SetVisible(TRUE);
+					ActivePanel->Update(0);
+					Frame *CurFrame=FrameManager->GetCurrentFrame();
+					if (CurFrame && CurFrame->GetType()==MODALTYPE_PANELS)
+						ActivePanel->Show();
+					ActivePanel->SetFocus();
+				}
+			}
+			Panel *AnotherPanel=CtrlObject->Cp()->GetAnotherPanel(ActivePanel);
+			if (AnotherPanel->GetMode()==PLUGIN_PANEL)
+			{
+				PluginHandle *ph=(PluginHandle*)AnotherPanel->GetPluginHandle();
+				if (ph->pPlugin->GetModuleName()==pPlugin->GetModuleName())
+				{
+					AnotherPanel=CtrlObject->Cp()->ChangePanel(AnotherPanel,FILE_PANEL,FALSE,FALSE);
+					AnotherPanel->SetVisible(TRUE);
+					AnotherPanel->Update(0);
+					Frame *CurFrame=FrameManager->GetCurrentFrame();
+					if (CurFrame && CurFrame->GetType()==MODALTYPE_PANELS)
+						AnotherPanel->Show();
+				}
+			}
+		}
 
 		if (dwException != (DWORD)-1)
 			nResult = pPlugin->Unload(true);
 		else
-			nResult = pPlugin->Unload(false);
-
-		if (bPanelPlugin /*&& bUpdatePanels*/)
-		{
-			CtrlObject->Cp()->ActivePanel->SetCurDir(L".",TRUE);
-			Panel *ActivePanel=CtrlObject->Cp()->ActivePanel;
-			ActivePanel->Update(UPDATE_KEEP_SELECTION);
-			ActivePanel->Redraw();
-			Panel *AnotherPanel=CtrlObject->Cp()->GetAnotherPanel(ActivePanel);
-			AnotherPanel->Update(UPDATE_KEEP_SELECTION|UPDATE_SECONDARY);
-			AnotherPanel->Redraw();
-		}
-
+			nResult = pPlugin->Unload(bRunExitFARW?true:false); // по умолчанию bRunExitFARW=false
+																// вот только зачем пропускать ExitFARW()...
 		if (bRemove)
 			RemovePlugin(pPlugin);
 	}
@@ -460,15 +480,11 @@ int PluginManager::UnloadPlugin(Plugin *pPlugin, DWORD dwException, bool bRemove
 
 int PluginManager::UnloadPluginExternal(const wchar_t *lpwszModuleName)
 {
-//BUGBUG нужны проверки на легальность выгрузки
 	int nResult = FALSE;
 	Plugin *pPlugin = GetPlugin(lpwszModuleName);
 
 	if (pPlugin)
-	{
-		nResult = pPlugin->Unload(true);
-		RemovePlugin(pPlugin);
-	}
+		nResult=UnloadPlugin(pPlugin,(DWORD)-1,true,true);
 
 	return nResult;
 }
@@ -494,6 +510,20 @@ Plugin *PluginManager::GetPlugin(int PluginNumber)
 		return PluginsData[PluginNumber];
 
 	return nullptr;
+}
+
+bool PluginManager::IsPluginValid(Plugin *pPlugin)
+{
+	Plugin *pTest;
+
+	for (int i = 0; i < PluginsCount; i++)
+	{
+		pTest = PluginsData[i];
+		if (pTest == pPlugin)
+			return true;
+	}
+
+	return false;
 }
 
 void PluginManager::LoadPlugins()
@@ -709,7 +739,7 @@ HANDLE PluginManager::OpenFilePlugin(
 				Data = new BYTE[Opt.PluginMaxReadData];
 				if (Data)
 				{
-					if (file.Read(Data, Opt.PluginMaxReadData, &DataSize))
+					if (file.Read(Data, Opt.PluginMaxReadData, DataSize))
 					{
 						DataRead = true;
 					}
@@ -728,7 +758,7 @@ HANDLE PluginManager::OpenFilePlugin(
 
 		HANDLE hPlugin;
 
-		if (pPlugin->HasOpenFilePlugin())
+		if (pPlugin->HasOpenFilePlugin() && !(pPlugin->HasAnalyse() && pPlugin->HasOpenPlugin()))
 		{
 			if (Opt.ShowCheckingFile)
 				ct.Set(L"%s - [%s]...",MSG(MCheckingFileInPlugin),PointToName(pPlugin->GetModuleName()));
@@ -751,6 +781,7 @@ HANDLE PluginManager::OpenFilePlugin(
 		else
 		{
 			AnalyseData AData;
+			AData.StructSize = sizeof(AnalyseData);
 			AData.lpwszFileName = Name;
 			AData.pBuffer = Data;
 			AData.dwBufferSize = DataSize;
@@ -1498,7 +1529,7 @@ int PluginManager::CommandsMenu(int ModalType,int StartPos,const wchar_t *Histor
 {
 	if(ModalType == MODALTYPE_DIALOG)
 	{
-		if(reinterpret_cast<Dialog*>(FrameManager->GetCurrentFrame())->CheckDialogMode(DMODE_NOPLUGINS))
+		if(static_cast<Dialog*>(FrameManager->GetCurrentFrame())->CheckDialogMode(DMODE_NOPLUGINS))
 		{
 			return 0;
 		}

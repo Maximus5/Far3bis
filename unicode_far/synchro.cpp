@@ -35,6 +35,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "synchro.hpp"
 #include "plclass.hpp"
 #include "plugin.hpp"
+#include "ctrlobj.hpp"
 
 #include "elevation.hpp"
 
@@ -95,7 +96,8 @@ bool PluginSynchro::Process(void)
 			{
 				Plugin* pPlugin=(Plugin*)module;
 
-				if (pPlugin)
+				// Здесь не проверялась валидность pPlugin. Он мог быть выгружен (например через FarCmd -> unload:)
+				if (pPlugin && CtrlObject->Plugins.IsPluginValid(pPlugin))
 				{
 					pPlugin->ProcessSynchroEvent(SE_COMMONSYNCHRO,param);
 					res=true;

@@ -73,7 +73,7 @@ int GlobalSearchReverse=FALSE;
 
 int ScreenSaverActive=FALSE;
 
-int CloseFAR=FALSE,CloseFARMenu=FALSE;
+int CloseFAR=FALSE,CloseFARMenu=FALSE, AllowCancelExit=TRUE;
 
 int DisablePluginsOutput=FALSE;
 

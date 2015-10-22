@@ -926,6 +926,11 @@ bool VMenu::AddToFilter(const wchar_t *str)
 	return false;
 }
 
+void VMenu::SetFilterString(const wchar_t *str)
+{
+	strFilter=str;
+}
+
 int VMenu::ProcessKey(int Key)
 {
 	CriticalSectionLock Lock(CS);
@@ -1324,7 +1329,7 @@ int VMenu::ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent)
 			while (IsMouseButtonPressed())
 			{
 				SbHeight=Y2-Y1-2;
-				int MsPos=(GetShowItemCount()-1)*(MouseY-Y1)/(SbHeight);
+				int MsPos=(GetShowItemCount()-1)*(IntKeyState.MouseY-Y1)/(SbHeight);
 
 				if (MsPos >= GetShowItemCount())
 				{
@@ -1378,7 +1383,7 @@ int VMenu::ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent)
 
 		if (MsPos>=0 && MsPos<ItemCount && ItemCanHaveFocus(Item[MsPos]->Flags))
 		{
-			if (MouseX!=PrevMouseX || MouseY!=PrevMouseY || !MouseEvent->dwEventFlags)
+			if (IntKeyState.MouseX!=IntKeyState.PrevMouseX || IntKeyState.MouseY!=IntKeyState.PrevMouseY || !MouseEvent->dwEventFlags)
 			{
 				/* TODO:
 
@@ -1423,19 +1428,19 @@ int VMenu::ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent)
 
 		return TRUE;
 	}
-	else if (BoxType!=NO_BOX && !(MouseEvent->dwButtonState&FROM_LEFT_1ST_BUTTON_PRESSED) && (PrevMouseButtonState&FROM_LEFT_1ST_BUTTON_PRESSED) && !MouseEvent->dwEventFlags && (Opt.VMenu.LBtnClick==VMENUCLICK_APPLY))
+	else if (BoxType!=NO_BOX && !(MouseEvent->dwButtonState&FROM_LEFT_1ST_BUTTON_PRESSED) && (IntKeyState.PrevMouseButtonState&FROM_LEFT_1ST_BUTTON_PRESSED) && !MouseEvent->dwEventFlags && (Opt.VMenu.LBtnClick==VMENUCLICK_APPLY))
 	{
 		ProcessKey(KEY_ENTER);
 
 		return TRUE;
 	}
-	else if (BoxType!=NO_BOX && !(MouseEvent->dwButtonState&FROM_LEFT_2ND_BUTTON_PRESSED) && (PrevMouseButtonState&FROM_LEFT_2ND_BUTTON_PRESSED) && !MouseEvent->dwEventFlags && (Opt.VMenu.MBtnClick==VMENUCLICK_APPLY))
+	else if (BoxType!=NO_BOX && !(MouseEvent->dwButtonState&FROM_LEFT_2ND_BUTTON_PRESSED) && (IntKeyState.PrevMouseButtonState&FROM_LEFT_2ND_BUTTON_PRESSED) && !MouseEvent->dwEventFlags && (Opt.VMenu.MBtnClick==VMENUCLICK_APPLY))
 	{
 		ProcessKey(KEY_ENTER);
 
 		return TRUE;
 	}
-	else if (BoxType!=NO_BOX && bRightBtnPressed && !(MouseEvent->dwButtonState&RIGHTMOST_BUTTON_PRESSED) && (PrevMouseButtonState&RIGHTMOST_BUTTON_PRESSED) && !MouseEvent->dwEventFlags && (Opt.VMenu.RBtnClick==VMENUCLICK_APPLY))
+	else if (BoxType!=NO_BOX && bRightBtnPressed && !(MouseEvent->dwButtonState&RIGHTMOST_BUTTON_PRESSED) && (IntKeyState.PrevMouseButtonState&RIGHTMOST_BUTTON_PRESSED) && !MouseEvent->dwEventFlags && (Opt.VMenu.RBtnClick==VMENUCLICK_APPLY))
 	{
 		ProcessKey(KEY_ENTER);
 
@@ -2812,12 +2817,6 @@ int VMenu::FindItem(int StartIndex,const wchar_t *Pattern,DWORD Flags)
 	return -1;
 }
 
-struct SortItemParam
-{
-	int Direction;
-	int Offset;
-};
-
 static int __cdecl SortItem(const MenuItemEx **el1, const MenuItemEx **el2, const SortItemParam *Param)
 {
 	string strName1((*el1)->strName);
@@ -2859,24 +2858,67 @@ void VMenu::SortItems(int Direction, int Offset, BOOL SortForDataDWORD)
 	if (!SortForDataDWORD) // обычная сортировка
 	{
 		qsortex((char *)Item,
-		        ItemCount,
-		        sizeof(*Item),
-		        (qsortex_fn)SortItem,
-		        &Param);
+				ItemCount,
+				sizeof(*Item),
+				(qsortex_fn)SortItem,
+				&Param);
 	}
 	else
 	{
 		qsortex((char *)Item,
-		        ItemCount,
-		        sizeof(*Item),
-		        (qsortex_fn)SortItemDataDWORD,
-		        &Param);
+				ItemCount,
+				sizeof(*Item),
+				(qsortex_fn)SortItemDataDWORD,
+				&Param);
 	}
 
 	// скорректируем SelectPos
 	UpdateSelectPos();
 
 	SetFlags(VMENU_UPDATEREQUIRED);
+}
+
+void VMenu::SortItems(TMENUITEMEXCMPFUNC user_cmp_func,int Direction,int Offset)
+{
+	CriticalSectionLock Lock(CS);
+
+	typedef int (__cdecl *qsortex_fn)(const void*,const void*,void*);
+
+	SortItemParam Param;
+	Param.Direction=Direction;
+	Param.Offset=Offset;
+
+	qsortex((char *)Item,
+			ItemCount,
+			sizeof(*Item),
+			(qsortex_fn)user_cmp_func,
+			&Param);
+
+	// скорректируем SelectPos
+	UpdateSelectPos();
+
+	SetFlags(VMENU_UPDATEREQUIRED);
+}
+
+bool VMenu::Pack()
+{
+	int OldItemCount=ItemCount;
+	int FirstIndex=0;
+
+	while (FirstIndex<ItemCount)
+	{
+		int LastIndex=ItemCount-1;
+		while (LastIndex>FirstIndex)
+		{
+			if (StrCmp(Item[FirstIndex]->strName,Item[LastIndex]->strName)==0)
+			{
+				DeleteItem(LastIndex);
+			}
+			LastIndex--;
+		}
+		FirstIndex++;
+	}
+	return (OldItemCount!=ItemCount);
 }
 
 void EnumFiles(VMenu& Menu, const wchar_t* Str)

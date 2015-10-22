@@ -818,7 +818,7 @@ int FileEditor::ReProcessKey(int Key,int CalledFromControl)
 		ShowConsoleTitle();
 
 	// BugZ#488 - Shift=enter
-	if (ShiftPressed && (Key == KEY_ENTER || Key == KEY_NUMENTER) && CtrlObject->Macro.IsExecuting() == MACROMODE_NOMACRO)
+	if (IntKeyState.ShiftPressed && (Key == KEY_ENTER || Key == KEY_NUMENTER) && CtrlObject->Macro.IsExecuting() == MACROMODE_NOMACRO)
 	{
 		Key=Key == KEY_ENTER?KEY_SHIFTENTER:KEY_SHIFTNUMENTER;
 	}
@@ -1547,8 +1547,7 @@ int FileEditor::LoadFile(const wchar_t *Name,int &UserBreak)
 			}
 
 			SetCursorType(FALSE,0);
-			INT64 CurPos=0;
-			EditFile.GetPointer(CurPos);
+			INT64 CurPos = EditFile.GetPointer();
 			int Percent=static_cast<int>(CurPos*100/FileSize);
 			// В случае если во время загрузки файл увеличивается размере, то количество
 			// процентов может быть больше 100. Обрабатываем эту ситуацию.
@@ -1628,8 +1627,12 @@ int FileEditor::SaveFile(const wchar_t *Name,int Ask, bool bSaveAs, int TextForm
 
 		if (Ask)
 		{
-			switch (Message(MSG_WARNING,3,MSG(MEditTitle),MSG(MEditAskSave),
-			                MSG(MHYes),MSG(MHNo),MSG(MHCancel)))
+			int Code = AllowCancelExit?Message(MSG_WARNING,3,MSG(MEditTitle),MSG(MEditAskSave),MSG(MHYes),MSG(MHNo),MSG(MHCancel)):Message(MSG_WARNING,2,MSG(MEditTitle),MSG(MEditAskSave),MSG(MHYes),MSG(MHNo));
+			if(Code < 0 && !AllowCancelExit)
+			{
+				Code = 1; // close == not save
+			}
+			switch (Code)
 			{
 				case -1:
 				case -2:
@@ -1883,7 +1886,7 @@ int FileEditor::SaveFile(const wchar_t *Name,int Ask, bool bSaveAs, int TextForm
 					break;
 			}
 
-			if (!EditFile.Write(&dwSignature,SignLength,&dwWritten,nullptr)||dwWritten!=SignLength)
+			if (!EditFile.Write(&dwSignature,SignLength,dwWritten,nullptr)||dwWritten!=SignLength)
 			{
 				EditFile.Close();
 				apiDeleteFile(Name);
@@ -2269,7 +2272,7 @@ void FileEditor::ShowStatus()
 	if (StatusWidth<0)
 		StatusWidth=0;
 
-	FS<<fmt::LeftAlign()<<fmt::Width(StatusWidth)<<fmt::Precision(StatusWidth)<<FString.strValue();
+	FS<<fmt::LeftAlign()<<fmt::Width(StatusWidth)<<fmt::Precision(StatusWidth)<<FString;
 	{
 		const wchar_t *Str;
 		int Length;

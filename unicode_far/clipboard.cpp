@@ -331,6 +331,8 @@ bool Clipboard::CopyHDROP(LPVOID NamesArray, size_t NamesArraySize)
 				memcpy(Drop+1,NamesArray,NamesArraySize);
 				GlobalUnlock(hMemory);
 
+				Empty();
+
 				if(SetClipboardData(CF_HDROP, hMemory))
 				{
 					Result = true;

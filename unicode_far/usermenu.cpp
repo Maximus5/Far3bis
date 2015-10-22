@@ -152,8 +152,7 @@ void MenuRegToFile(const wchar_t *MenuKey, File& MenuFile, CachedWrite& CW, bool
 
 void MenuFileToReg(const wchar_t *MenuKey, File& MenuFile, GetFileString& GetStr, bool SingleItemMenu = false, UINT MenuCP = CP_UNICODE)
 {
-	INT64 Pos = 0;
-	MenuFile.GetPointer(Pos);
+	INT64 Pos = MenuFile.GetPointer();
 	if(!Pos)
 	{
 		if (!GetFileFormat(MenuFile,MenuCP))
@@ -497,7 +496,7 @@ int FillUserMenu(VMenu& UserMenu,const wchar_t *MenuKey,int MenuPos,int *FuncPos
 			int Offset=strHotKey.At(0)==L'&'?5:4;
 			FormatString FString;
 			FString<<((!strHotKey.IsEmpty() && !FuncNum)?L"&":L"")<<fmt::LeftAlign()<<fmt::Width(Offset)<<fmt::Precision(Offset)<<strHotKey;
-			UserMenuItem.strName=FString.strValue();
+			UserMenuItem.strName=FString;
 			UserMenuItem.strName+=strLabel;
 
 			if (GetRegKey(strItemKey,L"Submenu",0))

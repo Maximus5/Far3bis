@@ -168,20 +168,22 @@ bool IsPluginPrefixPath(const wchar_t *Path) //Max:
 {
 	if (Path[0] == L'\\')
 		return false;
-
 	const wchar_t* pC = wcschr(Path, L':');
-
 	if (!pC)
 		return false;
 
 	if ((pC - Path) == 1) // односимвольные префиксы не поддерживаются
 		return false;
+	//if ((pC - Path) == 1)
+	//{
+	//	wchar_t d = (Path[0] & ~0x20);
+	//	if (d >= L'C' && d <= 'Z')
+	//		return false; // буква диска, а не префикс
+	//}
 
 	const wchar_t* pS = FirstSlash(Path);
-
 	if (pS && pS < pC)
 		return false;
-
 	return true;
 }
 

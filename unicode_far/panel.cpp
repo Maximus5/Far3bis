@@ -89,6 +89,7 @@ static int MessageRemoveConnection(wchar_t Letter, int &UpdateProfile);
 /* $ 21.08.2002 IS
    Класс для хранения пункта плагина в меню выбора дисков
 */
+
 class ChDiskPluginItem
 {
 	public:
@@ -100,7 +101,7 @@ class ChDiskPluginItem
 
 		void Clear() { HotKey = 0; Item.Clear(); }
 		bool operator==(const ChDiskPluginItem &rhs) const { return HotKey==rhs.HotKey && !StrCmpI(Item.strName,rhs.Item.strName) && Item.UserData==rhs.Item.UserData; }
-		int operator<(const ChDiskPluginItem &rhs) const {return StrCmpI(Item.strName,rhs.Item.strName)<0;}
+		int operator<(const ChDiskPluginItem &rhs) const {return (Opt.ChangeDriveMode&DRIVE_SORT_PLUGINS_BY_HOTKEY && HotKey!=rhs.HotKey)?unsigned(HotKey-1)<unsigned(rhs.HotKey-1):StrCmpI(Item.strName,rhs.Item.strName)<0;}
 		const ChDiskPluginItem& operator=(const ChDiskPluginItem &rhs);
 };
 
@@ -225,7 +226,6 @@ static size_t AddPluginItems(VMenu &ChDisk, int Pos, int DiskCount, bool SetSele
 {
 	TArray<ChDiskPluginItem> MPItems;
 	ChDiskPluginItem OneItem;
-	// Список дополнительных хоткеев, для случая, когда плагинов, добавляющих пункт в меню, больше 9.
 	int PluginItem, PluginNumber = 0; // IS: счетчики - плагинов и пунктов плагина
 	bool ItemPresent,Done=false;
 	string strMenuText;
@@ -348,6 +348,7 @@ static void ConfigureChangeDriveMode()
 
 	Builder.AddCheckbox(MChangeDriveShowRemovableDrive, &Opt.ChangeDriveMode, DRIVE_SHOW_REMOVABLE);
 	Builder.AddCheckbox(MChangeDriveShowPlugins, &Opt.ChangeDriveMode, DRIVE_SHOW_PLUGINS);
+	Builder.AddCheckbox(MChangeDriveSortPluginsByHotkey, &Opt.ChangeDriveMode, DRIVE_SORT_PLUGINS_BY_HOTKEY)->Indent(4);
 	Builder.AddCheckbox(MChangeDriveShowCD, &Opt.ChangeDriveMode, DRIVE_SHOW_CDROM);
 	Builder.AddCheckbox(MChangeDriveShowNetworkDrive, &Opt.ChangeDriveMode, DRIVE_SHOW_REMOTE);
 
@@ -1662,7 +1663,7 @@ int  Panel::PanelProcessMouse(MOUSE_EVENT_RECORD *MouseEvent,int &RetCode)
 			SrcDragPanel=this;
 			DragX=MouseEvent->dwMousePosition.X;
 			DragY=MouseEvent->dwMousePosition.Y;
-			DragMove=ShiftPressed;
+			DragMove=IntKeyState.ShiftPressed;
 		}
 	}
 
@@ -2316,7 +2317,7 @@ int Panel::SetPluginCommand(int Command,int Param1,LONG_PTR Param2)
 		{
 			if (GetType()==FILE_PANEL)
 			{
-				reinterpret_cast<FileList*>(this)->PluginClearSelection(Param1);
+				static_cast<FileList*>(this)->PluginClearSelection(Param1);
 				Result=TRUE;
 			}
 			break;

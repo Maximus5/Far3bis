@@ -485,7 +485,7 @@ string& CenterStr(const wchar_t *Src, string &strDest, int Length)
 		int Space=(Length-SrcLength)/2;
 		FormatString FString;
 		FString<<fmt::Width(Space)<<L""<<strTempStr<<fmt::Width(Length-Space-SrcLength)<<L"";
-		strDest=FString.strValue();
+		strDest=FString;
 	}
 
 	return strDest;

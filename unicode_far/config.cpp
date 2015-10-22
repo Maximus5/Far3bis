@@ -594,6 +594,9 @@ static struct FARConfig
 	{1, REG_DWORD,  NKeyViewer,L"PersistentBlocks",&Opt.ViOpt.PersistentBlocks,0, 0},
 	{1, REG_DWORD,  NKeyViewer,L"AnsiCodePageAsDefault",&Opt.ViOpt.AnsiCodePageAsDefault,1, 0},
 
+	{1, REG_DWORD,  NKeyViewer,L"MaxLineSize",&Opt.ViOpt.MaxLineSize,2048, 0},
+	{1, REG_DWORD,  NKeyViewer,L"SearchEditFocus",&Opt.ViOpt.SearchEditFocus,0, 0},
+
 	{1, REG_DWORD,  NKeyDialog, L"EditHistory",&Opt.Dialogs.EditHistory,1, 0},
 	{1, REG_DWORD,  NKeyDialog, L"EditBlock",&Opt.Dialogs.EditBlock,0, 0},
 	{1, REG_DWORD,  NKeyDialog, L"AutoComplete",&Opt.Dialogs.AutoComplete,1, 0},
@@ -835,6 +838,7 @@ static struct FARConfig
 	{0, REG_DWORD,  NKeySystem,L"ExcludeCmdHistory",&Opt.ExcludeCmdHistory,0, 0}, //AN
 
 	{1, REG_DWORD,  NKeyCodePages,L"CPMenuMode",&Opt.CPMenuMode,0,0},
+	{1, REG_SZ,     NKeyCodePages,L"NoAutoDetectCP",&Opt.strNoAutoDetectCP,0,L""},
 
 	{1, REG_SZ,     NKeySystem,L"FolderInfo",&Opt.InfoPanel.strFolderInfoFiles, 0, L"DirInfo,File_Id.diz,Descript.ion,ReadMe.*,Read.Me"},
 	{1, REG_DWORD,  NKeyPanelInfo,L"InfoComputerNameFormat",&Opt.InfoPanel.ComputerNameFormat, ComputerNamePhysicalNetBIOS, 0},
@@ -917,8 +921,15 @@ void ReadConfig()
 		}
 	}
 
-	Opt.ViOpt.ViewerIsWrap&=1;
-	Opt.ViOpt.ViewerWrap&=1;
+	Opt.ViOpt.ViewerIsWrap &= 1;
+	Opt.ViOpt.ViewerWrap &= 1;
+	if (!Opt.ViOpt.MaxLineSize)
+		Opt.ViOpt.MaxLineSize = 2048;
+	else if (Opt.ViOpt.MaxLineSize < 80)
+		Opt.ViOpt.MaxLineSize = 80;
+	else if (Opt.ViOpt.MaxLineSize > 16*1024)
+		Opt.ViOpt.MaxLineSize = 16*1024;
+	Opt.ViOpt.SearchEditFocus &= 1;
 
 	// Исключаем случайное стирание разделителей ;-)
 	if (Opt.strWordDiv.IsEmpty())

@@ -75,6 +75,47 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "TaskBar.hpp"
 #include "console.hpp"
 
+//#define SHOW_UNSAFE_MSG
+#undef SHOW_UNSAFE_MSG
+BOOL gbInOpenPlugin = FALSE;
+BOOL gbInEditorEvent = FALSE;
+#ifndef _DEBUG
+BOOL gbReportInRelease = FALSE;
+#endif
+void ReportThreadUnsafeCall(const wchar_t* asFormat, DWORD anCommand)
+{
+	static bool bSkipBuzz = false;
+	if (bSkipBuzz)
+		return;
+	//TODO: ругнуться в MessageBoxW и если "Да" - то сформировать MiniDump
+	wchar_t szUnsafe[2048], szReady[1024], szFar[128];
+	wsprintf(szReady, asFormat, anCommand);
+	wsprintf(szUnsafe, L"Thread UnSafe api call detected!\n%s\nCurrent TID=%u, Main TID=%u\n", szReady, GetCurrentThreadId(), gnMainThreadId);
+	wsprintf(szFar, L"Far PID=%u", GetCurrentProcessId());
+#ifdef _DEBUG
+	int nBtn;
+	#ifdef SHOW_UNSAFE_MSG
+	nBtn = MessageBox(NULL, szUnsafe, szFar, MB_ICONSTOP|MB_SYSTEMMODAL|MB_CANCELTRYCONTINUE);
+	#else
+	OutputDebugString(szUnsafe);
+	nBtn = IDCONTINUE;
+	#endif
+	if (nBtn == IDCANCEL)
+	{
+		bSkipBuzz = true;
+		return;
+	}
+	if (nBtn == IDTRYAGAIN)
+	{
+		DebugBreak();
+		nBtn = IDTRYAGAIN; // чтобы было куда breakpoint ставить
+	}
+#else
+	if (gbReportInRelease)
+		OutputDebugString(szUnsafe);
+#endif
+}
+
 wchar_t *WINAPI FarItoa(int value, wchar_t *string, int radix)
 {
 	if (string)
@@ -230,6 +271,43 @@ INT_PTR WINAPI FarAdvControl(INT_PTR ModuleNumber, int Command, void *Param)
 	{
 		PluginSynchroManager.Synchro(true, ModuleNumber, Param);
 		return 0;
+	}
+	
+	// для отлова недобросовестных плагинов
+	if (gnMainThreadId != GetCurrentThreadId())
+	{
+		// Некоторые плагины блокируют главную нить для безопасных вызовов API
+		// Отсечь это корректно - сложно, поэтому просто проверяем, а не в OpenPlugin ли мы?
+		BOOL lbSafe = gbInOpenPlugin;
+
+		if (Command == ACTL_GETFARVERSION
+			|| Command == ACTL_GETPLUGINMAXREADDATA
+			|| Command == ACTL_GETCOLOR
+			|| Command == ACTL_GETARRAYCOLOR
+			|| Command == ACTL_GETFARHWND
+			|| Command == ACTL_GETDIALOGSETTINGS
+			|| Command == ACTL_GETSYSTEMSETTINGS
+			|| Command == ACTL_GETPANELSETTINGS
+			|| Command == ACTL_GETINTERFACESETTINGS
+			|| Command == ACTL_GETCONFIRMATIONS
+			|| Command == ACTL_GETDESCSETTINGS
+			|| Command == ACTL_GETFARRECT
+			|| Command == ACTL_SETPROGRESSSTATE || Command == ACTL_SETPROGRESSVALUE
+			)
+		{
+			lbSafe = TRUE;
+		}
+		// официально - только ACTL_SYNCHRO thread-safe в Far2,
+		// но есть функция MCMD_GETAREA, которую можно звать из любого потока
+		else if (Command == ACTL_KEYMACRO)
+		{
+			ActlKeyMacro *KeyMacro=(ActlKeyMacro*)Param;
+			lbSafe = (KeyMacro->Command == MCMD_GETAREA);
+		}
+		if (!lbSafe)
+		{
+			ReportThreadUnsafeCall(L"AdvControl(%u)", Command);
+		}
 	}
 
 	struct Opt2Flags
@@ -1376,6 +1454,18 @@ int WINAPI FarControl(HANDLE hPlugin,int Command,int Param1,LONG_PTR Param2)
 	if (Command == FCTL_CHECKPANELSEXIST)
 		return Opt.OnlyEditorViewerUsed? FALSE:TRUE;
 
+	// для отлова недобросовестных плагинов
+	if (gnMainThreadId != GetCurrentThreadId())
+	{
+		// Некоторые плагины блокируют главную нить для безопасных вызовов API
+		// Отсечь это корректно - сложно, поэтому просто проверяем, а не в OpenPlugin ли мы?
+		BOOL lbSafe = gbInOpenPlugin;
+		if (!lbSafe)
+		{
+			ReportThreadUnsafeCall(L"Control(%u)", Command);
+		}
+	}
+
 	if (Opt.OnlyEditorViewerUsed || !CtrlObject || !FrameManager || FrameManager->ManagerIsDown())
 		return 0;
 
@@ -1957,6 +2047,19 @@ void WINAPI FarFreePluginDirList(PluginPanelItem *PanelItem, int ItemsNumber)
 int WINAPI FarViewer(const wchar_t *FileName,const wchar_t *Title,
                      int X1,int Y1,int X2, int Y2,DWORD Flags, UINT CodePage)
 {
+	// для отлова недобросовестных плагинов
+	if (gnMainThreadId != GetCurrentThreadId())
+	{
+		// Некоторые плагины блокируют главную нить для безопасных вызовов API
+		// Отсечь это корректно - сложно, поэтому просто проверяем, а не в OpenPlugin ли мы?
+		BOOL lbSafe = gbInOpenPlugin;
+		if (!lbSafe)
+		{
+			ReportThreadUnsafeCall(L"Viewer()", 0);
+		}
+	}
+
+
 	if (FrameManager->ManagerIsDown())
 		return FALSE;
 
@@ -2043,6 +2146,18 @@ int WINAPI FarEditor(
     UINT CodePage
 )
 {
+	// для отлова недобросовестных плагинов
+	if (gnMainThreadId != GetCurrentThreadId())
+	{
+		// Некоторые плагины блокируют главную нить для безопасных вызовов API
+		// Отсечь это корректно - сложно, поэтому просто проверяем, а не в OpenPlugin ли мы?
+		BOOL lbSafe = gbInOpenPlugin;
+		if (!lbSafe)
+		{
+			ReportThreadUnsafeCall(L"Editor()", 0);
+		}
+	}
+
 	if (FrameManager->ManagerIsDown())
 		return EEC_OPEN_ERROR;
 
@@ -2189,6 +2304,18 @@ void WINAPI FarText(int X,int Y,int Color,const wchar_t *Str)
 
 int WINAPI FarEditorControl(int Command,void *Param)
 {
+	// для отлова недобросовестных плагинов
+	if (gnMainThreadId != GetCurrentThreadId())
+	{
+		// Некоторые плагины блокируют главную нить для безопасных вызовов API
+		// Отсечь это корректно - сложно, поэтому просто проверяем, а не в OpenPlugin ли мы?
+		BOOL lbSafe = gbInEditorEvent;
+		if (!lbSafe)
+		{
+			ReportThreadUnsafeCall(L"EditorControl(%u)", Command);
+		}
+	}
+
 	if (FrameManager->ManagerIsDown() || !CtrlObject->Plugins.CurEditor)
 		return 0;
 
@@ -2197,6 +2324,18 @@ int WINAPI FarEditorControl(int Command,void *Param)
 
 int WINAPI FarViewerControl(int Command,void *Param)
 {
+	// для отлова недобросовестных плагинов
+	if (gnMainThreadId != GetCurrentThreadId())
+	{
+		// Некоторые плагины блокируют главную нить для безопасных вызовов API
+		// Отсечь это корректно - сложно, поэтому просто проверяем, а не в OpenPlugin ли мы?
+		BOOL lbSafe = gbInOpenPlugin;
+		if (!lbSafe)
+		{
+			ReportThreadUnsafeCall(L"ViewerControl(%u)", Command);
+		}
+	}
+
 	if (FrameManager->ManagerIsDown() || !CtrlObject->Plugins.CurViewer)
 		return 0;
 
