@@ -2661,6 +2661,9 @@ static bool menushowFunc(const TMacroFunction*)
 	Menu.Show();
 	int PrevSelectedPos=Menu.GetSelectPos();
 	DWORD Key=0;
+	int RealPos;
+	bool CheckFlag;
+	int X1, Y1, X2, Y2, NewY2;
 	while (!Menu.Done() && !CloseFARMenu)
 	{
 		SelectedPos=Menu.GetSelectPos();
@@ -2678,14 +2681,40 @@ static bool menushowFunc(const TMacroFunction*)
 
 			case KEY_CTRLADD:
 			case KEY_CTRLSUBTRACT:
+			case KEY_CTRLMULTIPLY:
 				if (bMultiSelect)
 				{
 					for(int i=0; i<Menu.GetShowItemCount(); i++)
 					{
-						Menu.SetCheck((Key==KEY_CTRLADD), Menu.VisualPosToReal(i));
+						RealPos=Menu.VisualPosToReal(i);
+						if (Key==KEY_CTRLMULTIPLY)
+						{
+							CheckFlag=Menu.GetCheck(RealPos)?false:true;
+						}
+						else
+						{
+							CheckFlag=(Key==KEY_CTRLADD);
+						}
+						Menu.SetCheck(CheckFlag, RealPos);
 					}
 					Menu.Show();
 				}
+				break;
+
+			case KEY_CTRLA:
+			{
+				Menu.GetPosition(X1, Y1, X2, Y2);
+				NewY2=Y1+Menu.GetShowItemCount()+1;
+
+				if (NewY2>ScrY-2)
+					NewY2=ScrY-2;
+
+				Menu.SetPosition(X1,Y1,X2,NewY2);
+				Menu.Show();
+				break;
+			}
+			default:
+				Menu.ProcessInput();
 				break;
 
 			case KEY_BREAK:
@@ -2693,9 +2722,6 @@ static bool menushowFunc(const TMacroFunction*)
 				Menu.SetExitCode(-1);
 				break;
 
-			default:
-				Menu.ProcessInput();
-				break;
 		}
 
 		if (bExitAfterNavigate && (PrevSelectedPos!=SelectedPos))
@@ -5440,7 +5466,7 @@ done:
 			VMStack.Pop(tmpAction);
 			if (tmpAction.isUnknown())
 				tmpAction=Key == MCODE_F_MENU_FILTER ? 4 : 0;
-			
+
 			int CurMMode=CtrlObject->Macro.GetMode();
 
 			if (IsMenuArea(CurMMode) || CurMMode == MACRO_DIALOG)

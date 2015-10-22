@@ -1448,33 +1448,23 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 		if (ShowStatus && !strLine.IsEmpty())
 		{
 			GotoXY(X1+1,WhereY());
-			#if 0 // Left
-	        Text(strLine);
-	        #else
-	        //Maximus: TODO: обрезание строки если она получилась длиннее?
 	        if (StatusAlign & COLUMN_CENTERALIGN)
 		        RemoveExternalSpaces(strLine);
 			else if (StatusAlign & COLUMN_RIGHTALIGN)
 				RemoveTrailingSpaces(strLine);
 			int LineLen = static_cast<int>(strLine.GetLength());
-			//const wchar_t *LinePtr = strLine;
-			//while (*LinePtr==L' ')
-			//{
-			//	LinePtr++;
-			//	LineLen--;
-			//}
-			//while (LineLen>0 && LinePtr[LineLen-1]==L' ')
-			//	LineLen--;
 			if (LineLen<(X2-X1-1))
+			{
 				if (StatusAlign & COLUMN_CENTERALIGN)
 					FS<<fmt::Width((X2-X1-1-LineLen)>>1)<<L"";
 				else if (StatusAlign & COLUMN_RIGHTALIGN)
 					FS<<fmt::Width(X2-X1-1-LineLen)<<L"";
+			}
 			else if (LineLen>(X2-X1-1))
+			{
 				LineLen = X2-X1-1;
+			}
 	        FS<<fmt::Width(LineLen)<<fmt::Precision(LineLen)<<strLine/*LinePtr*/;
-			//FS<<L"*";
-	        #endif
         }
 
 		if ((!ShowStatus || StatusLine) && WhereX()<X2)

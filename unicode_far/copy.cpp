@@ -4,8 +4,8 @@ copy.cpp
 Копирование файлов
 */
 /*
-Copyright (c) 1996 Eugene Roshal
-Copyright (c) 2000 Far Group
+Copyright © 1996 Eugene Roshal
+Copyright © 2000 Far Group
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "fileview.hpp"
 #include "TPreRedrawFunc.hpp"
 #include "syslog.hpp"
-#include "registry.hpp"
 #include "TaskBar.hpp"
 #include "cddrv.hpp"
 #include "interf.hpp"
@@ -76,6 +75,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DlgGuid.hpp"
 #include "console.hpp"
 #include "wakeful.hpp"
+#include "registry.hpp" // В Far2 - реестр
 
 /* Общее время ожидания пользователя */
 extern long WaitUserTime;
@@ -103,7 +103,7 @@ enum COPYSECURITYOPTIONS
 };
 
 
-static int TotalFiles,TotalFilesToProcess;
+size_t TotalFiles,TotalFilesToProcess;
 
 static clock_t CopyStartTime;
 
@@ -607,6 +607,301 @@ BOOL CheckAndUpdateConsole(BOOL IsChangeConsole)
 	}
 
 	return IsChangeConsole;
+}
+
+enum
+{
+	DM_CALLTREE = DM_USER+1,
+	DM_SWITCHRO = DM_USER+2,
+};
+
+LONG_PTR WINAPI CopyDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
+{
+
+	CopyDlgParam *DlgParam=(CopyDlgParam *)SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
+
+	switch (Msg)
+	{
+		case DN_INITDIALOG:
+			SendDlgMessage(hDlg,DM_SETCOMBOBOXEVENT,ID_SC_COMBO,CBET_KEY|CBET_MOUSE);
+			SendDlgMessage(hDlg,DM_SETMOUSEEVENTNOTIFY,TRUE,0);
+			break;
+		case DM_SWITCHRO:
+		{
+			FarListGetItem LGI={CM_ASKRO};
+			SendDlgMessage(hDlg,DM_LISTGETITEM,ID_SC_COMBO,(LONG_PTR)&LGI);
+
+			if (LGI.Item.Flags&LIF_CHECKED)
+				LGI.Item.Flags&=~LIF_CHECKED;
+			else
+				LGI.Item.Flags|=LIF_CHECKED;
+
+			SendDlgMessage(hDlg,DM_LISTUPDATE,ID_SC_COMBO,(LONG_PTR)&LGI);
+			SendDlgMessage(hDlg,DM_REDRAW,0,0);
+			return TRUE;
+		}
+		case DN_BTNCLICK:
+		{
+			if (Param1==ID_SC_USEFILTER) // "Use filter"
+			{
+				UseFilter=(int)Param2;
+				return TRUE;
+			}
+
+			if (Param1 == ID_SC_BTNTREE) // Tree
+			{
+				SendDlgMessage(hDlg,DM_CALLTREE,0,0);
+				return FALSE;
+			}
+			else if (Param1 == ID_SC_BTNCOPY)
+			{
+				SendDlgMessage(hDlg,DM_CLOSE,ID_SC_BTNCOPY,0);
+			}
+			/*
+			else if(Param1 == ID_SC_ONLYNEWER && ((DlgParam->thisClass->Flags)&FCOPY_LINK))
+			{
+			  // подсократим код путем эмуляции телодвижений в строке ввода :-))
+			  		SendDlgMessage(hDlg,DN_EDITCHANGE,ID_SC_TARGETEDIT,0);
+			}
+			*/
+			else if (Param1==ID_SC_BTNFILTER) // Filter
+			{
+				Filter->FilterEdit();
+				return TRUE;
+			}
+
+			break;
+		}
+		case DM_KEY: // по поводу дерева!
+		{
+			if (Param2 == KEY_ALTF10 || Param2 == KEY_F10 || Param2 == KEY_SHIFTF10)
+			{
+				DlgParam->AltF10=Param2 == KEY_ALTF10?1:(Param2 == KEY_SHIFTF10?2:0);
+				SendDlgMessage(hDlg,DM_CALLTREE,DlgParam->AltF10,0);
+				return TRUE;
+			}
+
+			if (Param1 == ID_SC_COMBO)
+			{
+				if (Param2==KEY_ENTER || Param2==KEY_NUMENTER || Param2==KEY_INS || Param2==KEY_NUMPAD0 || Param2==KEY_SPACE)
+				{
+					if (SendDlgMessage(hDlg,DM_LISTGETCURPOS,ID_SC_COMBO,0)==CM_ASKRO)
+						return SendDlgMessage(hDlg,DM_SWITCHRO,0,0);
+				}
+			}
+		}
+		break;
+
+		case DN_LISTHOTKEY:
+			if(Param1==ID_SC_COMBO)
+			{
+				if (SendDlgMessage(hDlg,DM_LISTGETCURPOS,ID_SC_COMBO,0)==CM_ASKRO)
+				{
+					SendDlgMessage(hDlg,DM_SWITCHRO,0,0);
+					return TRUE;
+				}
+			}
+			break;
+		case DN_MOUSEEVENT:
+
+			if (SendDlgMessage(hDlg,DM_GETDROPDOWNOPENED,ID_SC_COMBO,0))
+			{
+				MOUSE_EVENT_RECORD *mer=(MOUSE_EVENT_RECORD *)Param2;
+
+				if (SendDlgMessage(hDlg,DM_LISTGETCURPOS,ID_SC_COMBO,0)==CM_ASKRO && mer->dwButtonState && !(mer->dwEventFlags&MOUSE_MOVED))
+				{
+					SendDlgMessage(hDlg,DM_SWITCHRO,0,0);
+					return FALSE;
+				}
+			}
+
+			break;
+#if 0
+		case DN_EDITCHANGE:
+
+			if (Param1 == ID_SC_TARGETEDIT)
+			{
+				FarDialogItem *DItemACCopy,*DItemACInherit,*DItemACLeave,/**DItemOnlyNewer,*/*DItemBtnCopy;
+				string strTmpSrcDir;
+				DlgParam->thisClass->SrcPanel->GetCurDir(strTmpSrcDir);
+				DItemACCopy = (FarDialogItem *)xf_malloc(SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ACCOPY,0));
+				SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ACCOPY,(LONG_PTR)DItemACCopy);
+				DItemACInherit = (FarDialogItem *)xf_malloc(SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ACINHERIT,0));
+				SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ACINHERIT,(LONG_PTR)DItemACInherit);
+				DItemACLeave = (FarDialogItem *)xf_malloc(SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ACLEAVE,0));
+				SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ACLEAVE,(LONG_PTR)DItemACLeave);
+				//DItemOnlyNewer = (FarDialogItem *)xf_malloc(SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ONLYNEWER,0));
+				//SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ONLYNEWER,(LONG_PTR)DItemOnlyNewer);
+				DItemBtnCopy = (FarDialogItem *)xf_malloc(SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_BTNCOPY,0));
+				SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_BTNCOPY,(LONG_PTR)DItemBtnCopy);
+
+				// не создание линка, обычные Copy/Move
+				if (!(DlgParam->thisClass->Flags&FCOPY_LINK))
+				{
+					string strBuf = ((FarDialogItem *)Param2)->PtrData;
+					strBuf.Upper();
+
+					if (!DlgParam->strPluginFormat.IsEmpty() && wcsstr(strBuf, DlgParam->strPluginFormat))
+					{
+						DItemACCopy->Flags|=DIF_DISABLE;
+						DItemACInherit->Flags|=DIF_DISABLE;
+						DItemACLeave->Flags|=DIF_DISABLE;
+						//DItemOnlyNewer->Flags|=DIF_DISABLE;
+						//DlgParam->OnlyNewerFiles=DItemOnlyNewer->Param.Selected;
+						DlgParam->CopySecurity=0;
+
+						if (DItemACCopy->Param.Selected)
+							DlgParam->CopySecurity=1;
+						else if (DItemACLeave->Param.Selected)
+							DlgParam->CopySecurity=2;
+
+						DItemACCopy->Param.Selected=0;
+						DItemACInherit->Param.Selected=0;
+						DItemACLeave->Param.Selected=1;
+						//DItemOnlyNewer->Param.Selected=0;
+					}
+					else
+					{
+						DItemACCopy->Flags&=~DIF_DISABLE;
+						DItemACInherit->Flags&=~DIF_DISABLE;
+						DItemACLeave->Flags&=~DIF_DISABLE;
+						//DItemOnlyNewer->Flags&=~DIF_DISABLE;
+						//DItemOnlyNewer->Param.Selected=DlgParam->OnlyNewerFiles;
+						DItemACCopy->Param.Selected=0;
+						DItemACInherit->Param.Selected=0;
+						DItemACLeave->Param.Selected=0;
+
+						if (DlgParam->CopySecurity == 1)
+						{
+							DItemACCopy->Param.Selected=1;
+						}
+						else if (DlgParam->CopySecurity == 2)
+						{
+							DItemACLeave->Param.Selected=1;
+						}
+						else
+							DItemACInherit->Param.Selected=1;
+					}
+				}
+
+				SendDlgMessage(hDlg,DM_SETDLGITEM,ID_SC_ACCOPY,(LONG_PTR)DItemACCopy);
+				SendDlgMessage(hDlg,DM_SETDLGITEM,ID_SC_ACINHERIT,(LONG_PTR)DItemACInherit);
+				SendDlgMessage(hDlg,DM_SETDLGITEM,ID_SC_ACLEAVE,(LONG_PTR)DItemACLeave);
+				//SendDlgMessage(hDlg,DM_SETDLGITEM,ID_SC_ONLYNEWER,(LONG_PTR)DItemOnlyNewer);
+				SendDlgMessage(hDlg,DM_SETDLGITEM,ID_SC_BTNCOPY,(LONG_PTR)DItemBtnCopy);
+				xf_free(DItemACCopy);
+				xf_free(DItemACInherit);
+				xf_free(DItemACLeave);
+				//xf_free(DItemOnlyNewer);
+				xf_free(DItemBtnCopy);
+			}
+
+			break;
+#endif
+		case DM_CALLTREE:
+		{
+			/* $ 13.10.2001 IS
+			   + При мультикопировании добавляем выбранный в "дереве" каталог к уже
+			     существующему списку через точку с запятой.
+			   - Баг: при мультикопировании выбранный в "дереве" каталог не
+			     заключался в кавычки, если он содержал в своем
+			     имени символы-разделители.
+			   - Баг: неправильно работало Shift-F10, если строка ввода содержала
+			     слеш на конце.
+			   - Баг: неправильно работало Shift-F10 при мультикопировании -
+			     показывался корневой каталог, теперь показывается самый первый каталог
+			     в списке.
+			*/
+			BOOL MultiCopy=SendDlgMessage(hDlg,DM_GETCHECK,ID_SC_MULTITARGET,0)==BSTATE_CHECKED;
+			string strOldFolder;
+			int nLength;
+			FarDialogItemData Data;
+			nLength = (int)SendDlgMessage(hDlg, DM_GETTEXTLENGTH, ID_SC_TARGETEDIT, 0);
+			Data.PtrData = strOldFolder.GetBuffer(nLength+1);
+			Data.PtrLength = nLength;
+			SendDlgMessage(hDlg,DM_GETTEXT,ID_SC_TARGETEDIT,(LONG_PTR)&Data);
+			strOldFolder.ReleaseBuffer();
+			string strNewFolder;
+
+			if (DlgParam->AltF10 == 2)
+			{
+				strNewFolder = strOldFolder;
+
+				if (MultiCopy)
+				{
+					UserDefinedList DestList(0,0,ULF_UNIQUE);
+
+					if (DestList.Set(strOldFolder))
+					{
+						DestList.Reset();
+						const wchar_t *NamePtr=DestList.GetNext();
+
+						if (NamePtr)
+							strNewFolder = NamePtr;
+					}
+				}
+
+				if (strNewFolder.IsEmpty())
+					DlgParam->AltF10=-1;
+				else // убираем лишний слеш
+					DeleteEndSlash(strNewFolder);
+			}
+
+			if (DlgParam->AltF10 != -1)
+			{
+				{
+					string strNewFolder2;
+					FolderTree Tree(strNewFolder2,
+					                (DlgParam->AltF10==1?MODALTREE_PASSIVE:
+					                 (DlgParam->AltF10==2?MODALTREE_FREE:
+					                  MODALTREE_ACTIVE)),
+					                FALSE,FALSE);
+					strNewFolder = strNewFolder2;
+				}
+
+				if (!strNewFolder.IsEmpty())
+				{
+					AddEndSlash(strNewFolder);
+
+					if (MultiCopy) // мультикопирование
+					{
+						// Добавим кавычки, если имя каталога содержит символы-разделители
+						if (wcspbrk(strNewFolder,L";,"))
+							InsertQuote(strNewFolder);
+
+						if (strOldFolder.GetLength())
+							strOldFolder += L";"; // добавим разделитель к непустому списку
+
+						strOldFolder += strNewFolder;
+						strNewFolder = strOldFolder;
+					}
+
+					SendDlgMessage(hDlg,DM_SETTEXTPTR,ID_SC_TARGETEDIT,(LONG_PTR)strNewFolder.CPtr());
+					SendDlgMessage(hDlg,DM_SETFOCUS,ID_SC_TARGETEDIT,0);
+				}
+			}
+
+			DlgParam->AltF10=0;
+			return TRUE;
+		}
+		case DN_CLOSE:
+		{
+			if (Param1==ID_SC_BTNCOPY)
+			{
+				FarListGetItem LGI={CM_ASKRO};
+				SendDlgMessage(hDlg,DM_LISTGETITEM,ID_SC_COMBO,(LONG_PTR)&LGI);
+
+				if (LGI.Item.Flags&LIF_CHECKED)
+					DlgParam->AskRO=TRUE;
+			}
+		}
+		break;
+
+		default:
+			break;
+	}
+
+	return DefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
 ShellCopy::ShellCopy(Panel *SrcPanel,        // исходная панель (активная)
@@ -1190,18 +1485,6 @@ ShellCopy::ShellCopy(Panel *SrcPanel,        // исходная панель (активная)
 		return;
 	}
 
-	if (CheckNulOrCon(strCopyDlgValue))
-		Flags|=FCOPY_COPYTONUL;
-
-	if (Flags&FCOPY_COPYTONUL)
-	{
-		Flags&=~FCOPY_MOVE;
-		Move=0;
-	}
-
-	if (CDP.SelCount==1 || (Flags&FCOPY_COPYTONUL))
-		AddSlash=false; //???
-
 	if (DestPlugin==2)
 	{
 		if (PluginDestPath)
@@ -1224,7 +1507,6 @@ ShellCopy::ShellCopy(Panel *SrcPanel,        // исходная панель (активная)
 	// TODO: Posix - bugbug
 	ReplaceSlashToBSlash(strCopyDlgValue);
 	// нужно ли показывать время копирования?
-	bool ShowCopyTime=(Opt.CMOpt.CopyTimeRule&((Flags&FCOPY_COPYTONUL)?COPY_RULE_NUL:COPY_RULE_FILES))!=0;
 	// ***********************************************************************
 	// **** Здесь все подготовительные операции закончены, можно приступать
 	// **** к процессу Copy/Move/Link
@@ -1253,11 +1535,8 @@ ShellCopy::ShellCopy(Panel *SrcPanel,        // исходная панель (активная)
 			TotalCopySize=TotalCopiedSize=TotalSkippedSize=0;
 
 			// Запомним время начала
-			if (ShowCopyTime)
-			{
-				CopyStartTime = clock();
-				WaitUserTime = OldCalcTime = 0;
-			}
+			CopyStartTime = clock();
+			WaitUserTime = OldCalcTime = 0;
 
 			if (CountTarget > 1)
 				Move=0;
@@ -1288,6 +1567,11 @@ ShellCopy::ShellCopy(Panel *SrcPanel,        // исходная панель (активная)
 					Flags&=~FCOPY_MOVE;
 					Move=0;
 				}
+				bool ShowCopyTime=(Opt.CMOpt.CopyTimeRule&((Flags&FCOPY_COPYTONUL)?COPY_RULE_NUL:COPY_RULE_FILES))!=0;
+
+				if (CDP.SelCount==1 || (Flags&FCOPY_COPYTONUL))
+					AddSlash=false; //???
+
 
 				if (DestList.IsEmpty()) // нужно учесть моменты связанные с операцией Move.
 				{
@@ -1308,7 +1592,7 @@ ShellCopy::ShellCopy(Panel *SrcPanel,        // исходная панель (активная)
 
 				if (Move) // при перемещении "тотал" так же скидывается для "того же диска"
 				{
-					if (!UseFilter && CheckDisksProps(strSrcDir,strNameTmp,CHECKEDPROPS_ISSAMEDISK))
+					if (CheckDisksProps(strSrcDir,strNameTmp,CHECKEDPROPS_ISSAMEDISK))
 						ShowTotalCopySize=false;
 					if (CDP.SelCount==1 && CDP.FolderPresent && CheckUpdateAnotherPanel(SrcPanel,strSelName))
 					{
@@ -1450,294 +1734,6 @@ ShellCopy::ShellCopy(Panel *SrcPanel,        // исходная панель (активная)
 	DestPanel->Update(UPDATE_KEEP_SELECTION|UPDATE_SECONDARY);
 	DestPanel->Redraw();
 #endif
-}
-
-
-LONG_PTR WINAPI CopyDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
-{
-#define DM_CALLTREE (DM_USER+1)
-#define DM_SWITCHRO (DM_USER+2)
-	CopyDlgParam *DlgParam=(CopyDlgParam *)SendDlgMessage(hDlg,DM_GETDLGDATA,0,0);
-
-	switch (Msg)
-	{
-		case DN_INITDIALOG:
-			SendDlgMessage(hDlg,DM_SETCOMBOBOXEVENT,ID_SC_COMBO,CBET_KEY|CBET_MOUSE);
-			SendDlgMessage(hDlg,DM_SETMOUSEEVENTNOTIFY,TRUE,0);
-			break;
-		case DM_SWITCHRO:
-		{
-			FarListGetItem LGI={CM_ASKRO};
-			SendDlgMessage(hDlg,DM_LISTGETITEM,ID_SC_COMBO,(LONG_PTR)&LGI);
-
-			if (LGI.Item.Flags&LIF_CHECKED)
-				LGI.Item.Flags&=~LIF_CHECKED;
-			else
-				LGI.Item.Flags|=LIF_CHECKED;
-
-			SendDlgMessage(hDlg,DM_LISTUPDATE,ID_SC_COMBO,(LONG_PTR)&LGI);
-			SendDlgMessage(hDlg,DM_REDRAW,0,0);
-			return TRUE;
-		}
-		case DN_BTNCLICK:
-		{
-			if (Param1==ID_SC_USEFILTER) // "Use filter"
-			{
-				UseFilter=(int)Param2;
-				return TRUE;
-			}
-
-			if (Param1 == ID_SC_BTNTREE) // Tree
-			{
-				SendDlgMessage(hDlg,DM_CALLTREE,0,0);
-				return FALSE;
-			}
-			else if (Param1 == ID_SC_BTNCOPY)
-			{
-				SendDlgMessage(hDlg,DM_CLOSE,ID_SC_BTNCOPY,0);
-			}
-			/*
-			else if(Param1 == ID_SC_ONLYNEWER && ((DlgParam->thisClass->Flags)&FCOPY_LINK))
-			{
-			  // подсократим код путем эмуляции телодвижений в строке ввода :-))
-			  		SendDlgMessage(hDlg,DN_EDITCHANGE,ID_SC_TARGETEDIT,0);
-			}
-			*/
-			else if (Param1==ID_SC_BTNFILTER) // Filter
-			{
-				Filter->FilterEdit();
-				return TRUE;
-			}
-
-			break;
-		}
-		case DM_KEY: // по поводу дерева!
-		{
-			if (Param2 == KEY_ALTF10 || Param2 == KEY_F10 || Param2 == KEY_SHIFTF10)
-			{
-				DlgParam->AltF10=Param2 == KEY_ALTF10?1:(Param2 == KEY_SHIFTF10?2:0);
-				SendDlgMessage(hDlg,DM_CALLTREE,DlgParam->AltF10,0);
-				return TRUE;
-			}
-
-			if (Param1 == ID_SC_COMBO)
-			{
-				if (Param2==KEY_ENTER || Param2==KEY_NUMENTER || Param2==KEY_INS || Param2==KEY_NUMPAD0 || Param2==KEY_SPACE)
-				{
-					if (SendDlgMessage(hDlg,DM_LISTGETCURPOS,ID_SC_COMBO,0)==CM_ASKRO)
-						return SendDlgMessage(hDlg,DM_SWITCHRO,0,0);
-				}
-			}
-		}
-		break;
-
-		case DN_LISTHOTKEY:
-			if(Param1==ID_SC_COMBO)
-			{
-				if (SendDlgMessage(hDlg,DM_LISTGETCURPOS,ID_SC_COMBO,0)==CM_ASKRO)
-				{
-					SendDlgMessage(hDlg,DM_SWITCHRO,0,0);
-					return TRUE;
-				}
-			}
-			break;
-		case DN_MOUSEEVENT:
-
-			if (SendDlgMessage(hDlg,DM_GETDROPDOWNOPENED,ID_SC_COMBO,0))
-			{
-				MOUSE_EVENT_RECORD *mer=(MOUSE_EVENT_RECORD *)Param2;
-
-				if (SendDlgMessage(hDlg,DM_LISTGETCURPOS,ID_SC_COMBO,0)==CM_ASKRO && mer->dwButtonState && !(mer->dwEventFlags&MOUSE_MOVED))
-				{
-					SendDlgMessage(hDlg,DM_SWITCHRO,0,0);
-					return FALSE;
-				}
-			}
-
-			break;
-#if 0
-		case DN_EDITCHANGE:
-
-			if (Param1 == ID_SC_TARGETEDIT)
-			{
-				FarDialogItem *DItemACCopy,*DItemACInherit,*DItemACLeave,/**DItemOnlyNewer,*/*DItemBtnCopy;
-				string strTmpSrcDir;
-				DlgParam->thisClass->SrcPanel->GetCurDir(strTmpSrcDir);
-				DItemACCopy = (FarDialogItem *)xf_malloc(SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ACCOPY,0));
-				SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ACCOPY,(LONG_PTR)DItemACCopy);
-				DItemACInherit = (FarDialogItem *)xf_malloc(SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ACINHERIT,0));
-				SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ACINHERIT,(LONG_PTR)DItemACInherit);
-				DItemACLeave = (FarDialogItem *)xf_malloc(SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ACLEAVE,0));
-				SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ACLEAVE,(LONG_PTR)DItemACLeave);
-				//DItemOnlyNewer = (FarDialogItem *)xf_malloc(SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ONLYNEWER,0));
-				//SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_ONLYNEWER,(LONG_PTR)DItemOnlyNewer);
-				DItemBtnCopy = (FarDialogItem *)xf_malloc(SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_BTNCOPY,0));
-				SendDlgMessage(hDlg,DM_GETDLGITEM,ID_SC_BTNCOPY,(LONG_PTR)DItemBtnCopy);
-
-				// не создание линка, обычные Copy/Move
-				if (!(DlgParam->thisClass->Flags&FCOPY_LINK))
-				{
-					string strBuf = ((FarDialogItem *)Param2)->PtrData;
-					strBuf.Upper();
-
-					if (!DlgParam->strPluginFormat.IsEmpty() && wcsstr(strBuf, DlgParam->strPluginFormat))
-					{
-						DItemACCopy->Flags|=DIF_DISABLE;
-						DItemACInherit->Flags|=DIF_DISABLE;
-						DItemACLeave->Flags|=DIF_DISABLE;
-						//DItemOnlyNewer->Flags|=DIF_DISABLE;
-						//DlgParam->OnlyNewerFiles=DItemOnlyNewer->Param.Selected;
-						DlgParam->CopySecurity=0;
-
-						if (DItemACCopy->Param.Selected)
-							DlgParam->CopySecurity=1;
-						else if (DItemACLeave->Param.Selected)
-							DlgParam->CopySecurity=2;
-
-						DItemACCopy->Param.Selected=0;
-						DItemACInherit->Param.Selected=0;
-						DItemACLeave->Param.Selected=1;
-						//DItemOnlyNewer->Param.Selected=0;
-					}
-					else
-					{
-						DItemACCopy->Flags&=~DIF_DISABLE;
-						DItemACInherit->Flags&=~DIF_DISABLE;
-						DItemACLeave->Flags&=~DIF_DISABLE;
-						//DItemOnlyNewer->Flags&=~DIF_DISABLE;
-						//DItemOnlyNewer->Param.Selected=DlgParam->OnlyNewerFiles;
-						DItemACCopy->Param.Selected=0;
-						DItemACInherit->Param.Selected=0;
-						DItemACLeave->Param.Selected=0;
-
-						if (DlgParam->CopySecurity == 1)
-						{
-							DItemACCopy->Param.Selected=1;
-						}
-						else if (DlgParam->CopySecurity == 2)
-						{
-							DItemACLeave->Param.Selected=1;
-						}
-						else
-							DItemACInherit->Param.Selected=1;
-					}
-				}
-
-				SendDlgMessage(hDlg,DM_SETDLGITEM,ID_SC_ACCOPY,(LONG_PTR)DItemACCopy);
-				SendDlgMessage(hDlg,DM_SETDLGITEM,ID_SC_ACINHERIT,(LONG_PTR)DItemACInherit);
-				SendDlgMessage(hDlg,DM_SETDLGITEM,ID_SC_ACLEAVE,(LONG_PTR)DItemACLeave);
-				//SendDlgMessage(hDlg,DM_SETDLGITEM,ID_SC_ONLYNEWER,(LONG_PTR)DItemOnlyNewer);
-				SendDlgMessage(hDlg,DM_SETDLGITEM,ID_SC_BTNCOPY,(LONG_PTR)DItemBtnCopy);
-				xf_free(DItemACCopy);
-				xf_free(DItemACInherit);
-				xf_free(DItemACLeave);
-				//xf_free(DItemOnlyNewer);
-				xf_free(DItemBtnCopy);
-			}
-
-			break;
-#endif
-		case DM_CALLTREE:
-		{
-			/* $ 13.10.2001 IS
-			   + При мультикопировании добавляем выбранный в "дереве" каталог к уже
-			     существующему списку через точку с запятой.
-			   - Баг: при мультикопировании выбранный в "дереве" каталог не
-			     заключался в кавычки, если он содержал в своем
-			     имени символы-разделители.
-			   - Баг: неправильно работало Shift-F10, если строка ввода содержала
-			     слеш на конце.
-			   - Баг: неправильно работало Shift-F10 при мультикопировании -
-			     показывался корневой каталог, теперь показывается самый первый каталог
-			     в списке.
-			*/
-			BOOL MultiCopy=SendDlgMessage(hDlg,DM_GETCHECK,ID_SC_MULTITARGET,0)==BSTATE_CHECKED;
-			string strOldFolder;
-			int nLength;
-			FarDialogItemData Data;
-			nLength = (int)SendDlgMessage(hDlg, DM_GETTEXTLENGTH, ID_SC_TARGETEDIT, 0);
-			Data.PtrData = strOldFolder.GetBuffer(nLength+1);
-			Data.PtrLength = nLength;
-			SendDlgMessage(hDlg,DM_GETTEXT,ID_SC_TARGETEDIT,(LONG_PTR)&Data);
-			strOldFolder.ReleaseBuffer();
-			string strNewFolder;
-
-			if (DlgParam->AltF10 == 2)
-			{
-				strNewFolder = strOldFolder;
-
-				if (MultiCopy)
-				{
-					UserDefinedList DestList(0,0,ULF_UNIQUE);
-
-					if (DestList.Set(strOldFolder))
-					{
-						DestList.Reset();
-						const wchar_t *NamePtr=DestList.GetNext();
-
-						if (NamePtr)
-							strNewFolder = NamePtr;
-					}
-				}
-
-				if (strNewFolder.IsEmpty())
-					DlgParam->AltF10=-1;
-				else // убираем лишний слеш
-					DeleteEndSlash(strNewFolder);
-			}
-
-			if (DlgParam->AltF10 != -1)
-			{
-				{
-					string strNewFolder2;
-					FolderTree Tree(strNewFolder2,
-					                (DlgParam->AltF10==1?MODALTREE_PASSIVE:
-					                 (DlgParam->AltF10==2?MODALTREE_FREE:
-					                  MODALTREE_ACTIVE)),
-					                FALSE,FALSE);
-					strNewFolder = strNewFolder2;
-				}
-
-				if (!strNewFolder.IsEmpty())
-				{
-					AddEndSlash(strNewFolder);
-
-					if (MultiCopy) // мультикопирование
-					{
-						// Добавим кавычки, если имя каталога содержит символы-разделители
-						if (wcspbrk(strNewFolder,L";,"))
-							InsertQuote(strNewFolder);
-
-						if (strOldFolder.GetLength())
-							strOldFolder += L";"; // добавим разделитель к непустому списку
-
-						strOldFolder += strNewFolder;
-						strNewFolder = strOldFolder;
-					}
-
-					SendDlgMessage(hDlg,DM_SETTEXTPTR,ID_SC_TARGETEDIT,(LONG_PTR)strNewFolder.CPtr());
-					SendDlgMessage(hDlg,DM_SETFOCUS,ID_SC_TARGETEDIT,0);
-				}
-			}
-
-			DlgParam->AltF10=0;
-			return TRUE;
-		}
-		case DN_CLOSE:
-		{
-			if (Param1==ID_SC_BTNCOPY)
-			{
-				FarListGetItem LGI={CM_ASKRO};
-				SendDlgMessage(hDlg,DM_LISTGETITEM,ID_SC_COMBO,(LONG_PTR)&LGI);
-
-				if (LGI.Item.Flags&LIF_CHECKED)
-					DlgParam->AskRO=TRUE;
-			}
-		}
-		break;
-	}
-
-	return DefDlgProc(hDlg,Msg,Param1,Param2);
 }
 
 ShellCopy::~ShellCopy()
@@ -2002,9 +1998,8 @@ COPY_CODES ShellCopy::CopyFileTree(const wchar_t *Dest)
 
 				if (CopyCode==COPY_NEXT)
 				{
-					unsigned __int64 CurSize = SrcData.nFileSize;
-					TotalCopiedSize = TotalCopiedSize - CurCopiedSize + CurSize;
-					TotalSkippedSize = TotalSkippedSize + CurSize - CurCopiedSize;
+					TotalCopiedSize = TotalCopiedSize - CurCopiedSize + SrcData.nFileSize;
+					TotalSkippedSize = TotalSkippedSize + SrcData.nFileSize - CurCopiedSize;
 					continue;
 				}
 
@@ -2030,13 +2025,11 @@ COPY_CODES ShellCopy::CopyFileTree(const wchar_t *Dest)
 
 			if (CopyCode!=COPY_SUCCESS)
 			{
-				unsigned __int64 CurSize = SrcData.nFileSize;
-
 				if (CopyCode != COPY_NOFILTER) //????
-					TotalCopiedSize = TotalCopiedSize - CurCopiedSize + CurSize;
+					TotalCopiedSize = TotalCopiedSize - CurCopiedSize +  SrcData.nFileSize;
 
 				if (CopyCode == COPY_NEXT)
-					TotalSkippedSize = TotalSkippedSize + CurSize - CurCopiedSize;
+					TotalSkippedSize = TotalSkippedSize +  SrcData.nFileSize - CurCopiedSize;
 
 				continue;
 			}
@@ -2116,7 +2109,7 @@ COPY_CODES ShellCopy::CopyFileTree(const wchar_t *Dest)
 				{
 					int AttemptToMove=FALSE;
 
-					if ((Flags&FCOPY_MOVE) && (!UseFilter && SameDisk) && !(SrcData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+					if ((Flags&FCOPY_MOVE) && SameDisk && !(SrcData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 					{
 						AttemptToMove=TRUE;
 						int Ret=COPY_SUCCESS;
@@ -2134,9 +2127,8 @@ COPY_CODES ShellCopy::CopyFileTree(const wchar_t *Dest)
 								return COPY_CANCEL;
 							case COPY_NEXT:
 							{
-								unsigned __int64 CurSize = SrcData.nFileSize;
-								TotalCopiedSize = TotalCopiedSize - CurCopiedSize + CurSize;
-								TotalSkippedSize = TotalSkippedSize + CurSize - CurCopiedSize;
+								TotalCopiedSize = TotalCopiedSize - CurCopiedSize + SrcData.nFileSize;
+								TotalSkippedSize = TotalSkippedSize + SrcData.nFileSize - CurCopiedSize;
 								continue;
 							}
 							case COPY_SUCCESS_MOVE:
@@ -2147,9 +2139,8 @@ COPY_CODES ShellCopy::CopyFileTree(const wchar_t *Dest)
 
 								if (!NeedRename) // вариант при перемещении содержимого симлика с опцией "копировать содержимое сим..."
 								{
-									unsigned __int64 CurSize = SrcData.nFileSize;
-									TotalCopiedSize = TotalCopiedSize - CurCopiedSize + CurSize;
-									TotalSkippedSize = TotalSkippedSize + CurSize - CurCopiedSize;
+									TotalCopiedSize = TotalCopiedSize - CurCopiedSize + SrcData.nFileSize;
+									TotalSkippedSize = TotalSkippedSize + SrcData.nFileSize - CurCopiedSize;
 									continue;     // ...  т.к. мы ЭТО не мувили, а скопировали, то все, на этом закончим бадаться с этим файлов
 								}
 						}
@@ -2177,9 +2168,8 @@ COPY_CODES ShellCopy::CopyFileTree(const wchar_t *Dest)
 
 				if (SubCopyCode==COPY_NEXT)
 				{
-					unsigned __int64 CurSize = SrcData.nFileSize;
-					TotalCopiedSize = TotalCopiedSize - CurCopiedSize + CurSize;
-					TotalSkippedSize = TotalSkippedSize + CurSize - CurCopiedSize;
+					TotalCopiedSize = TotalCopiedSize - CurCopiedSize + SrcData.nFileSize;
+					TotalSkippedSize = TotalSkippedSize + SrcData.nFileSize - CurCopiedSize;
 				}
 
 				if (SubCopyCode==COPY_SUCCESS)
@@ -2362,6 +2352,8 @@ COPY_CODES ShellCopy::ShellCopyOneFile(
 				return COPY_NEXT;
 			case COPY_CANCEL:
 				return COPY_CANCEL;
+			default:
+				break;
 		}
 
 		if (SrcData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY ||
@@ -3181,7 +3173,7 @@ int ShellCopy::ShellCopyFile(const wchar_t *SrcName,const FAR_FIND_DATA_EX &SrcD
 	int   AbortOp = FALSE;
 	BOOL SparseQueryResult=TRUE;
 	FILE_ALLOCATED_RANGE_BUFFER queryrange;
-	FILE_ALLOCATED_RANGE_BUFFER ranges[1024];
+	static FILE_ALLOCATED_RANGE_BUFFER ranges[1024];
 	queryrange.FileOffset.QuadPart = 0;
 	queryrange.Length.QuadPart = SrcData.nFileSize;
 	CP->SetProgressValue(0,0);
@@ -3247,18 +3239,21 @@ int ShellCopy::ShellCopyFile(const wchar_t *SrcName,const FAR_FIND_DATA_EX &SrcD
 				{
 					SrcFile.Close();
 
-					if (Append)
+					if (!(Flags&FCOPY_COPYTONUL))
 					{
-						DestFile.SetPointer(AppendPos,nullptr,FILE_BEGIN);
-					}
+						if (Append)
+						{
+							DestFile.SetPointer(AppendPos,nullptr,FILE_BEGIN);
+						}
 
-					DestFile.SetEnd();
-					DestFile.Close();
+						DestFile.SetEnd();
+						DestFile.Close();
 
-					if (!Append && !(Flags&FCOPY_COPYTONUL))
-					{
-						apiSetFileAttributes(strDestName,FILE_ATTRIBUTE_NORMAL);
-						apiDeleteFile(strDestName); //BUGBUG
+						if (!Append)
+						{
+							apiSetFileAttributes(strDestName,FILE_ATTRIBUTE_NORMAL);
+							apiDeleteFile(strDestName); //BUGBUG
+						}
 					}
 
 					return COPY_CANCEL;
@@ -3566,7 +3561,10 @@ enum WarnDlgItems
 	WDLG_CANCEL,
 };
 
-#define DM_OPENVIEWER DM_USER+33
+enum
+{
+ DM_OPENVIEWER = DM_USER+33,
+};
 
 LONG_PTR WINAPI WarnDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 {
@@ -3659,6 +3657,9 @@ LONG_PTR WINAPI WarnDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2)
 			}
 		}
 		break;
+
+		default:
+			break;
 	}
 
 	return DefDlgProc(hDlg,Msg,Param1,Param2);

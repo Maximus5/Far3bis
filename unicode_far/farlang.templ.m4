@@ -4450,6 +4450,33 @@ MFSShortcut
 "Wprowadź nowy skrót:"
 "Ingrése nuevo acceso:"
 
+MFSShortcutModule
+"Плагин:"
+"Plugin:"
+upd:"Plugin:"
+upd:"Plugin:"
+upd:"Plugin:"
+upd:"Plugin:"
+upd:"Plugin:"
+
+MFSShortcutFile
+"Файл:"
+"File:"
+upd:"File:"
+upd:"File:"
+upd:"File:"
+upd:"File:"
+upd:"File:"
+
+MFSShortcutData
+"Данные:"
+"Data:"
+upd:"Data:"
+upd:"Data:"
+upd:"Data:"
+upd:"Data:"
+upd:"Data:"
+
 MNeedNearPath
 "Перейти в ближайшую доступную папку?"
 "Jump to the nearest existing folder?"

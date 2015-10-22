@@ -3,6 +3,22 @@ http://code.google.com/p/conemu-maximus5/downloads/list
 «а основу вз€та официальна€ сборка Far2 (build 1807)
 ѕолный список изменений: http://conemu-maximus5.googlecode.com/svn/trunk/Far2bis/bis_changelog
 
+=== Far 2.1 build 1807 bis18 ===
+
+ѕоследние изменени€ копира из Far3.
+
+FolderShortcuts приведены к 'классическому' поведению:
+  импортируютс€ из прежнего формата;
+  сохран€ютс€ в реестр сразу;
+  перечитываютс€ при вызове.
+
+From DAtaMan:
+- починен поиск (последстви€ #1801)
++ в Menu.Show добавлены дополнительные клавиши:
+  Ctrl-Multiply - инверси€ пометки
+  Ctrl-A - подогнать меню по высоте
++ в помощи (ru) уточнение по фильтру меню
+
 === Far 2.1 build 1807 bis17 ===
 
 Mantis#1830: ѕри попытке скопировать файл с сети в nul получаем elevation

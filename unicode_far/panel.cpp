@@ -2518,13 +2518,14 @@ bool Panel::SaveShortcutFolder(int Pos, bool Add)
 		strShortcutFolder = strCurDir;
 	}
 
+	Shortcuts FolderShortcuts;
 	if(Add)
 	{
-		CtrlObject->FolderShortcuts->Add(Pos,strShortcutFolder, strPluginModule, strPluginFile, strPluginData);
+		FolderShortcuts.Add(Pos,strShortcutFolder, strPluginModule, strPluginFile, strPluginData);
 	}
 	else
 	{
-		CtrlObject->FolderShortcuts->Set(Pos,strShortcutFolder, strPluginModule, strPluginFile, strPluginData);
+		FolderShortcuts.Set(Pos,strShortcutFolder, strPluginModule, strPluginFile, strPluginData);
 	}
 
 
@@ -2569,11 +2570,12 @@ int Panel::ProcessShortcutFolder(int Key,BOOL ProcTreePanel)
 }
 */
 
-bool Panel::ExecShortcutFolder(int Pos)
+bool Panel::ExecShortcutFolder(int Pos, bool AllowUp)
 {
+	Shortcuts FolderShortcuts;
 	string strShortcutFolder,strPluginModule,strPluginFile,strPluginData;
 
-	if (CtrlObject->FolderShortcuts->Get(Pos,&strShortcutFolder, &strPluginModule, &strPluginFile, &strPluginData))
+	if (FolderShortcuts.Get(Pos,&strShortcutFolder, &strPluginModule, &strPluginFile, &strPluginData))
 	{
 		Panel *SrcPanel=this;
 		Panel *AnotherPanel=CtrlObject->Cp()->GetAnotherPanel(this);

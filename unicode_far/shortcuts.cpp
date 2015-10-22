@@ -69,16 +69,46 @@ static const wchar_t *RecTypeName[]=
 	L"PluginData",
 };
 
+static const wchar_t* FolderShortcutsKeyTest = L"Shortcuts";
 static const wchar_t* FolderShortcutsKey = L"Shortcuts\\";
+static const wchar_t* OldFolderShortcutsKey = L"FolderShortcuts";
 static const wchar_t* HelpFolderShortcuts = L"FolderShortcuts";
 
 
 Shortcuts::Shortcuts()
 {
+	HKEY hNewKey = OpenRegKey(FolderShortcutsKeyTest);
+	if (hNewKey == NULL)
+	{
+		for(size_t i = 0; i < KeyCount; i++)
+		{
+			FormatString ValueName;
+			ValueName << RecTypeName[PSCR_RT_SHORTCUT] << i;
+			string strValue;
+			if(!GetRegKey(OldFolderShortcutsKey, ValueName, strValue, L""))
+				continue;
+			ValueName.Clear();
+			ShortcutItem* Item = Items[i].Push();
+			Item->strFolder = strValue;
+			ValueName << RecTypeName[PSCR_RT_PLUGINMODULE] << i;
+			GetRegKey(OldFolderShortcutsKey, ValueName, Item->strPluginModule, L"");
+			ValueName.Clear();
+			ValueName << RecTypeName[PSCR_RT_PLUGINFILE] << i;
+			GetRegKey(OldFolderShortcutsKey, ValueName, Item->strPluginFile, L"");
+			ValueName.Clear();
+			ValueName << RecTypeName[PSCR_RT_PLUGINDATA] << i;
+			GetRegKey(OldFolderShortcutsKey, ValueName, Item->strPluginData, L"");
+			ValueName.Clear();
+		}
+		return;
+	}
+	
 	for(size_t i = 0; i < KeyCount; i++)
 	{
 		FormatString strFolderShortcuts;
 		strFolderShortcuts << FolderShortcutsKey << i;
+		if (!CheckRegKey(strFolderShortcuts))
+			continue;
 
 		for(size_t j=0; ; j++)
 		{
@@ -316,10 +346,23 @@ void Shortcuts::MakeItemName(size_t Pos, MenuItemEx* MenuItem)
 void Shortcuts::EditItem(VMenu* Menu, ShortcutItem* Item, bool Root)
 {
 	string strNewDir = Item->strFolder;
+	string strNewPluginModule = Item->strPluginModule;
+	string strNewPluginFile = Item->strPluginFile;
+	string strNewPluginData = Item->strPluginData;
 
 	DialogBuilder Builder(MFolderShortcutsTitle, HelpFolderShortcuts);
 	Builder.AddText(MFSShortcut);
 	Builder.AddEditField(&strNewDir, 50, L"FS_Path", DIF_EDITPATH);
+	if (!strNewPluginModule.IsEmpty())
+	{
+		Builder.AddSeparator();
+		Builder.AddText(MFSShortcutModule);
+		Builder.AddEditField(&strNewPluginModule, 50, nullptr, DIF_READONLY);
+		Builder.AddText(MFSShortcutFile);
+		Builder.AddEditField(&strNewPluginFile, 50, nullptr, DIF_READONLY);
+		Builder.AddText(MFSShortcutData);
+		Builder.AddEditField(&strNewPluginData, 50, nullptr, DIF_READONLY);
+	}
 	Builder.AddOKCancel();
 
 	if (Builder.ShowDialog())
@@ -419,7 +462,7 @@ void Shortcuts::Configure()
 						MakeItemName(Pos, MenuItem);
 					}
 				}
-				INT64 Flags = MenuItem->Flags;
+				DWORD Flags = MenuItem->Flags;
 				MenuItem->Flags = 0;
 				FolderList.UpdateItemFlags(FolderList.GetSelectPos(), Flags);
 				FolderList.SetPosition(-1, -1, -1, -1);

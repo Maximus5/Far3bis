@@ -283,7 +283,7 @@ class Panel:public ScreenObject
 		virtual long GetFileCount() {return 0;}
 		virtual BOOL GetItem(int,void *) {return FALSE;};
 
-		bool ExecShortcutFolder(int Pos);
+		bool ExecShortcutFolder(int Pos, bool AllowUp=false);
 		bool SaveShortcutFolder(int Pos, bool Add);
 
 		static void EndDrag();

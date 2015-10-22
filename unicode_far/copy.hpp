@@ -6,8 +6,8 @@ copy.hpp
 class ShellCopy - Копирование файлов
 */
 /*
-Copyright (c) 1996 Eugene Roshal
-Copyright (c) 2000 Far Group
+Copyright © 1996 Eugene Roshal
+Copyright © 2000 Far Group
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -131,4 +131,3 @@ class ShellCopy
 		~ShellCopy();
 };
 
-LONG_PTR WINAPI CopyDlgProc(HANDLE hDlg,int Msg,int Param1,LONG_PTR Param2);

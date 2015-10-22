@@ -71,7 +71,7 @@ class ControlObject
 		FilePositionCache *ViewerPosCache,*EditorPosCache;
 		KeyMacro Macro;
 		PluginManager Plugins;
-		Shortcuts* FolderShortcuts;
+		//Shortcuts* FolderShortcuts;
 
 		static void ShowCopyright(DWORD Flags=0);
 };

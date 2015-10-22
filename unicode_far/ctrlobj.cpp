@@ -61,7 +61,7 @@ ControlObject::ControlObject():
 	_OT(SysLog(L"[%p] ControlObject::ControlObject()", this));
 	CtrlObject=this;
 	HiFiles = new HighlightFiles;
-	FolderShortcuts = new Shortcuts();
+	//FolderShortcuts = new Shortcuts();
 	ViewerPosCache = new FilePositionCache();
 	EditorPosCache = new FilePositionCache();
 	FrameManager = new Manager;
@@ -172,7 +172,7 @@ ControlObject::~ControlObject()
 	delete ViewHistory;
 	delete CmdLine;
 	delete HiFiles;
-	delete FolderShortcuts;
+	//delete FolderShortcuts;
 
 	if (Opt.ViOpt.SavePos)
 		ViewerPosCache->Save(L"Viewer\\LastPositions");

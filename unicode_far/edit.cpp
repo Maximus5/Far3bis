@@ -533,9 +533,10 @@ int Edit::ProcessInsPath(int Key,int PrevSelStart,int PrevSelEnd)
 
 	if (Key>=KEY_RCTRL0 && Key<=KEY_RCTRL9) // шорткаты?
 	{
+		Shortcuts FolderShortcuts;
 		string strPluginModule, strPluginFile, strPluginData;
 
-		if (CtrlObject->FolderShortcuts->Get(Key-KEY_RCTRL0,&strPathName,&strPluginModule,&strPluginFile,&strPluginData))
+		if (FolderShortcuts.Get(Key-KEY_RCTRL0,&strPathName,&strPluginModule,&strPluginFile,&strPluginData))
 			RetCode=TRUE;
 	}
 	else // Пути/имена?
