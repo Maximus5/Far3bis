@@ -83,7 +83,7 @@ class NetBrowser
     void GetHideShare95();
     void GetFreeLetter(DWORD &DriveMask, TCHAR *DiskName);
     BOOL IsReadable(const TCHAR *Remote);
-    int GotoComputer (const TCHAR *Dir);
+    int GotoComputer (const TCHAR *Dir, BOOL InGetFindData = FALSE);
     void SetCursorToShare (TCHAR *Share);
     BOOL MapNetworkDrive (const TCHAR *RemoteName, BOOL AskDrive, BOOL Permanent);
     BOOL AskMapDrive (TCHAR *NewLocalName, BOOL &Permanent);

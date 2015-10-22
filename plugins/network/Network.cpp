@@ -111,6 +111,9 @@ HANDLE WINAPI EXP_NAME(OpenPlugin)(int OpenFrom,INT_PTR Item)
       SetCurrentDirectory(szCurrDir);
     }
   }
+
+  //Maximus: необходимо передернуть объект, иначе он будет отдавать неверные данные в GetOpenPluginInfo
+  Browser->GetFindData(NULL,NULL,0);
   return(hPlugin);
 }
 

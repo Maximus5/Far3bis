@@ -237,10 +237,17 @@ BOOL NetBrowser::EnumerateNetList()
       Info.Message(Info.ModuleNumber,FMSG_WARNING|FMSG_ERRORTYPE,NULL,MsgItems,ARRAYSIZE(MsgItems),1);
       return(FALSE);
     }
-    else {
+    else
+    {
       // try again with connection
-      AddConnection (PCurResource);
-      if (!NetList.Enumerate (RESOURCE_GLOBALNET,RESOURCETYPE_ANY,0,PCurResource))
+      if (!AddConnection (PCurResource))
+      {
+        int err = GetLastError();
+        if (err && err != ERROR_CANCELLED)
+          Info.Message (Info.ModuleNumber, FMSG_WARNING|FMSG_ERRORTYPE|FMSG_MB_OK|FMSG_ALLINONE,
+            NULL, (const TCHAR **) GetMsg (MError), 0, 0);
+	  }
+      else if (!NetList.Enumerate (RESOURCE_GLOBALNET,RESOURCETYPE_ANY,0,PCurResource))
         NetList.Clear();
     }
   }
@@ -306,6 +313,8 @@ BOOL NetBrowser::GotoFavorite(TCHAR *lpPath)
     NetResourceList::CopyNetResource(CurResource, nr);
     NetResourceList::DeleteNetResource(nr);
     PCurResource = &CurResource;
+	//Maximus: а вот тут бы и проверить доступность ресурса, 
+	//         вместо вложенного вызова через Far GetFindDataW->NetBrowser::GetFindData
 #ifndef UNICODE
     Info.Control (this, FCTL_UPDATEPANEL, NULL);
     Info.Control (this, FCTL_REDRAWPANEL, NULL);
@@ -339,13 +348,23 @@ int NetBrowser::GetFindData(PluginPanelItem **pPanelItem,int *pItemsNumber,int O
       lstrcpy (TmpCmdLinePath, CmdLinePath);
       CmdLinePath [0] = 0;
     ReenterGetFindData--;
-      if(!GotoFavorite(TmpCmdLinePath))
-        GotoComputer (TmpCmdLinePath);
+      if (!GotoFavorite(TmpCmdLinePath))
+	  {
+        if (!GotoComputer(TmpCmdLinePath, TRUE))
+        {
+          int err = GetLastError();
+          if (err && err != ERROR_CANCELLED)
+            Info.Message (Info.ModuleNumber, FMSG_WARNING|FMSG_ERRORTYPE|FMSG_MB_OK|FMSG_ALLINONE,
+              NULL, (const TCHAR **) GetMsg (MError), 0, 0);
+		}
+	  }
     ReenterGetFindData++;
     }
 
-    *pPanelItem=NULL;
-    *pItemsNumber=0;
+	if (pPanelItem)
+      *pPanelItem=NULL;
+	if (pItemsNumber)
+      *pItemsNumber=0;
     TSaveScreen SS;
 
     // get the list of connections, so that we can show mapped drive letters
@@ -365,12 +384,16 @@ int NetBrowser::GetFindData(PluginPanelItem **pPanelItem,int *pItemsNumber,int O
   }
   ChangeDirSuccess = TRUE;
 
-  PluginPanelItem *NewPanelItem=(PluginPanelItem *)malloc(sizeof(PluginPanelItem)*NetList.Count());
-  *pPanelItem=NewPanelItem;
-  if (NewPanelItem==NULL)
+  PluginPanelItem *NewPanelItem=NULL;
+  if (pPanelItem)
   {
-    ReenterGetFindData--;
-    return(FALSE);
+    NewPanelItem=(PluginPanelItem *)malloc(sizeof(PluginPanelItem)*NetList.Count());
+    *pPanelItem=NewPanelItem;
+    if (NewPanelItem==NULL)
+    {
+      ReenterGetFindData--;
+      return(FALSE);
+    }
   }
 
   int CurItemPos=0;
@@ -386,9 +409,12 @@ int NetBrowser::GetFindData(PluginPanelItem **pPanelItem,int *pItemsNumber,int O
       *Comment=0;
     else
       CharToOEM(NetList[I].lpComment,Comment);
-    memset(&NewPanelItem[CurItemPos],0,sizeof(PluginPanelItem));
 
     GetLocalName(NetList[I].lpRemoteName,LocalName);
+
+	if (!NewPanelItem)
+      continue;
+	memset(&NewPanelItem[CurItemPos],0,sizeof(PluginPanelItem));
 
     LPTSTR* CustomColumnData=(LPTSTR*)malloc(sizeof(LPTSTR)*2);
     CustomColumnData[0] = _tcsdup(LocalName);
@@ -410,7 +436,8 @@ int NetBrowser::GetFindData(PluginPanelItem **pPanelItem,int *pItemsNumber,int O
     NewPanelItem[CurItemPos].FindData.dwFileAttributes=attr;
     CurItemPos++;
   }
-  *pItemsNumber=CurItemPos;
+  if (pItemsNumber)
+    *pItemsNumber=CurItemPos;
 
   ReenterGetFindData--;
   return(TRUE);
@@ -1968,7 +1995,7 @@ BOOL NetBrowser::SetOpenFromFilePanel (TCHAR *ShareName)
   return TRUE;
 }
 
-int NetBrowser::GotoComputer (const TCHAR *Dir)
+int NetBrowser::GotoComputer (const TCHAR *Dir, BOOL InGetFindData /*= FALSE*/)
 {
 #ifdef NETWORK_LOGGING
   LogData(_T("Entering GotoComputer"));
@@ -2006,23 +2033,31 @@ int NetBrowser::GotoComputer (const TCHAR *Dir)
   if (!IsResourceReadable(res))
   {
     int err = GetLastError();
-    if (err == ERROR_INVALID_PASSWORD || err == ERROR_LOGON_FAILURE || err == ERROR_ACCESS_DENIED || err == ERROR_INVALID_HANDLE || err == ERROR_LOGON_TYPE_NOT_GRANTED)
-      if(!((AddConnectionFromFavorites(&res)||AddConnectionExplicit(&res))&&IsResourceReadable (res)))
+    if (err == ERROR_INVALID_PASSWORD || err == ERROR_LOGON_FAILURE || err == ERROR_ACCESS_DENIED || err == ERROR_INVALID_HANDLE || err == ERROR_LOGON_TYPE_NOT_GRANTED || err == ERROR_WRONG_TARGET_NAME)
+      while(!((AddConnectionFromFavorites(&res)||AddConnectionExplicit(&res))&&IsResourceReadable (res)))
       {
         if(GetLastError() != ERROR_CANCELLED)
-          Info.Message (Info.ModuleNumber, FMSG_WARNING|FMSG_ERRORTYPE|FMSG_MB_OK|FMSG_ALLINONE,
-          NULL, (const TCHAR **) GetMsg (MError), 0, 0);
+		{
+          if (Info.Message (Info.ModuleNumber, FMSG_WARNING|FMSG_ERRORTYPE|FMSG_MB_RETRYCANCEL|FMSG_ALLINONE,
+              NULL, (const TCHAR **) GetMsg (MError), 0, 0) == 0)
+            continue;
+		}
         return FALSE;
       }
   }
 
   CurResource = res;
   PCurResource = &CurResource;
+  //Maximus: нафига здесь звать API фара, для вложенного вызова GetFindData??
+  if (!InGetFindData)
+  {
+	  //Maximus: и даже если мы не в GetFindData, а в SetDirectory - смысл все равно отсутствует. Фар сам перечитает
 #ifndef UNICODE
   /*int result = */Info.Control (this, FCTL_UPDATEPANEL, NULL);
 #else
   /*int result = */Info.Control (this, FCTL_UPDATEPANEL,0,0);
 #endif
+  }
 
   if (IsShare)
   {
@@ -2037,11 +2072,17 @@ int NetBrowser::GotoComputer (const TCHAR *Dir)
       SetCursorToShare (ShareName);
   }
   else
+  {
+	  //Maximus: нафига здесь звать API фара, мы и так уже в GetFindData!
+    if (!InGetFindData)
+    {
 #ifndef UNICODE
     Info.Control (this, FCTL_REDRAWPANEL, NULL);
 #else
     Info.Control (this, FCTL_REDRAWPANEL,0,0);
 #endif
+	}
+  }
   return TRUE;
 }
 
