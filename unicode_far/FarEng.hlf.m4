@@ -3387,13 +3387,17 @@ on. The last item, "Alternative full", corresponds to view mode called with
   - #Column types# - column types are encoded as one or several
 characters, delimited with commas. Allowed column types are:
 
-    N[M,O,R]   - file name
+    N[M,O,R[F],N] - file name
                  where: M - show selection marks;
                         O - show names without paths
                             (intended mainly for plugins);
-                        R - right aligned names;
+                        R - right align names that do not fit in column
+                            where: F - right align all names;
+                        N - do not show extensions in name column;
                  These modifiers may be used in combination,
                  for example NMR
+
+    X          - file extension
 
     S[C,T,F,E] - file size
     P[C,T,F,E] - packed file size
@@ -3427,6 +3431,15 @@ characters, delimited with commas. Allowed column types are:
     LN         - number of hard links
 
     F          - number of streams
+
+    B[C,R]     - ^<wrap>(only for status line) fictive column,
+means column break, so, you can set up multiline status area;
+you must specify column width (even if 0) must be specified.
+                 You may supply one of align modificators,
+                 where: C - ^<wrap>center align, leading and trailing spaces will be omitted;
+                        R - right align;
+                 ^<wrap>You may supply B column as first column
+for aligning first status line.
 
     If the column types description contains more than one file name column,
 the file panel will be displayed in multicolumn form.

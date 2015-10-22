@@ -2496,7 +2496,7 @@ static int __cdecl CompareItems(const MenuItemEx **el1, const MenuItemEx **el2, 
 //0x100 - FindOrFilter - найти или отфильтровать
 //0x200 - автоматическая нумерация строк
 //0x400 - однократное выполнение цикла меню
-//0x800 -
+//0x800 - использовать фильтр по маске
 static bool menushowFunc(const TMacroFunction*)
 {
 	TVar VY; VMStack.Pop(VY);
@@ -2527,6 +2527,7 @@ static bool menushowFunc(const TMacroFunction*)
 	bool bSetMenuFilter = (Flags & 0x100)?true:false;
 	bool bAutoNumbering = (Flags & 0x200)?true:false;
 	bool bExitAfterNavigate = (Flags & 0x400)?true:false;
+	bool bFilterMaskMode = (Flags & 0x800)?true:false;
 	int nLeftShift=bAutoNumbering?9:0;
 	int X = -1;
 	int Y = -1;
@@ -2621,6 +2622,8 @@ static bool menushowFunc(const TMacroFunction*)
 		CRFound=strItems.Pos(PosLF, L"\n",CurrentPos);
 	}
 
+	strItems.Clear();
+
 	if (bSorting)
 		Menu.SortItems(reinterpret_cast<TMENUITEMEXCMPFUNC>(CompareItems));
 
@@ -2645,6 +2648,7 @@ static bool menushowFunc(const TMacroFunction*)
 		if (bSetMenuFilter)
 		{
 			Menu.SetFilterEnabled(true);
+			Menu.SetFilterMaskMode(bFilterMaskMode);
 			Menu.SetFilterString(VFindOrFilter.toString());
 			Menu.FilterStringUpdated();
 			Menu.Show();
@@ -2719,15 +2723,67 @@ static bool menushowFunc(const TMacroFunction*)
 				Menu.Show();
 				break;
 			}
-			default:
-				Menu.ProcessInput();
+
+			case KEY_CTRLC:     case KEY_CTRLINS:    case KEY_CTRLNUMPAD0:
+			{
+				if (bMultiSelect)
+				{
+					strItems.Clear();
+					for(int i=0; i<Menu.GetShowItemCount(); i++)
+					{
+						RealPos=Menu.VisualPosToReal(i);
+						if (Menu.GetCheck(RealPos))
+						{
+							strItems+=(*Menu.GetItemPtr(RealPos)).strName.CPtr();
+							strItems+=L"\n";
+						}
+					}
+
+					if(strItems.IsEmpty())
+					{
+						if(Menu.GetShowItemCount()>0)
+							CopyToClipboard((*Menu.GetItemPtr(SelectedPos)).strName.CPtr());
+					}
+					else
+						CopyToClipboard(strItems.SubStr(0, strItems.GetLength()-1));
+				}
+				else
+				{
+					if(Menu.GetShowItemCount()>0)
+						CopyToClipboard((*Menu.GetItemPtr(SelectedPos)).strName.CPtr());
+				}
 				break;
+			}
+
+			case KEY_CTRLSHIFTV:     case KEY_CTRLSHIFTINS:    case KEY_CTRLSHIFTNUMPAD0:
+			{
+				if (bMultiSelect)
+				{
+					strItems=PasteFromClipboard();
+					ReplaceStrings(strItems,L"\r\n",L"\n");
+					strItems=L"\n"+strItems+L"\n";
+					for(int i=0; i<Menu.GetShowItemCount(); i++)
+					{
+						RealPos=Menu.VisualPosToReal(i);
+						strTitle=((*Menu.GetItemPtr(RealPos)).strName.CPtr());
+						if(strItems.Pos(CurrentPos, strTitle.CPtr()) && strItems.Equal(CurrentPos-1, L"\n") && strItems.Equal(CurrentPos+strTitle.GetLength(), L"\n"))
+						{
+							Menu.SetCheck(true,RealPos);
+						}
+					}
+					Menu.Show();
+				}
+				break;
+			}
 
 			case KEY_BREAK:
 				CtrlObject->Macro.SendDropProcess();
 				Menu.SetExitCode(-1);
 				break;
 
+			default:
+				Menu.ProcessInput();
+				break;
 		}
 
 		if (bExitAfterNavigate && (PrevSelectedPos!=SelectedPos))
@@ -3610,7 +3666,7 @@ static bool panelsetposidxFunc(const TMacroFunction*)
 	if (SelPanel)
 	{
 		int TypePanel=SelPanel->GetType(); //FILE_PANEL,TREE_PANEL,QVIEW_PANEL,INFO_PANEL
-		int PanelMode=SelPanel->GetMode(); //NORMAL_PANEL,PLUGIN_PANEL
+		//int PanelMode=SelPanel->GetMode(); //NORMAL_PANEL,PLUGIN_PANEL
 
 		if (TypePanel == FILE_PANEL || TypePanel ==TREE_PANEL)
 		{

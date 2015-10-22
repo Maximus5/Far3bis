@@ -586,17 +586,21 @@ int FileList::ConvertName(const wchar_t *SrcName,string &strDest,int MaxLength,i
 	wmemset(lpwszDest,L' ',MaxLength);
 	int SrcLength=StrLength(SrcName);
 
-	if (RightAlign && SrcLength>MaxLength)
+	if ((RightAlign & COLUMN_RIGHTALIGNFORCE) || (RightAlign && (SrcLength>MaxLength)))
 	{
-		wmemcpy(lpwszDest,SrcName+SrcLength-MaxLength,MaxLength);
+		if (SrcLength>MaxLength)
+			wmemcpy(lpwszDest,SrcName+SrcLength-MaxLength,MaxLength);
+		else
+			wmemcpy(lpwszDest+MaxLength-SrcLength,SrcName,SrcLength);
 		strDest.ReleaseBuffer(MaxLength);
-		return TRUE;
+		return (SrcLength>MaxLength);
 	}
 
 	const wchar_t *DotPtr;
 
 	if (!ShowStatus &&
-	        ((!(FileAttr&FILE_ATTRIBUTE_DIRECTORY) && ViewSettings.AlignExtensions) || ((FileAttr&FILE_ATTRIBUTE_DIRECTORY) && ViewSettings.FolderAlignExtensions))
+	        ((!(FileAttr&FILE_ATTRIBUTE_DIRECTORY) && ViewSettings.AlignExtensions)
+	         || ((FileAttr&FILE_ATTRIBUTE_DIRECTORY) && ViewSettings.FolderAlignExtensions))
 	        && SrcLength<=MaxLength &&
 	        (DotPtr=wcsrchr(SrcName,L'.')) && DotPtr!=SrcName &&
 	        (SrcName[0]!=L'.' || SrcName[2]) && !wcschr(DotPtr+1,L' '))
@@ -651,10 +655,12 @@ void FileList::PrepareViewSettings(int ViewMode,OpenPluginInfo *PlugInfo)
 
 			if (Info.PanelModesArray[ViewMode].StatusColumnTypes &&
 			        Info.PanelModesArray[ViewMode].StatusColumnWidths)
+			{
 				TextToViewSettings(Info.PanelModesArray[ViewMode].StatusColumnTypes,
 				                   Info.PanelModesArray[ViewMode].StatusColumnWidths,
 				                   TRUE,ViewSettings.StatusColumnType,ViewSettings.StatusColumnWidth,
 				                   ViewSettings.StatusColumnWidthType,ViewSettings.StatusColumnCount);
+			}
 			else if (Info.PanelModesArray[ViewMode].DetailedStatus)
 			{
 				ViewSettings.StatusColumnType[0]=COLUMN_RIGHTALIGN|NAME_COLUMN;
@@ -685,7 +691,9 @@ void FileList::PrepareViewSettings(int ViewMode,OpenPluginInfo *PlugInfo)
 			}
 		}
 		else
+		{
 			for (int I=0; I<ViewSettings.ColumnCount; I++)
+			{
 				if ((ViewSettings.ColumnType[I] & 0xff)==NAME_COLUMN)
 				{
 					if (Info.Flags & OPIF_SHOWNAMESONLY)
@@ -701,6 +709,8 @@ void FileList::PrepareViewSettings(int ViewMode,OpenPluginInfo *PlugInfo)
 						ViewSettings.FileUpperToLowerCase=0;
 					}
 				}
+			}
+		}
 	}
 
 	Columns=PreparePanelView(&ViewSettings);
@@ -1111,7 +1121,7 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 							}
 
 							int CurLeftPos=0;
-							int RightAlign=(ViewFlags & COLUMN_RIGHTALIGN);
+							int RightAlign=(ViewFlags & (COLUMN_RIGHTALIGN|COLUMN_RIGHTALIGNFORCE));
 							int LeftBracket=FALSE,RightBracket=FALSE;
 
 							if (!ShowStatus && LeftPos)
@@ -1140,9 +1150,14 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 										int CurRightPos=LeftPos;
 
 										if (Length+CurRightPos<Width)
+										{
 											CurRightPos=Width-Length;
+										}
 										else
+										{
 											RightBracket=TRUE;
+											LeftBracket=TRUE;
+										}
 
 										NamePtr += Length+CurRightPos-Width;
 										RightAlign=FALSE;
@@ -1448,6 +1463,7 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 		if (ShowStatus && !strLine.IsEmpty())
 		{
 			GotoXY(X1+1,WhereY());
+			SetColor(COL_PANELTEXT);
 	        if (StatusAlign & COLUMN_CENTERALIGN)
 		        RemoveExternalSpaces(strLine);
 			else if (StatusAlign & COLUMN_RIGHTALIGN)

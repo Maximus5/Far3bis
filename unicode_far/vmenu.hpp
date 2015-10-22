@@ -43,6 +43,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "frame.hpp"
 #include "bitflags.hpp"
 #include "CriticalSections.hpp"
+#include "CFileMask.hpp"
 
 
 // ÷ветовые атрибуты - индексы в массиве цветов
@@ -213,6 +214,7 @@ class VMenu: public Modal
 	private:
 		string strTitle;
 		string strBottomTitle;
+		CFileMask FileMask;
 
 		int SelectPos;
 		int TopPos;

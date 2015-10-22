@@ -58,6 +58,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "processname.hpp"
 #include "pathmix.hpp"
 #include "cmdline.hpp"
+#include "strmix.hpp"
+#include "xlat.hpp"
+
 VMenu::VMenu(const wchar_t *Title,       // заголовок меню
              MenuDataEx *Data, // пункты меню
              int ItemCount,     // количество пунктов меню
@@ -687,6 +690,9 @@ void VMenu::FilterStringUpdated()
 		return;
 	}
 
+	if (bFilterMaskMode)
+		FileMask.Set(strMaskFilter.CPtr(), FMF_SILENT);
+
 	int PrevSeparator = -1, PrevGroup = -1;
 	int UpperVisible = -1, LowerVisible = -2;
 	bool bBottomMode = false;
@@ -737,7 +743,7 @@ void VMenu::FilterStringUpdated()
 			strName=CurItem->strName;
 			RemoveExternalSpaces(strName);
 			RemoveChar(strName,L'&',TRUE);
-			if ((bFilterMaskMode && !ProcessName(strMaskFilter.CPtr(), (wchar_t *) strName.CPtr(), 0, PN_CMPNAMELIST)) ||
+			if((bFilterMaskMode && !FileMask.Compare(strName.CPtr())) ||
 				     (!bFilterMaskMode && !StrStrI(strName, strFilter)))
 			{
 				CurItem->Flags |= LIF_HIDDEN;
@@ -822,7 +828,7 @@ bool VMenu::ShouldSendKeyToFilter(int Key)
 
 	if (bFilterEnabled)
 	{
-		if (Key==KEY_CTRLALTL || Key==KEY_CTRLALTM || Key==KEY_CTRLV || Key==KEY_SHIFTINS || Key==KEY_SHIFTNUMPAD0)
+		if (Key==KEY_CTRLALTL || Key==KEY_CTRLALTM || Key==KEY_CTRLV || Key==KEY_SHIFTINS || Key==KEY_SHIFTNUMPAD0 || Key==KEY_CTRLC || Key==KEY_CTRLINS || Key==KEY_CTRLNUMPAD0)
 			return true;
 
 		if (Key==KEY_MULTIPLY || Key==KEY_ADD || Key==KEY_SUBTRACT || Key==KEY_SUBTRACT || Key==KEY_DECIMAL || Key==KEY_DIVIDE)
@@ -1210,21 +1216,23 @@ void VMenu::ShortenFilterString(int Key)
 				FilterString.SetLength(FilterString.GetLength()-1);
 				break;
 			case KEY_CTRLBS:
-				int CurPos=FilterString.GetLength()-1;
-				bool DoDel=TRUE;
-				if (!IsWordDiv(Opt.strWordDiv,FilterString.At(CurPos)) || IsSpace(FilterString.At(CurPos)))
+				int CurPos=FilterString.GetLength();
+				int StopDelete=FALSE;
+				for (;;)
 				{
-					if (CurPos) CurPos--;
-					DoDel=(!IsWordDiv(Opt.strWordDiv,FilterString.At(CurPos)) || IsSpace(FilterString.At(CurPos)));
-				}
 
-				if (DoDel)
-				{
-					while ((CurPos>=0 && IsWordDiv(Opt.strWordDiv,FilterString.At(CurPos-1))) || IsSpace(FilterString.At(CurPos)))
+					if (CurPos>1 && IsSpace(FilterString.At(CurPos-1))!=IsSpace(FilterString.At(CurPos-2)))
+						StopDelete=TRUE;
+
 						CurPos--;
-					CurPos++;
-					FilterString.SetLength(CurPos);
+
+					if (!CurPos || StopDelete)
+						break;
+
+					if (IsWordDiv(Opt.strWordDiv,FilterString.At(CurPos-1)))
+						break;
 				}
+					FilterString.SetLength(CurPos);
 				break;
 		}
 		SetFilterString(FilterString);
@@ -1299,11 +1307,11 @@ int VMenu::ProcessKey(int Key)
 
 	SetFlags(VMENU_UPDATEREQUIRED);
 
-	if ((GetShowItemCount() == GetShowSeparatorCount()) && !bFilterMaskMode)
+	if (!GetShowItemCount())
 	{
 		if ((Key!=KEY_F1 && Key!=KEY_SHIFTF1 && Key!=KEY_F10 && Key!=KEY_ESC && Key!=KEY_ALTF9))
-		{
-			if (!bFilterEnabled || (bFilterEnabled && Key!=KEY_BS && Key!=KEY_CTRLBS && Key!=KEY_CTRLDEL && Key!=KEY_CTRLALTF && Key!=KEY_CTRLALTM))
+			{
+			if (!bFilterEnabled || (!bFilterMaskMode && Key!=KEY_BS && Key!=KEY_CTRLBS && Key!=KEY_CTRLDEL && Key!=KEY_CTRLALTF && Key!=KEY_CTRLALTM && Key!=KEY_OP_XLAT))
 			{
 				Modal::ExitCode = -1;
 				return FALSE;
@@ -1334,7 +1342,7 @@ int VMenu::ProcessKey(int Key)
 		case KEY_NUMENTER:
 		case KEY_ENTER:
 		{
-			if (!ParentDialog || CheckFlags(VMENU_COMBOBOX))
+			if ((!ParentDialog || CheckFlags(VMENU_COMBOBOX)) && GetShowItemCount())
 			{
 				if (ItemCanBeEntered(Item[SelectPos]->Flags))
 				{
@@ -1477,6 +1485,21 @@ int VMenu::ProcessKey(int Key)
 			DisplayObject();
 			break;
 		}
+		case KEY_CTRLC:     case KEY_CTRLINS:    case KEY_CTRLNUMPAD0:
+		{
+			if (bFilterEnabled)
+			{
+				CopyToClipboard(GetFilterString());
+			}
+			else
+			{
+				if(GetShowItemCount())
+				{
+					CopyToClipboard(RemoveChar((*GetItemPtr(SelectPos)).strName,L'&').CPtr());
+				}
+			}
+			break;
+		}
 		case KEY_CTRLV:
 		case KEY_SHIFTINS:    case KEY_SHIFTNUMPAD0:
 		{
@@ -1503,8 +1526,8 @@ int VMenu::ProcessKey(int Key)
 			{
 				bFilterLocked=!bFilterLocked;
 				DisplayObject();
-				break;
 			}
+			break;
 		}
 		case KEY_CTRLALTM:
 		{
@@ -1513,8 +1536,36 @@ int VMenu::ProcessKey(int Key)
 				bFilterMaskMode=!bFilterMaskMode;
 				FilterStringUpdated();
 				DisplayObject();
-				break;
 			}
+			break;
+		}
+		case KEY_OP_XLAT:
+		{
+			if (bFilterEnabled && !bFilterLocked)
+			{
+				const wchar_t *FilterString=GetFilterString();
+				int start=StrLength(FilterString);
+				bool DoXlat=TRUE;
+
+				if (IsWordDiv(Opt.XLat.strWordDivForXlat,FilterString[start]))
+				{
+					if (start) start--;
+					DoXlat=(!IsWordDiv(Opt.XLat.strWordDivForXlat,FilterString[start]));
+				}
+
+				if (DoXlat)
+				{
+					while (start>=0 && !IsWordDiv(Opt.XLat.strWordDivForXlat,FilterString[start]))
+						start--;
+
+					start++;
+					::Xlat((wchar_t *) FilterString,start,StrLength(FilterString),Opt.XLat.Flags);
+					SetFilterString(FilterString);
+					FilterStringUpdated();
+					DisplayObject();
+				}
+			}
+			break;
 		}
 		case KEY_TAB:
 		case KEY_SHIFTTAB:
@@ -1535,7 +1586,6 @@ int VMenu::ProcessKey(int Key)
 				}
 
 				FilterStringUpdated();
-
 				DisplayObject();
 				return TRUE;
 			}
