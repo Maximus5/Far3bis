@@ -274,6 +274,9 @@ void TextToViewSettings(const wchar_t *ColumnTitles,const wchar_t *ColumnWidths,
 					case L'R':
 						ColumnType|=COLUMN_RIGHTALIGN;
 						break;
+					case L'N':
+						ColumnType|=COLUMN_NOEXTENSION;
+						break;
 				}
 
 				Ptr++;
@@ -420,6 +423,9 @@ void ViewSettingsToText(unsigned int *ViewColumnTypes,int *ViewColumnWidths,int 
 
 			if (ViewColumnTypes[I] & COLUMN_RIGHTALIGN)
 				strType += L"R";
+
+			if (ViewColumnTypes[I] & COLUMN_NOEXTENSION)
+				strType += L"N";
 		}
 
 		if (ColumnType==SIZE_COLUMN || ColumnType==PACKED_COLUMN || ColumnType==STREAMSSIZE_COLUMN)

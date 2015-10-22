@@ -732,8 +732,7 @@ int FileList::PreparePanelView(PanelViewSettings *PanelView)
 }
 
 
-int FileList::PrepareColumnWidths(unsigned int *ColumnTypes,int *ColumnWidths,
-                                  int *ColumnWidthsTypes,int &ColumnCount,int FullScreen,BOOL StatusLine)
+int FileList::PrepareColumnWidths(unsigned int *ColumnTypes,int *ColumnWidths,int *ColumnWidthsTypes,int &ColumnCount,int FullScreen,BOOL StatusLine)
 {
 	int TotalWidth,TotalPercentWidth,TotalPercentCount,ZeroLengthCount,EmptyColumns,I;
 	ZeroLengthCount=EmptyColumns=0;
@@ -1050,6 +1049,17 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 							}
 
 							const wchar_t *NamePtr = ShowShortNames && !ListData[ListPos]->strShortName.IsEmpty() && !ShowStatus ? ListData[ListPos]->strShortName:ListData[ListPos]->strName;
+							
+							string strNameCopy;
+							if (!(ListData[ListPos]->FileAttr & FILE_ATTRIBUTE_DIRECTORY) && (ViewFlags & COLUMN_NOEXTENSION))
+							{
+								const wchar_t *ExtPtr = PointToExt(NamePtr);
+								if (ExtPtr)
+								{
+									strNameCopy.Copy(NamePtr, ExtPtr-NamePtr);
+									NamePtr = strNameCopy;
+								}
+							}
 
 							const wchar_t *NameCopy = NamePtr;
 
@@ -1174,7 +1184,67 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 								ExtPtr = PointToExt(NamePtr);
 							}
 							if (ExtPtr && *ExtPtr) ExtPtr++; else ExtPtr = L"";
+
+							int ExtLen = (int)wcslen(ExtPtr);
+							bool TooLong = ExtLen > ColumnWidth;
+							int LeftBracket=false,RightBracket=TooLong;
+
+							//if (TooLong)
+							//{
+							//	if (LeftPos>0)
+							//	{
+							//		LeftBracket = true;
+							//		if (LeftPos<(ExtLen-ColumnWidth))
+							//		{
+							//			RightBracket = true;
+							//			ExtPtr += LeftPos;
+							//		}
+							//		else
+							//		{
+							//			ExtPtr += ExtLen-ColumnWidth;
+							//		}
+							//	}
+							//	else
+							//	{
+							//		RightBracket = true;
+							//	}
+							//}
+
+							//FormatString strExt;
+							//strExt << fmt::LeftAlign() << fmt::Width(ColumnWidth) << fmt::Precision(ColumnWidth) << ExtPtr;
+							//Text(strExt);
 							FS<<fmt::LeftAlign()<<fmt::Width(ColumnWidth)<<fmt::Precision(ColumnWidth)<<ExtPtr;
+
+							if (!ShowStatus && TooLong)
+							{
+								int NameX=WhereX();
+								
+								if (LeftBracket)
+								{
+									GotoXY(CurX-1,CurY);
+
+									if (Level == 1)
+										SetColor(COL_PANELBOX);
+
+									Text(openBracket);
+									SetShowColor(J);
+								}
+
+								if (RightBracket)
+								{
+									if (Level == ColumnsInGlobal)
+										SetColor(COL_PANELBOX);
+
+									GotoXY(NameX,CurY);
+									Text(closeBracket);
+									ShowDivider=FALSE;
+
+									if (Level == ColumnsInGlobal)
+										SetColor(COL_PANELTEXT);
+									else
+										SetShowColor(J);
+								}
+							}
 							break;
 						}
 						break;

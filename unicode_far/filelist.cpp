@@ -284,7 +284,7 @@ void FileList::CorrectPosition()
 	if (CurFile<CurTopFile)
 		CurTopFile=CurFile;
 
-	if (CurFile>CurTopFile+Columns*Height-1)
+	if (CurFile>CurTopFile+Columns*Height-1) //Maximus: BUGBUG: похоже, тут не учитывается многострочный InfoLine
 		CurTopFile=CurFile-Columns*Height+1;
 }
 
@@ -2728,6 +2728,7 @@ int FileList::ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent)
 
 	FileListItem *CurPtr;
 	int RetCode;
+	int StatusHeight = GetPanelStatusHeight();
 
 	if (IsVisible() && Opt.ShowColumnTitles && !MouseEvent->dwEventFlags &&
 	        MouseEvent->dwMousePosition.Y==Y1+1 &&
@@ -2803,7 +2804,7 @@ int FileList::ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent)
 		return(RetCode);
 
 	if (MouseEvent->dwMousePosition.Y>Y1+Opt.ShowColumnTitles &&
-	        MouseEvent->dwMousePosition.Y<Y2-GetPanelStatusHeight())
+	        MouseEvent->dwMousePosition.Y<Y2-StatusHeight)
 	{
 		SetFocus();
 
@@ -2887,14 +2888,14 @@ int FileList::ProcessMouse(MOUSE_EVENT_RECORD *MouseEvent)
 		return TRUE;
 	}
 
-	if (MouseEvent->dwMousePosition.Y>=Y2-2)
+	if (MouseEvent->dwMousePosition.Y>=Y2-StatusHeight)
 	{
 		SetFocus();
 
 		if (!FileCount)
 			return TRUE;
 
-		while (IsMouseButtonPressed() && IntKeyState.MouseY>=Y2-2)
+		while (IsMouseButtonPressed() && IntKeyState.MouseY>=Y2-StatusHeight)
 		{
 			Down(1);
 

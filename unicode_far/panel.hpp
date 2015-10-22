@@ -298,4 +298,6 @@ class Panel:public ScreenObject
 		int SetCurPath();
 
 		BOOL NeedUpdatePanel(Panel *AnotherPanel);
+
+		virtual int GetPanelStatusHeight() { return 0; };
 };

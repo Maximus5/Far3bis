@@ -170,6 +170,8 @@ TMacroKeywords MKeywords[] =
 	{2,  L"PPanel.UNCPath",     MCODE_V_PPANEL_UNCPATH,0},
 	{2,  L"APanel.Height",      MCODE_V_APANEL_HEIGHT,0},
 	{2,  L"PPanel.Height",      MCODE_V_PPANEL_HEIGHT,0},
+	{2,  L"APanel.StatusHeight",MCODE_V_APANEL_STATUSHEIGHT,0},
+	{2,  L"PPanel.StatusHeight",MCODE_V_PPANEL_STATUSHEIGHT,0},
 	{2,  L"APanel.Width",       MCODE_V_APANEL_WIDTH,0},
 	{2,  L"PPanel.Width",       MCODE_V_PPANEL_WIDTH,0},
 	{2,  L"APanel.OPIFlags",    MCODE_V_APANEL_OPIFLAGS,0},
@@ -1372,6 +1374,17 @@ TVar KeyMacro::FARPseudoVariable(DWORD Flags,DWORD CheckCode,DWORD& Err)
 
 					break;
 				}
+
+				case MCODE_V_APANEL_STATUSHEIGHT: // APanel.StatusHeight
+				case MCODE_V_PPANEL_STATUSHEIGHT: // PPanel.StatusHeight
+					{
+						Panel *SelPanel = CheckCode == MCODE_V_APANEL_STATUSHEIGHT ? ActivePanel : PassivePanel;
+
+						if (SelPanel )
+							Cond = (__int64)SelPanel->GetPanelStatusHeight();
+
+						break;
+					}
 
 				case MCODE_V_APANEL_OPIFLAGS:  // APanel.OPIFlags
 				case MCODE_V_PPANEL_OPIFLAGS:  // PPanel.OPIFlags

@@ -418,5 +418,5 @@ class FileList:public Panel
 		static int IsModeFullScreen(int Mode);
 		static string &AddPluginPrefix(FileList *SrcPanel,string &strPrefix);
 
-		int GetPanelStatusHeight();
+		virtual int GetPanelStatusHeight();
 };
