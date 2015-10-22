@@ -61,6 +61,7 @@ HANDLE FindFirstFileInternal(LPCWSTR Name, FAR_FIND_DATA_EX& FindData)
 			string strDirectory(Name);
 			CutToSlash(strDirectory);
 			File* Directory = new File;
+			DWORD dwErrCode = 0;
 			if(Directory)
 			{
 				if(Directory->Open(strDirectory, FILE_LIST_DIRECTORY, FILE_SHARE_READ|FILE_SHARE_WRITE, nullptr, OPEN_EXISTING))
@@ -107,6 +108,7 @@ HANDLE FindFirstFileInternal(LPCWSTR Name, FAR_FIND_DATA_EX& FindData)
 						}
 						else
 						{
+							dwErrCode = GetLastError();
 							xf_free(Handle->BufferBase);
 						}
 					}
@@ -203,9 +205,10 @@ FindFile::FindFile(LPCWSTR Object, bool ScanSymLink):
 	DWORD OldElevationMode = Opt.ElevationMode;
 	Opt.ElevationMode = 0;
 	Handle = FindFirstFileInternal(strName, Data);
+	DWORD dwErrCode = GetLastError();
 	Opt.ElevationMode = OldElevationMode;
 
-	if (Handle == INVALID_HANDLE_VALUE && GetLastError() == ERROR_ACCESS_DENIED)
+	if (Handle == INVALID_HANDLE_VALUE && dwErrCode == ERROR_ACCESS_DENIED)
 	{
 		if(ScanSymLink)
 		{
@@ -409,6 +412,7 @@ bool File::NtQueryDirectoryFile(PVOID FileInformation, ULONG Length, FILE_INFORM
 		pNameString = &NameString;
 	}
 	NTSTATUS Result = ifn.pfnNtQueryDirectoryFile?ifn.pfnNtQueryDirectoryFile(Handle, nullptr, nullptr, nullptr, &IoStatusBlock, FileInformation, Length, FileInformationClass, ReturnSingleEntry, pNameString, RestartScan):STATUS_NOT_IMPLEMENTED;
+	_ASSERTE(Result!=STATUS_DATATYPE_MISALIGNMENT);
 	SetLastError(ifn.pfnRtlNtStatusToDosError(Result));
 	return Result == STATUS_SUCCESS;
 }

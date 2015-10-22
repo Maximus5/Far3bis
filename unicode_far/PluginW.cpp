@@ -1279,7 +1279,17 @@ bool PluginW::GetPluginInfo(PluginInfo *pi)
 		EXECUTE_FUNCTION(pGetPluginInfoW(pi), es);
 
 		if (!es.bUnloaded)
+		{
 			return true;
+		}
+		else
+		{
+			_ASSERTE(!es.bUnloaded);
+		}
+	}
+	else
+	{
+		_ASSERTE(pGetPluginInfoW && !ProcessException);
 	}
 
 	return false;

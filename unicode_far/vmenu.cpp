@@ -458,7 +458,10 @@ int VMenu::AddItem(const MenuItemEx *NewItem,int PosAdd)
 	CriticalSectionLock Lock(CS);
 
 	if (!NewItem)
+	{
+		_ASSERTE(NewItem!=NULL);
 		return -1;
+	}
 
 	if (PosAdd > ItemCount)
 		PosAdd = ItemCount;
@@ -473,7 +476,10 @@ int VMenu::AddItem(const MenuItemEx *NewItem,int PosAdd)
 	{
 		MenuItemEx **NewPtr;
 		if (!(NewPtr=(MenuItemEx **)xf_realloc(Item, sizeof(*Item)*(ItemCount+256+1))))
+		{
+			_ASSERTE(NewPtr!=NULL);
 			return -1;
+		}
 
 		Item=NewPtr;
 	}

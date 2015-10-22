@@ -505,10 +505,11 @@ Return: true/false - нашли/не нашли
 И подменять ничего не надо, т.к. все параметры мы отсекли раньше
 */
 
-bool WINAPI FindModule(const wchar_t *Module, string &strDest,DWORD &ImageSubsystem)
+static bool WINAPI FindModule(const wchar_t *Module, string &strDest,DWORD &ImageSubsystem,bool &Internal)
 {
 	bool Result=false;
 	ImageSubsystem = IMAGE_SUBSYSTEM_UNKNOWN;
+	Internal = false;
 
 	if (Module && *Module)
 	{
@@ -526,6 +527,7 @@ bool WINAPI FindModule(const wchar_t *Module, string &strDest,DWORD &ImageSubsys
 			{
 				ImageSubsystem=IMAGE_SUBSYSTEM_WINDOWS_CUI;
 				Result=true;
+				Internal = true;
 				break;
 			}
 		}
@@ -533,7 +535,7 @@ bool WINAPI FindModule(const wchar_t *Module, string &strDest,DWORD &ImageSubsys
 		if (!Result)
 		{
 			string strFullName=Module;
-			LPCWSTR ModuleExt=wcsrchr(Module,L'.');
+			LPCWSTR ModuleExt=wcsrchr(PointToName(Module),L'.');
 			string strPathExt(L".COM;.EXE;.BAT;.CMD;.VBS;.JS;.WSH");
 			apiGetEnvironmentVariable(L"PATHEXT",strPathExt);
 			UserDefinedList PathExtList;
@@ -569,7 +571,7 @@ bool WINAPI FindModule(const wchar_t *Module, string &strDest,DWORD &ImageSubsys
 			{
 				string strPathEnv;
 
-				if (apiGetEnvironmentVariable(L"PATH",strPathEnv))
+				if (apiGetEnvironmentVariable(L"PATH", strPathEnv))
 				{
 					UserDefinedList PathList;
 					PathList.Set(strPathEnv);
@@ -633,7 +635,7 @@ bool WINAPI FindModule(const wchar_t *Module, string &strDest,DWORD &ImageSubsys
 					strFullName=RegPath;
 					strFullName+=Module;
 
-          DWORD samDesired = KEY_QUERY_VALUE;
+					DWORD samDesired = KEY_QUERY_VALUE;
 					DWORD RedirectionFlag = 0;
 					// App Paths key is shared in Windows 7 and above
 					if (WinVer.dwMajorVersion < 6 || (WinVer.dwMajorVersion == 6 && WinVer.dwMinorVersion < 1))
@@ -864,6 +866,7 @@ int Execute(const wchar_t *CmdStr, // Ком.строка для исполнения
 	DWORD dwError = 0;
 	HANDLE hProcess = nullptr;
 	LPCWSTR lpVerb = nullptr;
+	bool internal;
 
 	if (FolderRun && DirectRun)
 	{
@@ -871,7 +874,7 @@ int Execute(const wchar_t *CmdStr, // Ком.строка для исполнения
 	}
 	else
 	{
-		FindModule(strNewCmdStr,strNewCmdStr,dwSubSystem);
+		FindModule(strNewCmdStr,strNewCmdStr,dwSubSystem,internal);
 
 		if (/*!*NewCmdPar && */ dwSubSystem == IMAGE_SUBSYSTEM_UNKNOWN)
 		{
@@ -899,10 +902,12 @@ int Execute(const wchar_t *CmdStr, // Ком.строка для исполнения
 					if (strNewCmdPar.IsEmpty())
 						strNewCmdStr+=L'.';
 
-					FindModule(strNewCmdStr,strNewCmdStr,dwSubSystem);
+					FindModule(strNewCmdStr,strNewCmdStr,dwSubSystem,internal);
 				}
 			}
 		}
+
+		const wchar_t* ComspecSpecific  = L"&<>|";
 
 		if (dwSubSystem == IMAGE_SUBSYSTEM_WINDOWS_GUI)
 		{
@@ -910,8 +915,18 @@ int Execute(const wchar_t *CmdStr, // Ком.строка для исполнения
 			{
 				Silent = true;
 			}
-			DirectRun = true;
+			if (!DirectRun && wcspbrk(CmdStr, ComspecSpecific) == nullptr)
+			{
+				DirectRun = true;
+			}
 			SeparateWindow = true;
+		}
+		else if (dwSubSystem == IMAGE_SUBSYSTEM_WINDOWS_CUI && !DirectRun)
+		{
+			if (wcspbrk(CmdStr, ComspecSpecific) == nullptr && !internal)
+			{
+				DirectRun = true;
+			}
 		}
 	}
 
@@ -987,8 +1002,11 @@ int Execute(const wchar_t *CmdStr, // Ком.строка для исполнения
 	if (DirectRun)
 	{
 		seInfo.lpFile = strNewCmdStr;
-		seInfo.lpParameters = strNewCmdPar;
-		seInfo.lpVerb = (dwAttr&FILE_ATTRIBUTE_DIRECTORY)?nullptr:lpVerb?lpVerb:GetShellAction(strNewCmdStr, dwSubSystem, dwError);
+		if(!strNewCmdPar.IsEmpty())
+		{
+			seInfo.lpParameters = strNewCmdPar;
+		}
+		seInfo.lpVerb = dwAttr != INVALID_FILE_ATTRIBUTES && (dwAttr&FILE_ATTRIBUTE_DIRECTORY)?nullptr:lpVerb?lpVerb:GetShellAction(strNewCmdStr, dwSubSystem, dwError);
 	}
 	else
 	{
