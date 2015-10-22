@@ -275,6 +275,13 @@ struct EditorOptions
 */
 struct ViewerOptions
 {
+	enum EViewerLineSize
+	{
+		eMinLineSize = 100,
+		eDefLineSize = 10*1000,
+		eMaxLineSize = 100*1000
+	};
+
 	int TabSize;
 	int AutoDetectCodePage;
 	int ShowScrollbar;     // $ 18.07.2000 tran пара настроек дл€ viewer
@@ -289,7 +296,7 @@ struct ViewerOptions
 	int AnsiCodePageAsDefault;
 	int ShowTitleBar;
 	int SearchRegexp;
-	int MaxLineSize; // 80..16384, default=2048
+	int MaxLineSize; // 100..100000, default=10000
 	int SearchEditFocus; // auto-focus on edit text/hex window
 };
 
@@ -645,11 +652,14 @@ struct Options
 
 	DWORD CPMenuMode;
 	string strNoAutoDetectCP;
-	// перечисленные здесь кодовые страницы будут исключены из детектировани€ nsUniversalDetectorEx.
-	// автодетект юникодных страниц от этого не зависит, поэтому UTF-8 будет определ€тьс€ даже если
+	// ѕеречисленные здесь кодовые страницы будут исключены из детектировани€ nsUniversalDetectorEx.
+	// јвтодетект юникодных страниц от этого не зависит, поэтому UTF-8 будет определ€тьс€ даже если
 	// 65001 здесь присутствует. ≈сли UniversalDetector выдаст страницу из этого списка, она будет
 	// заменена на умолчательную ANSI или OEM, в зависимости от настроек.
 	// пример: L"1250,1252,1253,1255,855,10005,28592,28595,28597,28598,38598,65001"
+	// ≈сли строка пуста€ никакой фильтрации кодовых страниц в UCD детекте не будет.
+	// ≈сли "-1", то в зависимости CPMenuMode (Ctrl-H в меню кодовых страниц фильтраци€ UCD либо будет
+	// отключена, либо будут разрешенны только 'любимые' и системные (OEM ANSI) кодовые страницы.
 
 	bool IsUserAdmin;
 	string strTitleAddons;

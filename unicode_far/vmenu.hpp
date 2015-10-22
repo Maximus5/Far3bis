@@ -334,7 +334,7 @@ class VMenu: public Modal
 		int  FindItem(int StartIndex,const wchar_t *Pattern,DWORD Flags=0);
 		void RestoreFilteredItems();
 		void FilterStringUpdated(bool bLonger);
-		void FilterUpdateHeight();
+		void FilterUpdateHeight(bool bShrink=false);
 		void SetFilterEnabled(bool bEnabled) { bFilterEnabled=bEnabled; };
 		void SetFilterLocked(bool bLocked) { bFilterEnabled=bLocked; };
  		bool AddToFilter(const wchar_t *str);

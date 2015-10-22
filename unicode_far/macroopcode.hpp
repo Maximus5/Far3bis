@@ -173,6 +173,7 @@ enum MACRO_OP_CODE
 	MCODE_F_MENU_GETHOTKEY,           // S=gethotkey([N])
 	MCODE_F_MENU_SELECT,              // N=Menu.Select(S[,N[,Dir]])
 	MCODE_F_MENU_SHOW,                // S=Menu.Show(Items[,Title[,Flags[,FindOrFilter[,X[,Y]]]]])
+	MCODE_F_MENU_FILTER,              // N=Menu.Filter(N[,S])
 	MCODE_F_MIN,                      // N=min(N1,N2)
 	MCODE_F_MOD,                      // N=mod(a,b) == a %  b
 	MCODE_F_MLOAD,                    // B=mload(var)
@@ -355,6 +356,7 @@ enum MACRO_OP_CODE
 	MCODE_V_HELPSELTOPIC,             // Help.SelTopic
 
 	MCODE_V_MENU_VALUE,               // Menu.Value
+	MCODE_V_MENU_CURFILTER,           // Menu.CurFilter
 };
 
 typedef enum MACRO_OP_CODE TMacroOpCode;

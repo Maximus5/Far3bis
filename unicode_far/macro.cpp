@@ -218,6 +218,7 @@ TMacroKeywords MKeywords[] =
 	{2,  L"Viewer.State",       MCODE_V_VIEWERSTATE,0},
 
 	{2,  L"Menu.Value",         MCODE_V_MENU_VALUE,0},
+	{2,  L"Menu.CurFilter",     MCODE_V_MENU_CURFILTER,0},
 
 	{2,  L"Fullscreen",         MCODE_C_FULLSCREENMODE,0},
 	{2,  L"IsUserAdmin",        MCODE_C_ISUSERADMIN,0},
@@ -410,6 +411,7 @@ static TMacroFunction intMacroFunction[]=
 	{L"MENU.ITEMSTATUS",  1, 1,   MCODE_F_MENU_ITEMSTATUS,  nullptr, 0,nullptr,L"N=Menu.ItemStatus([N])",0,usersFunc},
 	{L"MENU.SELECT",      3, 2,   MCODE_F_MENU_SELECT,      nullptr, 0,nullptr,L"N=Menu.Select(S[,N[,Dir]])",0,usersFunc},
 	{L"MENU.SHOW",        6, 5,   MCODE_F_MENU_SHOW,        nullptr, 0,nullptr,L"S=Menu.Show(Items[,Title[,Flags[,FindOrFilter[,X[,Y]]]]])",IMFF_UNLOCKSCREEN|IMFF_DISABLEINTINPUT,menushowFunc},
+	{L"MENU.FILTER",      2, 1,   MCODE_F_MENU_FILTER,      nullptr, 0,nullptr,L"N=Menu.Filter(N[,S])",0,usersFunc},
 	{L"MIN",              2, 0,   MCODE_F_MIN,              nullptr, 0,nullptr,L"N=Min(N1,N2)",0,minFunc},
 	{L"MLOAD",            1, 0,   MCODE_F_MLOAD,            nullptr, 0,nullptr,L"N=MLoad(S)",0,mloadFunc},
 	{L"MMODE",            2, 1,   MCODE_F_MMODE,            nullptr, 0,nullptr,L"N=MMode(Action[,Value])",0,usersFunc},
@@ -1590,7 +1592,8 @@ TVar KeyMacro::FARPseudoVariable(DWORD Flags,DWORD CheckCode,DWORD& Err)
 
 					break;
 				}
-				case MCODE_V_MENU_VALUE: // Menu.Value
+				case MCODE_V_MENU_VALUE:     // Menu.Value
+				case MCODE_V_MENU_CURFILTER: // Menu.CurFilter
 				{
 					int CurMMode=GetMode();
 					Cond=L"";
@@ -5340,6 +5343,42 @@ done:
 
 				if (f)
 					Result=f->VMProcess(Key,(void*)tmpVar.toString(),tmpMode);
+			}
+
+			VMStack.Push(Result);
+			goto begin;
+		}
+		case MCODE_F_MENU_FILTER:      // N=Menu.Filter(N[,S])
+		{
+			_KEYMACRO(CleverSysLog Clev(L"MCODE_F_MENU_FILTER"));
+			__int64 Result=0;
+			__int64 tmpAction=0;
+			const wchar_t* StrFilter=nullptr;
+
+			VMStack.Pop(tmpVar); // необязательный, на стеке?
+			tmpAction=VMStack.Pop().getInteger();
+			
+			if (tmpAction==5 && tmpVar.isString())
+				StrFilter = tmpVar.toString();
+
+			int CurMMode=CtrlObject->Macro.GetMode();
+
+			if (IsMenuArea(CurMMode) || CurMMode == MACRO_DIALOG)
+			{
+				Frame *f=FrameManager->GetCurrentFrame(), *fo=nullptr;
+
+				//f=f->GetTopModal();
+				while (f)
+				{
+					fo=f;
+					f=f->GetTopModal();
+				}
+
+				if (!f)
+					f=fo;
+
+				if (f)
+					Result=f->VMProcess(Key,(void*)StrFilter,tmpAction);
 			}
 
 			VMStack.Push(Result);

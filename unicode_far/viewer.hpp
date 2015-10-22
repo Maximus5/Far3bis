@@ -118,7 +118,7 @@ class Viewer:public ScreenObject
 		__int64 SecondPos;
 		__int64 LastScrPos;
 		__int64 FileSize;
-		__int64 LastSelPos, LastSelSize;
+		__int64 LastSelectPos, LastSelectSize;
 
 		__int64 LeftPos;
 		__int64 LastPage;
@@ -164,6 +164,10 @@ class Viewer:public ScreenObject
 		int      lcache_wrap;
 		int      lcache_wwrap;
 		int      lcache_width;
+
+		int      max_backward_size;
+		int      llengths_size;
+		int     *llengths;
 
 		wchar_t *Search_buffer;
 		int Search_buffer_size;

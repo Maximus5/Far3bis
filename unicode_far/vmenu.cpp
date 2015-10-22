@@ -679,7 +679,7 @@ void VMenu::FilterStringUpdated(bool bLonger)
 		//строка фильтра увеличилась
 		for (int i=0; i < ItemCount; i++)
 		{
-			// Нет смысла накладывать фильтр на разделители?
+			// Нет смысла накладывать фильтр на разделители
 			if (ItemIsVisible(Item[i]->Flags))
 			{
 				if (Item[i]->Flags & LIF_SEPARATOR)
@@ -775,7 +775,7 @@ void VMenu::FilterStringUpdated(bool bLonger)
 	}
 }
 
-void VMenu::FilterUpdateHeight()
+void VMenu::FilterUpdateHeight(bool bShrink)
 {
 	if (WasAutoHeight)
 	{
@@ -786,7 +786,7 @@ void VMenu::FilterUpdateHeight()
 			NewY2 = Y1 + GetShowItemCount() + 1;
 		if (NewY2 > ScrY)
 			NewY2 = ScrY;
-		if (NewY2 > Y2)
+		if (NewY2 > Y2 || (bShrink && NewY2 < Y2))
 		{
 			SetPosition(X1,Y1,X2,NewY2);
 		}
@@ -999,6 +999,85 @@ __int64 VMenu::VMProcess(int OpCode,void *vParam,__int64 iParam)
 			if (menuEx)
 			{
 				*(string *)vParam = menuEx->strName;
+				return 1;
+			}
+
+			return 0;
+		}
+
+		case MCODE_F_MENU_FILTER:
+		{
+			int Res = 0;
+			switch (iParam)
+			{
+				case 0:
+					Res = !bFilterEnabled ? 0 : (1 | (bFilterLocked ? 2 : 0) | (strFilter.IsEmpty() ? 0 : 4));
+					break;
+				case 1: // Turn on
+					if (!bFilterEnabled)
+					{
+						bFilterEnabled=true;
+						bFilterLocked=false;
+						strFilter.Clear();
+						DisplayObject();
+					}
+					Res = 1;
+					break;
+				case 2: // Turn off
+					if (bFilterEnabled)
+					{
+						bFilterEnabled=false;
+						bFilterLocked=false;
+						strFilter.Clear();
+						RestoreFilteredItems();
+						DisplayObject();
+					}
+					Res = 1;
+					break;
+				case 3: // Lock filter
+					if (bFilterEnabled)
+					{
+						bFilterLocked=true;
+						DisplayObject();
+						Res = 1;
+					}
+					break;
+				case 4: // Unlock filter
+					if (bFilterEnabled)
+					{
+						bFilterLocked=false;
+						DisplayObject();
+						Res = 1;
+					}
+					break;
+				case 5: // Set filter string
+					if (!bFilterEnabled)
+					{
+						bFilterEnabled=true;
+						bFilterLocked=false;
+					}
+					RestoreFilteredItems();
+					strFilter.Clear();
+					if (vParam!=nullptr)
+						AddToFilter((const wchar_t *)vParam);
+					FilterStringUpdated(true);
+					DisplayObject();
+					Res = 1;
+					break;
+				case 6:
+					WasAutoHeight = true;
+					FilterUpdateHeight(true);
+					DisplayObject();
+					Res = 1;
+					break;
+			}
+			return Res;
+		}
+		case MCODE_V_MENU_CURFILTER:
+		{
+			if (bFilterEnabled)
+			{
+				*(string *)vParam = strFilter;
 				return 1;
 			}
 
