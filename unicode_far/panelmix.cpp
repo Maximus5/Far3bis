@@ -362,12 +362,38 @@ void TextToViewSettings(const wchar_t *ColumnTitles,const wchar_t *ColumnWidths,
 					}
 					else
 					{
-						for (unsigned I=0; I<ARRAYSIZE(ColumnSymbol); I++)
+						if (strArgName.At(0)==L'B')
 						{
-							if (!StrCmp(strArgName,ColumnSymbol[I]))
+							unsigned int &ColumnType=ViewColumnTypes[ColumnCount];
+							ColumnType=LINEBREAK_COLUMN;
+							const wchar_t *Ptr = strArgName.CPtr()+1;
+
+							while (*Ptr)
 							{
-								ViewColumnTypes[ColumnCount]=I;
-								break;
+								switch (*Ptr)
+								{
+									case L'R':
+										if (!(ColumnType & COLUMN_CENTERALIGN))
+											ColumnType|=COLUMN_RIGHTALIGN;
+										break;
+									case L'C':
+										if (!(ColumnType & COLUMN_RIGHTALIGN))
+											ColumnType|=COLUMN_CENTERALIGN;
+										break;
+								}
+
+								Ptr++;
+							}
+						}
+						else
+						{
+							for (unsigned I=0; I<ARRAYSIZE(ColumnSymbol); I++)
+							{
+								if (!StrCmp(strArgName,ColumnSymbol[I]))
+								{
+									ViewColumnTypes[ColumnCount]=I;
+									break;
+								}
 							}
 						}
 					}
@@ -456,6 +482,14 @@ void ViewSettingsToText(unsigned int *ViewColumnTypes,int *ViewColumnWidths,int 
 		{
 			if (ViewColumnTypes[I] & COLUMN_FULLOWNER)
 				strType += L"L";
+		}
+
+		if (ColumnType==LINEBREAK_COLUMN)
+		{
+			if (ViewColumnTypes[I] & COLUMN_CENTERALIGN)
+				strType += L"C";
+			else if (ViewColumnTypes[I] & COLUMN_RIGHTALIGN)
+				strType += L"R";
 		}
 
 		strColumnTitles += strType;

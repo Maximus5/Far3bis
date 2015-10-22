@@ -262,6 +262,7 @@ int Viewer::OpenFile(const wchar_t *Name,int warning)
 
 	ViewFile.Close();
 	Reader.Clear();
+	vgetc_ready = lcache_ready = false;
 
 	SelectSize = -1; // Сбросим выделение
 	strFileName = Name;
@@ -418,7 +419,7 @@ int Viewer::OpenFile(const wchar_t *Name,int warning)
 		DriveType = DRIVE_CDROM;
 	switch (DriveType) //??? make it configurable
 	{
-		case DRIVE_REMOVABLE: update_check_period = -1;  break; // flash drive or floppy: never
+		case DRIVE_REMOVABLE: update_check_period = ViOpt.RefreshOnRemovable ? 500 : -1; break; // flash drive or floppy: 0.5 sec
 		case DRIVE_FIXED:     update_check_period = +1;  break; // hard disk: 1 msec
 		case DRIVE_REMOTE:    update_check_period = 500; break; // network drive: 0.5 sec
 		case DRIVE_CDROM:     update_check_period = -1;  break; // cd/dvd: never
@@ -3993,12 +3994,16 @@ int Viewer::ViewerControl(int Command,void *Param)
 				if ((LeftPos=vsp->LeftPos) < 0)
 					LeftPos=0;
 
+				#if 1 //Maximus5: то что было раньше, менять не будем, т.к. это API
 				/* $ 20.01.2003 IS
 				     Если кодировка - юникод, то оперируем числами, уменьшенными в
 				     2 раза. Поэтому увеличим StartPos в 2 раза, т.к. функция
 				     GoTo принимает смещения в _байтах_.
 				*/
 				GoTo(FALSE, vsp->StartPos*(IsUnicodeCodePage(VM.CodePage)?2:1), vsp->Flags);
+				#else
+				GoTo(FALSE, vsp->StartPos, vsp->Flags);
+				#endif
 
 				if (isReShow && !(vsp->Flags&VSP_NOREDRAW))
 					ScrBuf.Flush();

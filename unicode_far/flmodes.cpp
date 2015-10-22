@@ -120,13 +120,14 @@ void FileList::SetFilePanelModes()
 			MD_CHECKBOX_FOLDERUPPERCASE,
 			MD_CHECKBOX_FILESLOWERCASE,
 			MD_CHECKBOX_UPPERTOLOWERCASE,
+			MD_CHECKBOX_PRELOADC0DATA,
 			MD_SEPARATOR2,
 			MD_BUTTON_OK,
 			MD_BUTTON_CANCEL,
 		} ;
 		DialogDataEx ModeDlgData[]=
 		{
-			DI_DOUBLEBOX, 3, 1,72,15,0,0,ModeListMenu[ModeNumber].Name,
+			DI_DOUBLEBOX, 3, 1,72,16,0,0,ModeListMenu[ModeNumber].Name,
 			DI_TEXT,      5, 2, 0, 2,0,0,MSG(MEditPanelModeTypes),
 			DI_EDIT,      5, 3,35, 3,0,DIF_FOCUS,L"",
 			DI_TEXT,      5, 4, 0, 4,0,0,MSG(MEditPanelModeWidths),
@@ -142,9 +143,10 @@ void FileList::SetFilePanelModes()
 			DI_CHECKBOX,  5,10, 0,10,0,0,MSG(MEditPanelModeFoldersUpperCase),
 			DI_CHECKBOX,  5,11, 0,11,0,0,MSG(MEditPanelModeFilesLowerCase),
 			DI_CHECKBOX,  5,12, 0,12,0,0,MSG(MEditPanelModeUpperToLowerCase),
-			DI_TEXT,      3,13, 0,13,0,DIF_SEPARATOR,L"",
-			DI_BUTTON,    0,14, 0,14,0,DIF_DEFAULT|DIF_CENTERGROUP,MSG(MOk),
-			DI_BUTTON,    0,14, 0,14,0,DIF_CENTERGROUP,MSG(MCancel),
+			DI_CHECKBOX,  5,13, 0,12,0,0,MSG(MEditPanelModePreloadC0Data),
+			DI_TEXT,      3,14, 0,13,0,DIF_SEPARATOR,L"",
+			DI_BUTTON,    0,15, 0,14,0,DIF_DEFAULT|DIF_CENTERGROUP,MSG(MOk),
+			DI_BUTTON,    0,15, 0,14,0,DIF_CENTERGROUP,MSG(MCancel),
 		};
 		MakeDialogItemsEx(ModeDlgData,ModeDlg);
 		int ExitCode;
@@ -162,13 +164,14 @@ void FileList::SetFilePanelModes()
 		ModeDlg[MD_CHECKBOX_FOLDERUPPERCASE].Selected=NewSettings.FolderUpperCase;
 		ModeDlg[MD_CHECKBOX_FILESLOWERCASE].Selected=NewSettings.FileLowerCase;
 		ModeDlg[MD_CHECKBOX_UPPERTOLOWERCASE].Selected=NewSettings.FileUpperToLowerCase;
+		ModeDlg[MD_CHECKBOX_PRELOADC0DATA].Selected=NewSettings.PreloadC0Data;
 		ViewSettingsToText(NewSettings.ColumnType,NewSettings.ColumnWidth,NewSettings.ColumnWidthType,
 		                   NewSettings.ColumnCount,FALSE,ModeDlg[2].strData,ModeDlg[4].strData);
 		ViewSettingsToText(NewSettings.StatusColumnType,NewSettings.StatusColumnWidth,NewSettings.StatusColumnWidthType,
 		                   NewSettings.StatusColumnCount,TRUE,ModeDlg[6].strData,ModeDlg[8].strData);
 		{
 			Dialog Dlg(ModeDlg,ARRAYSIZE(ModeDlg));
-			Dlg.SetPosition(-1,-1,76,17);
+			Dlg.SetPosition(-1,-1,76,18);
 			Dlg.SetHelp(L"PanelViewModes");
 			Dlg.Process();
 			ExitCode=Dlg.GetExitCode();
@@ -184,6 +187,7 @@ void FileList::SetFilePanelModes()
 		NewSettings.FolderUpperCase=ModeDlg[MD_CHECKBOX_FOLDERUPPERCASE].Selected;
 		NewSettings.FileLowerCase=ModeDlg[MD_CHECKBOX_FILESLOWERCASE].Selected;
 		NewSettings.FileUpperToLowerCase=ModeDlg[MD_CHECKBOX_UPPERTOLOWERCASE].Selected;
+		NewSettings.PreloadC0Data=ModeDlg[MD_CHECKBOX_PRELOADC0DATA].Selected;
 		TextToViewSettings(ModeDlg[MD_EDITTYPES].strData,ModeDlg[MD_EDITWIDTHS].strData,FALSE,
 		                   NewSettings.ColumnType,NewSettings.ColumnWidth,NewSettings.ColumnWidthType,NewSettings.ColumnCount);
 		TextToViewSettings(ModeDlg[MD_EDITSTATUSTYPES].strData,ModeDlg[MD_EDITSTATUSWIDTHS].strData,TRUE,
@@ -235,6 +239,7 @@ void FileList::ReadPanelModes()
 		GetRegKey(strRegKey,L"FolderUpperCase",NewSettings.FolderUpperCase,0);
 		GetRegKey(strRegKey,L"FileLowerCase",NewSettings.FileLowerCase,0);
 		GetRegKey(strRegKey,L"FileUpperToLowerCase",NewSettings.FileUpperToLowerCase,0);
+		GetRegKey(strRegKey,L"PreloadC0Data",NewSettings.PreloadC0Data,0);
 		ViewSettingsArray[VIEW_0+I]=NewSettings;
 	}
 }
@@ -262,5 +267,7 @@ void FileList::SavePanelModes()
 		SetRegKey(strRegKey,L"FolderUpperCase",NewSettings.FolderUpperCase);
 		SetRegKey(strRegKey,L"FileLowerCase",NewSettings.FileLowerCase);
 		SetRegKey(strRegKey,L"FileUpperToLowerCase",NewSettings.FileUpperToLowerCase);
+		SetRegKey(strRegKey,L"PreloadC0Data",NewSettings.PreloadC0Data);
+
 	}
 }

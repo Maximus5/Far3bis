@@ -37,6 +37,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "frame.hpp"
 #include "keybar.hpp"
 #include "manager.hpp"
+#include "scrbuf.hpp"
 #include "syslog.hpp"
 
 Frame::Frame():
@@ -91,6 +92,10 @@ void Frame::OnChangeFocus(int focus)
 
 			iModal=iModal->NextModal;
 		}
+
+		// Иначе в некоторых случаях после смены фрейма в {0x0} отрисовывается
+		// артефакт от предыдущего фрейма (из-за вызова ScrBuf.RestoreMacroChar)
+		ScrBuf.Flush();
 	}
 	else
 	{

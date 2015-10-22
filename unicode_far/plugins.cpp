@@ -2227,6 +2227,19 @@ void PluginManager::GetCustomData(FileListItem *ListItem)
 {
 	string FilePath(NTPath(ListItem->strName).Get());
 
+#ifdef _DEBUG
+	_ASSERTE(ListItem->CustomDataLoaded==false);
+	//HANDLE hFile = apiCreateFile(FilePath.CPtr(), FILE_READ_DATA, FILE_SHARE_READ|FILE_SHARE_WRITE, nullptr, OPEN_EXISTING);
+	//if (hFile == INVALID_HANDLE_VALUE)
+	//{
+	//	_ASSERTE(hFile!=INVALID_HANDLE_VALUE);
+	//}
+	//else
+	//{
+	//	CloseHandle(hFile);
+	//}
+#endif
+
 	for (int i=0; i<PluginsCount; i++)
 	{
 		Plugin *pPlugin = PluginsData[i];
@@ -2243,4 +2256,6 @@ void PluginManager::GetCustomData(FileListItem *ListItem)
 				pPlugin->FreeCustomData(CustomData);
 		}
 	}
+
+	ListItem->CustomDataLoaded = true;
 }

@@ -3524,6 +3524,7 @@ static bool panelsetposidxFunc(const TMacroFunction*)
 	if (SelPanel)
 	{
 		int TypePanel=SelPanel->GetType(); //FILE_PANEL,TREE_PANEL,QVIEW_PANEL,INFO_PANEL
+		int PanelMode=SelPanel->GetMode(); //NORMAL_PANEL,PLUGIN_PANEL
 
 		if (TypePanel == FILE_PANEL || TypePanel ==TREE_PANEL)
 		{
@@ -3812,6 +3813,7 @@ static bool panelitemFunc(const TMacroFunction*)
 	}
 
 	int TypePanel=SelPanel->GetType(); //FILE_PANEL,TREE_PANEL,QVIEW_PANEL,INFO_PANEL
+	int SelPanelMode=SelPanel->GetMode(); //NORMAL_PANEL,PLUGIN_PANEL
 
 	if (!(TypePanel == FILE_PANEL || TypePanel ==TREE_PANEL))
 	{
@@ -3924,6 +3926,11 @@ static bool panelitemFunc(const TMacroFunction*)
 				Ret=TVar((__int64)FileTimeToUI64(&filelistItem.ChangeTime));
 				break;
 			case 22:  // CustomData
+				if (SelPanelMode==NORMAL_PANEL && !filelistItem.CustomDataLoaded)
+				{
+					//Maximus: BUGBUG: требуется установка текущей папки для панели (это может быть пассивная панель!)
+					CtrlObject->Plugins.GetCustomData(&filelistItem);
+				}
 				Ret=TVar(filelistItem.strCustomData);
 				break;
 		}

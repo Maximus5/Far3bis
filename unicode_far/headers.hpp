@@ -134,6 +134,24 @@ typedef struct _ADAPTER_OBJECT ADAPTER_OBJECT,*PADAPTER_OBJECT;
 #endif // __GNUC__
 
 
+
+#ifdef _DEBUG
+	#ifndef _CRT_WIDE
+	#define __CRT_WIDE(_String) L ## _String
+	#define _CRT_WIDE(_String) __CRT_WIDE(_String)
+	#endif
+	#define MY_ASSERT_EXPR(expr, msg) \
+		if (!(expr)) { \
+			if (MessageBox(NULL,msg,L"Assertion",MB_RETRYCANCEL)==IDRETRY) \
+				DebugBreak(); \
+		}
+	#define _ASSERTE(x)  MY_ASSERT_EXPR((x), _CRT_WIDE(#x))
+#else
+	#define _ASSERTE(x)
+#endif
+
+
+
 #define NullToEmpty(s) (s?s:L"")
 
 template <class T>

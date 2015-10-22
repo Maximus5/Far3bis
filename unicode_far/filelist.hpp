@@ -81,6 +81,7 @@ struct FileListItem
 	DWORD ReparseTag;
 
 	string strCustomData;
+	bool CustomDataLoaded;
 
 	void Clear()
 	{
@@ -113,6 +114,7 @@ struct FileListItem
 		strShortName.Clear();
 		ReparseTag=0;
 		strCustomData.Clear();
+		CustomDataLoaded=false;
 	}
 
 	FileListItem& operator=(const FileListItem &fliCopy)
@@ -147,6 +149,7 @@ struct FileListItem
 			strName = fliCopy.strName;
 			strShortName = fliCopy.strShortName;
 			strCustomData = fliCopy.strCustomData;
+			CustomDataLoaded = fliCopy.CustomDataLoaded;
 		}
 
 		return *this;

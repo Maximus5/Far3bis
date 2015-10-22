@@ -125,8 +125,9 @@ void ControlObject::Init()
 	{
 		string strOldTitle;
 		Console.GetTitle(strOldTitle);
-		FrameManager->PluginCommit();
+		// ѕозвать перед FrameManager->PluginCommit(), иначе в панел€х не загруз€тс€ C0
 		Plugins.LoadPlugins();
+		FrameManager->PluginCommit();
 		Console.SetTitle(strOldTitle);
 	}
 	Macro.LoadMacros();

@@ -189,7 +189,7 @@ void InfoList::DisplayObject()
 	                            &strFileSystemName))
 	{
 		int IdxMsgID=-1;
-		int DriveType=FAR_GetDriveType(strDriveRoot,nullptr,TRUE);
+		int DriveType=FAR_GetDriveType(strDriveRoot,nullptr,Opt.ChangeDriveMode & DRIVE_SHOW_CDROM?0x01:0);
 
 		switch (DriveType)
 		{

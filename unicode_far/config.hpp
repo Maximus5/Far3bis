@@ -294,6 +294,7 @@ struct ViewerOptions
 	int UseExternalViewer;
 	int ShowKeyBar; // $ 15.07.2000 tran + ShowKeyBar
 	int AnsiCodePageAsDefault;
+	int RefreshOnRemovable;
 	int ShowTitleBar;
 	int SearchRegexp;
 	int MaxLineSize; // 100..100000, default=10000

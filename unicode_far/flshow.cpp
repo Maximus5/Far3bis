@@ -423,8 +423,18 @@ void FileList::ShowFileList(int Fast)
 		ShowTotalSize(Info);
 	}
 
+	string strLastDir;
+	if (GetMode()!=PLUGIN_PANEL && IsColumnDisplayed(CUSTOM_COLUMN0))
+	{
+		apiGetCurrentDirectory(strLastDir);
+		apiSetCurrentDirectory(strCurDir);
+	}
+
 	ShowList(FALSE,0);
 	ShowSelectedSize();
+
+	if (!strLastDir.IsEmpty())
+		apiSetCurrentDirectory(strLastDir);
 
 	if (Opt.ShowPanelScrollbar)
 	{
@@ -715,7 +725,7 @@ int FileList::PreparePanelView(PanelViewSettings *PanelView)
 		int NextLine=PanelView->StatusColumnCount+1;
 		for (int I=S; I<PanelView->StatusColumnCount; I++)
 		{
-			if (PanelView->StatusColumnType[I]==LINEBREAK_COLUMN)
+			if ((PanelView->StatusColumnType[I]&0xFF)==LINEBREAK_COLUMN)
 			{
 				Columns=I-S;
 				NextLine=S+Columns+1;
@@ -741,7 +751,7 @@ int FileList::PrepareColumnWidths(unsigned int *ColumnTypes,int *ColumnWidths,in
 
 	for (I=0; I<ColumnCount; I++)
 	{
-		if (ColumnTypes[I]==LINEBREAK_COLUMN)
+		if ((ColumnTypes[I]&0xFF)==LINEBREAK_COLUMN)
 		{
 			ColumnCount=I;
 			break;
@@ -900,21 +910,27 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 	unsigned int *ColumnTypes=ShowStatus ? ViewSettings.StatusColumnType:ViewSettings.ColumnType;
 	int *ColumnWidths=ShowStatus ? ViewSettings.StatusColumnWidth:ViewSettings.ColumnWidth;
 	int K0=0;
+	int StatusAlign=0;
+	
 
 	if (ShowStatus)
 	{
+		if ((ColumnTypes[K0]&0xFF)==LINEBREAK_COLUMN)
+			K0++;
 		// Получить индекс первой колонки расположенной на строке ShowStatus (1 based)
 		for (int S=1; S<ShowStatus; S++)
 		{
 			while (K0<ColumnCount)
 			{
-				if (ColumnTypes[K0++]==LINEBREAK_COLUMN)
+				if ((ColumnTypes[K0++]&0xFF)==LINEBREAK_COLUMN)
 					break;
 			}
 		}
+		if (K0 && (ColumnTypes[K0-1]&0xFF)==LINEBREAK_COLUMN)
+			StatusAlign=ColumnTypes[K0-1] & (COLUMN_CENTERALIGN|COLUMN_RIGHTALIGN);
 		// Посчитать количество колонок в этой строке
 		int K1=K0;
-		while (K1<ColumnCount && ColumnTypes[K1]!=LINEBREAK_COLUMN)
+		while (K1<ColumnCount && (ColumnTypes[K1]&0xFF)!=LINEBREAK_COLUMN)
 			K1++;
 		ColumnCount=K1-K0;
 		if (K0)
@@ -1005,7 +1021,14 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 						ColumnData=ListData[ListPos]->CustomColumnData[ColumnNumber];
 
 					if (!ColumnData)
+					{
+						if (PanelMode!=PLUGIN_PANEL && !ListData[ListPos]->CustomDataLoaded)
+						{
+							//Maximus: BUGBUG: требуется установка текущей папки для панели (это может быть пассивная панель!)
+							CtrlObject->Plugins.GetCustomData(ListData[ListPos]);
+						}
 						ColumnData=ListData[ListPos]->strCustomData;//L"";
+					}
 
 					int CurLeftPos=0;
 
@@ -1428,20 +1451,28 @@ void FileList::ShowList(int ShowStatus,int StartColumn)
 			#if 0 // Left
 	        Text(strLine);
 	        #else
+	        //Maximus: TODO: обрезание строки если она получилась длиннее?
+	        if (StatusAlign & COLUMN_CENTERALIGN)
+		        RemoveExternalSpaces(strLine);
+			else if (StatusAlign & COLUMN_RIGHTALIGN)
+				RemoveTrailingSpaces(strLine);
 			int LineLen = static_cast<int>(strLine.GetLength());
-			const wchar_t *LinePtr = strLine;
-			while (*LinePtr==L' ')
-			{
-				LinePtr++;
-				LineLen--;
-			}
-			while (LineLen>0 && LinePtr[LineLen-1]==L' ')
-				LineLen--;
+			//const wchar_t *LinePtr = strLine;
+			//while (*LinePtr==L' ')
+			//{
+			//	LinePtr++;
+			//	LineLen--;
+			//}
+			//while (LineLen>0 && LinePtr[LineLen-1]==L' ')
+			//	LineLen--;
 			if (LineLen<(X2-X1-1))
-				FS<<fmt::Width((X2-X1-1-LineLen)>>1)<<L"";
+				if (StatusAlign & COLUMN_CENTERALIGN)
+					FS<<fmt::Width((X2-X1-1-LineLen)>>1)<<L"";
+				else if (StatusAlign & COLUMN_RIGHTALIGN)
+					FS<<fmt::Width(X2-X1-1-LineLen)<<L"";
 			else if (LineLen>(X2-X1-1))
 				LineLen = X2-X1-1;
-	        FS<<fmt::Width(LineLen)<<fmt::Precision(LineLen)<<LinePtr;
+	        FS<<fmt::Width(LineLen)<<fmt::Precision(LineLen)<<strLine/*LinePtr*/;
 			//FS<<L"*";
 	        #endif
         }
@@ -1511,7 +1542,11 @@ int FileList::GetPanelStatusHeight()
 	int Count=0;
 	int CountMax = Y2-Y1-5;
 	for (int I=0; I<ViewSettings.StatusColumnCount && Count<CountMax; I++)
-		if (ViewSettings.StatusColumnType[I]==LINEBREAK_COLUMN)
+	{
+		if (I && (ViewSettings.StatusColumnType[I]&0xFF)==LINEBREAK_COLUMN)
+		{
 			Count++;
+		}
+	}
 	return Count+2; // <Number of status lines> + 1 (delimiter line)
 }

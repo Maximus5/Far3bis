@@ -263,7 +263,7 @@ void FileList::ReadFileNames(int KeepSelection, int IgnoreVisible, int DrawMessa
 	::FindFile Find(L"*",true);
 	DWORD FindErrorCode = ERROR_SUCCESS;
 	bool UseFilter=Filter->IsEnabledOnPanel();
-	bool ReadCustomData=IsColumnDisplayed(CUSTOM_COLUMN0)!=0;
+	bool ReadCustomData=(IsColumnDisplayed(CUSTOM_COLUMN0)!=0 && (ViewSettings.PreloadC0Data)) || (SortMode==BY_CUSTOMDATA);
 
 	DWORD StartTime = GetTickCount();
 

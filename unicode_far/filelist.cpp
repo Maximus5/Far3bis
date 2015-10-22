@@ -313,7 +313,14 @@ void FileList::SortFileList(int KeepPosition)
 			strCurName = ListData[CurFile]->strName;
 		}
 
-		hSortPlugin=(PanelMode==PLUGIN_PANEL && hPlugin && reinterpret_cast<PluginHandle*>(hPlugin)->pPlugin->HasCompare()) ? hPlugin:nullptr;
+		hSortPlugin=(PanelMode==PLUGIN_PANEL && hPlugin && static_cast<PluginHandle*>(hPlugin)->pPlugin->HasCompare()) ? hPlugin:nullptr;
+
+		if (PanelMode!=PLUGIN_PANEL && ListSortMode==BY_CUSTOMDATA)
+		{
+			for (int i=0; i < FileCount; i++)
+				if (!ListData[i]->CustomDataLoaded)
+					CtrlObject->Plugins.GetCustomData(ListData[i]);
+		}
 
 		far_qsort(ListData,FileCount,sizeof(*ListData),SortList);
 
@@ -522,6 +529,7 @@ int _cdecl SortList(const void *el1,const void *el2)
 			}
 
 			case BY_CUSTOMDATA:
+				//_ASSERTE(SPtr1->CustomDataLoaded);
 				if (SPtr1->strCustomData.IsEmpty())
 				{
 					if (SPtr2->strCustomData.IsEmpty())
@@ -530,6 +538,7 @@ int _cdecl SortList(const void *el1,const void *el2)
 						return ListSortOrder;
 				}
 
+				//_ASSERTE(SPtr2->CustomDataLoaded);
 				if (SPtr2->strCustomData.IsEmpty())
 					return -ListSortOrder;
 

@@ -2248,6 +2248,15 @@ upd:"Dateien standardmäßig mit Windows-Kod&ierung öffnen"
 "&Otwieraj pliki w kodowaniu Windows"
 "Usar código ANS&I por defecto"
 
+MViewConfigRefreshOnRemovable
+"Авто&обновление на сменных носителях"
+"Auto&refresh on removable drives"
+upd:"Autorefresh on removable drives"
+upd:"Autorefresh on removable drives"
+upd:"Autorefresh on removable drives"
+upd:"Autorefresh on removable drives"
+upd:"Autorefresh on removable drives"
+
 MEditConfigTitle
 l:
 "Редактор"
@@ -4443,7 +4452,7 @@ MNeedNearPath
 
 MSaveThisShortcut
 "Запомнить эту ссылку?"
-"Save this shortcuts?"
+"Save this shortcut?"
 "Uložit tyto zkratky?"
 "Verknüpfung speichern?"
 "Mentsem a gyorsbillentyűket?"
@@ -11707,7 +11716,7 @@ upd:"Show &plugins"
 "Mostrar &plugins"
 
 MChangeDriveSortPluginsByHotkey
-"Сотрировать плагины по горячей клавише"
+"Сортировать плагины по горячей клавише"
 "Sort plugins by hotkey"
 upd:"Sort plugins by hotkey"
 upd:"Sort plugins by hotkey"
@@ -14549,6 +14558,15 @@ MEditPanelModeUpperToLowerCase
 "NAGYBETŰS fájl&nevek kisbetűvel"
 "Wyświetl NAZWY_PLIKÓW &jako nazwy_plików"
 "archivos en mayúsculas mostrarlos con minús&culas"
+
+MEditPanelModePreloadC0Data
+"Загружать данные в колонку C&0 для всех файлов"
+"Preload C&0 data for all files"
+upd:"Preload C&0 data for all files"
+upd:"Preload C&0 data for all files"
+upd:"Preload C&0 data for all files"
+upd:"Preload C&0 data for all files"
+upd:"Preload C&0 data for all files"
 
 MEditPanelReadHelp
 " Нажмите F1, чтобы получить информацию по настройке "

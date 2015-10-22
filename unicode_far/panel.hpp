@@ -54,6 +54,7 @@ struct PanelViewSettings
 	int FileUpperToLowerCase;
 	int ColumnWidthType[PANEL_COLUMNCOUNT];
 	int StatusColumnWidthType[PANEL_COLUMNCOUNT];
+	int PreloadC0Data;
 };
 
 enum

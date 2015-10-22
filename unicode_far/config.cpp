@@ -445,6 +445,7 @@ void ViewerConfig(ViewerOptions &ViOpt,bool Local)
 		Builder.AddEmptyLine();
 		Builder.AddCheckbox(MViewAutoDetectCodePage, &ViOpt.AutoDetectCodePage);
 		Builder.AddCheckbox(MViewConfigAnsiCodePageAsDefault, &ViOpt.AnsiCodePageAsDefault);
+		Builder.AddCheckbox(MViewConfigRefreshOnRemovable, &ViOpt.RefreshOnRemovable);
 	}
 	Builder.AddOKCancel();
 	if (Builder.ShowDialog())
@@ -593,6 +594,7 @@ static struct FARConfig
 	{1, REG_DWORD,  NKeyViewer,L"Wrap",&Opt.ViOpt.ViewerWrap,0, 0},
 	{1, REG_DWORD,  NKeyViewer,L"PersistentBlocks",&Opt.ViOpt.PersistentBlocks,0, 0},
 	{1, REG_DWORD,  NKeyViewer,L"AnsiCodePageAsDefault",&Opt.ViOpt.AnsiCodePageAsDefault,1, 0},
+	{1, REG_DWORD,  NKeyViewer,L"RefreshOnRemovable",&Opt.ViOpt.RefreshOnRemovable,0, 0},
 
 	{1, REG_DWORD,  NKeyViewer,L"MaxLineSize",&Opt.ViOpt.MaxLineSize,ViewerOptions::eDefLineSize, 0},
 	{1, REG_DWORD,  NKeyViewer,L"SearchEditFocus",&Opt.ViOpt.SearchEditFocus,0, 0},
