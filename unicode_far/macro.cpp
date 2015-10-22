@@ -218,7 +218,6 @@ TMacroKeywords MKeywords[] =
 	{2,  L"Viewer.State",       MCODE_V_VIEWERSTATE,0},
 
 	{2,  L"Menu.Value",         MCODE_V_MENU_VALUE,0},
-	{2,  L"Menu.CurFilter",     MCODE_V_MENU_CURFILTER,0},
 
 	{2,  L"Fullscreen",         MCODE_C_FULLSCREENMODE,0},
 	{2,  L"IsUserAdmin",        MCODE_C_ISUSERADMIN,0},
@@ -411,7 +410,8 @@ static TMacroFunction intMacroFunction[]=
 	{L"MENU.ITEMSTATUS",  1, 1,   MCODE_F_MENU_ITEMSTATUS,  nullptr, 0,nullptr,L"N=Menu.ItemStatus([N])",0,usersFunc},
 	{L"MENU.SELECT",      3, 2,   MCODE_F_MENU_SELECT,      nullptr, 0,nullptr,L"N=Menu.Select(S[,N[,Dir]])",0,usersFunc},
 	{L"MENU.SHOW",        6, 5,   MCODE_F_MENU_SHOW,        nullptr, 0,nullptr,L"S=Menu.Show(Items[,Title[,Flags[,FindOrFilter[,X[,Y]]]]])",IMFF_UNLOCKSCREEN|IMFF_DISABLEINTINPUT,menushowFunc},
-	{L"MENU.FILTER",      2, 1,   MCODE_F_MENU_FILTER,      nullptr, 0,nullptr,L"N=Menu.Filter(N[,S])",0,usersFunc},
+	{L"MENU.FILTER",      2, 2,   MCODE_F_MENU_FILTER,      nullptr, 0,nullptr,L"N=Menu.Filter([Action[,Mode]])",0,usersFunc},
+	{L"MENU.FILTERSTR",   2, 2,   MCODE_F_MENU_FILTERSTR,   nullptr, 0,nullptr,L"N=Menu.FilterStr([Action[,S]])",0,usersFunc},
 	{L"MIN",              2, 0,   MCODE_F_MIN,              nullptr, 0,nullptr,L"N=Min(N1,N2)",0,minFunc},
 	{L"MLOAD",            1, 0,   MCODE_F_MLOAD,            nullptr, 0,nullptr,L"N=MLoad(S)",0,mloadFunc},
 	{L"MMODE",            2, 1,   MCODE_F_MMODE,            nullptr, 0,nullptr,L"N=MMode(Action[,Value])",0,usersFunc},
@@ -1592,8 +1592,7 @@ TVar KeyMacro::FARPseudoVariable(DWORD Flags,DWORD CheckCode,DWORD& Err)
 
 					break;
 				}
-				case MCODE_V_MENU_VALUE:     // Menu.Value
-				case MCODE_V_MENU_CURFILTER: // Menu.CurFilter
+				case MCODE_V_MENU_VALUE: // Menu.Value
 				{
 					int CurMMode=GetMode();
 					Cond=L"";
@@ -5348,19 +5347,18 @@ done:
 			VMStack.Push(Result);
 			goto begin;
 		}
-		case MCODE_F_MENU_FILTER:      // N=Menu.Filter(N[,S])
+		case MCODE_F_MENU_FILTER:      // N=Menu.Filter([Action[,Mode]])
+		case MCODE_F_MENU_FILTERSTR:   // S=Menu.FilterStr([Action[,S]])
 		{
-			_KEYMACRO(CleverSysLog Clev(L"MCODE_F_MENU_FILTER"));
-			__int64 Result=0;
-			__int64 tmpAction=0;
-			const wchar_t* StrFilter=nullptr;
+			_KEYMACRO(CleverSysLog Clev(Key == MCODE_F_MENU_FILTER? L"MCODE_F_MENU_FILTER":L"MCODE_F_MENU_FILTERSTR"));
+			bool succees=false;
+			TVar tmpAction;
 
-			VMStack.Pop(tmpVar); // необязательный, на стеке?
-			tmpAction=VMStack.Pop().getInteger();
+			VMStack.Pop(tmpVar);
+			VMStack.Pop(tmpAction);
+			if (tmpAction.isUnknown())
+				tmpAction=Key == MCODE_F_MENU_FILTER ? 4 : 0;
 			
-			if (tmpAction==5 && tmpVar.isString())
-				StrFilter = tmpVar.toString();
-
 			int CurMMode=CtrlObject->Macro.GetMode();
 
 			if (IsMenuArea(CurMMode) || CurMMode == MACRO_DIALOG)
@@ -5378,10 +5376,37 @@ done:
 					f=fo;
 
 				if (f)
-					Result=f->VMProcess(Key,(void*)StrFilter,tmpAction);
+				{
+					if (Key == MCODE_F_MENU_FILTER)
+					{
+						if (tmpVar.isUnknown())
+							tmpVar = -1;
+						tmpVar=f->VMProcess(Key,(void*)static_cast<INT_PTR>(tmpVar.toInteger()),tmpAction.toInteger());
+						succees=true;
+					}
+					else
+					{
+						string NewStr;
+						if (tmpVar.isString())
+							NewStr = tmpVar.toString();
+						if (f->VMProcess(Key,(void*)&NewStr,tmpAction.toInteger()))
+						{
+							tmpVar=NewStr.CPtr();
+							succees=true;
+						}
+					}
+				}
 			}
 
-			VMStack.Push(Result);
+			if (!succees)
+			{
+				if (Key == MCODE_F_MENU_FILTER)
+					tmpVar = -1;
+				else
+					tmpVar = L"";
+			}
+
+			VMStack.Push(tmpVar);
 			goto begin;
 		}
 

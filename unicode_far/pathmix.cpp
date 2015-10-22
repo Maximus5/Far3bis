@@ -64,13 +64,20 @@ NTPath::NTPath(LPCWSTR Src)
 				}
 			}
 		}
-		// \\?\C: -> \\?\c:
+	}
+	if(Str.At(5) == L':')
+	{
+		// "\\?\C:" -> "\\?\c:"
 		// Some file operations fails on Win2k if a drive letter is in upper case
-		if(Str.At(5) == L':')
+		LPWSTR Buffer = Str.GetBuffer();
+		Buffer[4] = Lower(Buffer[4]);
+		Str.ReleaseBuffer(Str.GetLength());
+
+		if(Str.GetLength() == 6)
 		{
-			LPWSTR Buffer = Str.GetBuffer();
-			Buffer[4] = Lower(Buffer[4]);
-			Str.ReleaseBuffer(Str.GetLength());
+			// "\\?\c:" -> "\\?\c:\"
+			// Root path must end with slash
+			AddEndSlash(Str);
 		}
 	}
 }

@@ -2402,7 +2402,7 @@ __int64 Dialog::VMProcess(int OpCode,void *vParam,__int64 iParam)
 		case MCODE_F_MENU_ITEMSTATUS:
 		case MCODE_V_MENU_VALUE:
 		case MCODE_F_MENU_FILTER:
-		case MCODE_V_MENU_CURFILTER:
+		case MCODE_F_MENU_FILTERSTR:
 		{
 			const wchar_t *str = (const wchar_t *)vParam;
 

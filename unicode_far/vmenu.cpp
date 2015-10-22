@@ -447,7 +447,7 @@ int VMenu::AddItem(const MenuItemEx *NewItem,int PosAdd)
 	if (PosAdd < 0)
 		PosAdd = 0;
 
-	SetFlags(VMENU_UPDATEREQUIRED);
+	SetFlags(VMENU_UPDATEREQUIRED|(bFilterEnabled?VMENU_REFILTERREQUIRED:0));
 
 	if (!(ItemCount & 255))
 	{
@@ -513,7 +513,7 @@ int VMenu::UpdateItem(const FarListUpdate *NewItem)
 
 		UpdateItemFlags(NewItem->Index, MItem.Flags);
 
-		SetFlags(VMENU_UPDATEREQUIRED);
+		SetFlags(VMENU_UPDATEREQUIRED|(bFilterEnabled?VMENU_REFILTERREQUIRED:0));
 
 		return TRUE;
 	}
@@ -576,7 +576,7 @@ int VMenu::DeleteItem(int ID, int Count)
 			TopPos -= Count;
 	}
 
-	SetFlags(VMENU_UPDATEREQUIRED);
+	SetFlags(VMENU_UPDATEREQUIRED); //BUGBUG: возможно тут тоже нужен |(bFilterEnabled?VMENU_REFILTERREQUIRED:0)
 
 	return ItemCount;
 }
@@ -654,13 +654,14 @@ void VMenu::RestoreFilteredItems()
 
 	FilterUpdateHeight();
 
-	if (SelectPos < 0)
-		SetSelectPos(0,1);
+	// Подровнять, а то в нижней части списка может оставаться куча пустых строк
+	FarListPos pos={SelectPos < 0 ? 0 : SelectPos,-1};
+	SetSelectPos(&pos);
 }
 
 void VMenu::FilterStringUpdated(bool bLonger)
 {
-	int PrevSeparator = -1;
+	int PrevSeparator = -1, PrevGroup = -1;
 	int UpperVisible = -1, LowerVisible = -2;
 	bool bBottomMode = false;
 
@@ -690,7 +691,16 @@ void VMenu::FilterStringUpdated(bool bLonger)
 						Item[PrevSeparator]->Flags |= LIF_HIDDEN;
 						ItemHiddenCount++;
 					}
-					PrevSeparator = i;
+					if (Item[i]->strName.IsEmpty() && PrevGroup == -1)
+					{
+						Item[i]->Flags |= LIF_HIDDEN;
+						ItemHiddenCount++;
+						PrevSeparator = -1;
+					}
+					else
+					{
+						PrevSeparator = i;
+					}
 				}
 				else if (!StrStrI(Item[i]->strName, strFilter))
 				{
@@ -705,6 +715,7 @@ void VMenu::FilterStringUpdated(bool bLonger)
 				}
 				else
 				{
+					PrevGroup = i;
 					if (LowerVisible == -2)
 					{
 						if (ItemCanHaveFocus(Item[i]->Flags))
@@ -743,18 +754,32 @@ void VMenu::FilterStringUpdated(bool bLonger)
 				{
 					Item[i]->Flags &= ~LIF_HIDDEN;
 					ItemHiddenCount--;
-					if (PrevSeparator != -1)
-					{
-						// Разделитель перед ранее скрытой группой был скрыт
-						Item[PrevSeparator]->Flags &= ~LIF_HIDDEN;
-						ItemHiddenCount--;
-						PrevSeparator = -1;
-					}
 				}
 			}
-			else if ((PrevSeparator != -1) && (Item[i]->Flags & LIF_SEPARATOR))
+			
+
+			if (ItemIsVisible(Item[i]->Flags))
 			{
-				PrevSeparator = -1;
+				if (Item[i]->Flags & LIF_SEPARATOR)
+				{
+					PrevGroup = -1;
+					if ((PrevSeparator != -1))
+						PrevSeparator = -1;
+				}
+				else
+				{
+					if (PrevSeparator != -1)
+					{
+						if (!Item[PrevSeparator]->strName.IsEmpty() || PrevGroup != -1)
+						{
+							// Разделитель перед ранее скрытой группой был скрыт
+							Item[PrevSeparator]->Flags &= ~LIF_HIDDEN;
+							ItemHiddenCount--;
+						}
+						PrevSeparator = -1;
+					}
+					PrevGroup = i;
+				}
 			}
 		}
 
@@ -1007,78 +1032,111 @@ __int64 VMenu::VMProcess(int OpCode,void *vParam,__int64 iParam)
 
 		case MCODE_F_MENU_FILTER:
 		{
-			int Res = 0;
+			__int64 RetValue = 0;
+			/*
+			Action
+			  0 - фильтр
+			    Mode
+			      -1 - (по умолчанию) вернуть 1 если фильтр уже включен, 0 - фильтр выключен
+				   1 - включить фильтр, если фильтр уже включен - ничего не делает
+				   0 - выключить фильтр
+			  1 - фиксация текста фильтра
+			    Mode
+			      -1 - (по умолчанию) вернуть 1 если текст фильтра зафиксирован, 0 - фильтр можно менять с клавиатуры
+				   1 - зафиксировать фильтр
+				   0 - отменить фиксацию фильтра
+			  2 - вернуть 1 если фильтр включен и строка фильтра не пуста
+			  3 - вернуть количество отфильтрованных (невидимых) строк\
+			  4 - (по умолчанию) подправить высоту списка под количество элементов
+			*/
 			switch (iParam)
 			{
 				case 0:
-					Res = !bFilterEnabled ? 0 : (1 | (bFilterLocked ? 2 : 0) | (strFilter.IsEmpty() ? 0 : 4));
-					break;
-				case 1: // Turn on
-					if (!bFilterEnabled)
+					switch ((INT_PTR)vParam)
 					{
-						bFilterEnabled=true;
-						bFilterLocked=false;
-						strFilter.Clear();
-						DisplayObject();
-					}
-					Res = 1;
-					break;
-				case 2: // Turn off
-					if (bFilterEnabled)
-					{
-						bFilterEnabled=false;
-						bFilterLocked=false;
-						strFilter.Clear();
-						RestoreFilteredItems();
-						DisplayObject();
-					}
-					Res = 1;
-					break;
-				case 3: // Lock filter
-					if (bFilterEnabled)
-					{
-						bFilterLocked=true;
-						DisplayObject();
-						Res = 1;
+						case 0:
+						case 1:
+							if (bFilterEnabled != ((INT_PTR)vParam == 1))
+							{
+								bFilterEnabled=((INT_PTR)vParam == 1);
+								bFilterLocked=false;
+								strFilter.Clear();
+								if (!vParam)
+									RestoreFilteredItems();
+								DisplayObject();
+							}
+							RetValue = 1;
+							break;
+						case -1:
+							RetValue = bFilterEnabled ? 1 : 0;
+							break;
 					}
 					break;
-				case 4: // Unlock filter
-					if (bFilterEnabled)
+
+				case 1:
+					switch ((INT_PTR)vParam)
 					{
-						bFilterLocked=false;
-						DisplayObject();
-						Res = 1;
+						case 0:
+						case 1:
+							bFilterLocked=((INT_PTR)vParam == 1);
+							DisplayObject();
+							RetValue = 1;
+							break;
+						case -1:
+							RetValue = bFilterLocked ? 1 : 0;
+							break;
 					}
 					break;
-				case 5: // Set filter string
-					if (!bFilterEnabled)
-					{
-						bFilterEnabled=true;
-						bFilterLocked=false;
-					}
-					RestoreFilteredItems();
-					strFilter.Clear();
-					if (vParam!=nullptr)
-						AddToFilter((const wchar_t *)vParam);
-					FilterStringUpdated(true);
-					DisplayObject();
-					Res = 1;
+
+				case 2:
+					RetValue = (bFilterEnabled && !strFilter.IsEmpty()) ? 1 : 0;
 					break;
-				case 6:
-					WasAutoHeight = true;
+
+				case 3:
+					RetValue = ItemHiddenCount;
+					break;
+
+				case 4:
 					FilterUpdateHeight(true);
 					DisplayObject();
-					Res = 1;
+					RetValue = 1;
 					break;
 			}
-			return Res;
+			return RetValue;
 		}
-		case MCODE_V_MENU_CURFILTER:
+		case MCODE_F_MENU_FILTERSTR:
 		{
-			if (bFilterEnabled)
+			/*
+			Action
+			  0 - (по умолчанию) вернуть текущую строку, если фильтр включен
+			  1 - установить в фильтре строку S.
+			      Если фильтр не был включен - включает его, режим фиксации не трогается, но игнорируется.
+				  Возвращает предыдущее значение строки фильтра.
+			*/
+			switch (iParam)
 			{
-				*(string *)vParam = strFilter;
-				return 1;
+				case 0:
+					if (bFilterEnabled)
+					{
+						*(string *)vParam = strFilter;
+						return 1;
+					}
+					break;
+				case 1:
+					if (!bFilterEnabled)
+						bFilterEnabled=true;
+					bool prevLocked = bFilterLocked;
+					bFilterLocked = false;
+					RestoreFilteredItems();
+					string oldFilter = strFilter;
+					strFilter.Clear();
+					if (vParam!=nullptr)
+						AddToFilter(((string *)vParam)->CPtr());
+					FilterStringUpdated(true);
+					bFilterLocked = prevLocked;
+					DisplayObject();
+					*(string *)vParam = oldFilter;
+					return 1;
 			}
 
 			return 0;
@@ -1787,15 +1845,11 @@ void VMenu::Show()
 		WasAutoHeight = false;
 		if (Y2 <= 0)
 		{
+			WasAutoHeight = true;
 			if (MaxHeight && MaxHeight<GetShowItemCount())
-			{
 				Y2 = Y1 + MaxHeight + 1;
-			}
 			else
-			{
 				Y2 = Y1 + GetShowItemCount() + 1;
-				WasAutoHeight = true;
-			}
 		}
 
 		if (Y2 > ScrY)
@@ -1851,6 +1905,17 @@ void VMenu::DisplayObject()
 	ClearFlags(VMENU_UPDATEREQUIRED);
 	Modal::ExitCode = -1;
 
+	if (CheckFlags(VMENU_REFILTERREQUIRED)!=0)
+	{
+		if (bFilterEnabled)
+		{
+			RestoreFilteredItems();
+			if (!strFilter.IsEmpty())
+				FilterStringUpdated(true);
+		}
+		ClearFlags(VMENU_REFILTERREQUIRED);
+	}
+
 	SetCursorType(0,10);
 
 	if (!CheckFlags(VMENU_LISTBOX) && !SaveScr)
@@ -1865,6 +1930,7 @@ void VMenu::DisplayObject()
 	{
 		if (BoxType==SHORT_DOUBLE_BOX || BoxType==SHORT_SINGLE_BOX)
 		{
+			SetScreen(X1,Y1,X2,Y2,L' ',Colors[VMenuColorBody]);
 			Box(X1,Y1,X2,Y2,Colors[VMenuColorBox],BoxType);
 
 			if (!CheckFlags(VMENU_LISTBOX|VMENU_ALWAYSSCROLLBAR))
@@ -3068,7 +3134,7 @@ void VMenu::SortItems(int Direction, int Offset, BOOL SortForDataDWORD)
 	// скорректируем SelectPos
 	UpdateSelectPos();
 
-	SetFlags(VMENU_UPDATEREQUIRED);
+	SetFlags(VMENU_UPDATEREQUIRED); //BUGBUG: возможно тут тоже нужен |(bFilterEnabled?VMENU_REFILTERREQUIRED:0)
 }
 
 void VMenu::SortItems(TMENUITEMEXCMPFUNC user_cmp_func,int Direction,int Offset)
@@ -3090,7 +3156,7 @@ void VMenu::SortItems(TMENUITEMEXCMPFUNC user_cmp_func,int Direction,int Offset)
 	// скорректируем SelectPos
 	UpdateSelectPos();
 
-	SetFlags(VMENU_UPDATEREQUIRED);
+	SetFlags(VMENU_UPDATEREQUIRED); //BUGBUG: возможно тут тоже нужен |(bFilterEnabled?VMENU_REFILTERREQUIRED:0)
 }
 
 bool VMenu::Pack()
