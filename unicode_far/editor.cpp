@@ -5987,6 +5987,11 @@ int Editor::EditorControl(int Command,void *Param)
 
 			return FALSE;
 		}
+		case ECTL_DROPMODIFEDFLAG:
+		{
+			Flags.Clear(FEDITOR_MODIFIED);
+			return TRUE;
+		}
 	}
 
 	return FALSE;

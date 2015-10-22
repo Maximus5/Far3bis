@@ -3,6 +3,14 @@ http://code.google.com/p/conemu-maximus5/downloads/list
 За основу взята официальная сборка Far2 (build 1807)
 Полный список изменений: http://conemu-maximus5.googlecode.com/svn/trunk/Far2bis/bis_changelog
 
+=== Far 2.1 build 1807 bis27 ===
+
+Обход бага в ShellExecuteEx.
+
+ECTL_DROPMODIFEDFLAG - сброс флага ECSTATE_MODIFIED.
+
+Правка лишних ".." в панелях.
+
 === Far 2.1 build 1807 bis26 ===
 
 QView не обновлялся при обновлении позиции на панели из плагина.

@@ -999,7 +999,15 @@ int Execute(const wchar_t *CmdStr, // Ком.строка для исполнения
 		{
 			seInfo.lpParameters = strNewCmdPar;
 		}
+		#if 1
+		//Maximus: рушилась dwSubSystem
+		DWORD dwSubSystem2 = IMAGE_SUBSYSTEM_UNKNOWN;
+		seInfo.lpVerb = dwAttr != INVALID_FILE_ATTRIBUTES && (dwAttr&FILE_ATTRIBUTE_DIRECTORY)?nullptr:lpVerb?lpVerb:GetShellAction(strNewCmdStr, dwSubSystem2, dwError);
+		if (dwSubSystem2!=IMAGE_SUBSYSTEM_UNKNOWN && dwSubSystem==IMAGE_SUBSYSTEM_UNKNOWN)
+			dwSubSystem=dwSubSystem2;
+		#else
 		seInfo.lpVerb = dwAttr != INVALID_FILE_ATTRIBUTES && (dwAttr&FILE_ATTRIBUTE_DIRECTORY)?nullptr:lpVerb?lpVerb:GetShellAction(strNewCmdStr, dwSubSystem, dwError);
+		#endif
 	}
 	else
 	{
@@ -1031,10 +1039,22 @@ int Execute(const wchar_t *CmdStr, // Ком.строка для исполнения
 	}
 
 	seInfo.fMask = SEE_MASK_FLAG_NO_UI|SEE_MASK_NOASYNC|SEE_MASK_NOCLOSEPROCESS|(SeparateWindow?0:SEE_MASK_NO_CONSOLE);
+#if 1
+	//Maximus: при запуске exe-шника с панели - фар зависает на 30 сек если ставить SEE_MASK_INVOKEIDLIST
+	//if (!seInfo.lpVerb || lstrcmpi(seInfo.lpVerb, L"Open"))
+	if (dwSubSystem==IMAGE_SUBSYSTEM_UNKNOWN)
+#endif
+	if (WinVer.dwMajorVersion >= 6)         // ShexxExecuteEx error, see
+		seInfo.fMask |= SEE_MASK_INVOKEIDLIST; // http://us.generation-nt.com/answer/shellexecuteex-does-not-allow-openas-verb-windows-7-help-31497352.html
 
 	if(!Silent)
 	{
+		#if 1
+		//Maximus: не вставлять лишних пустых строк при запуске команд/программ
+		Console.ScrollScreenBuffer(1);
+		#else
 		Console.ScrollScreenBuffer(!DirectRun && !SeparateWindow?1:2);
+		#endif
 	}
 
 	if (ShellExecuteEx(&seInfo))

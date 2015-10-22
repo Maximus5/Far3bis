@@ -1564,6 +1564,8 @@ enum EDITOR_CONTROL_COMMANDS
 #ifdef FAR_USE_INTERNALS
 	ECTL_SERVICEREGION,
 #endif // END FAR_USE_INTERNALS
+	// Требуется для "прозрачного" заворота строк
+	ECTL_DROPMODIFEDFLAG            = 999,
 };
 
 enum EDITOR_SETPARAMETER_TYPES
