@@ -377,9 +377,6 @@
     <ClCompile Include="synchro.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="syntax.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="syslog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -884,9 +881,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="synchro.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="syntax.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="syslog.hpp">
