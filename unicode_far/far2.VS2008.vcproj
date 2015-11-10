@@ -1194,10 +1194,6 @@
 				>
 			</File>
 			<File
-				RelativePath="syntax.cpp"
-				>
-			</File>
-			<File
 				RelativePath="syslog.cpp"
 				>
 			</File>
@@ -3520,10 +3516,6 @@
 			</File>
 			<File
 				RelativePath="synchro.hpp"
-				>
-			</File>
-			<File
-				RelativePath="syntax.hpp"
 				>
 			</File>
 			<File
