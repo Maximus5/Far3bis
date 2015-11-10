@@ -356,6 +356,9 @@
     <ClCompile Include="scrbuf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="scrbufAnnotate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="scrobj.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -854,6 +857,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scrbuf.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scrbufAnnotate.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scrobj.hpp">

@@ -1165,6 +1165,10 @@
 				>
 			</File>
 			<File
+				RelativePath="scrbufAnnotate.cpp"
+				>
+			</File>
+			<File
 				RelativePath="scrobj.cpp"
 				>
 			</File>
@@ -3487,6 +3491,10 @@
 			</File>
 			<File
 				RelativePath="scrbuf.hpp"
+				>
+			</File>
+			<File
+				RelativePath="scrbufAnnotate.hpp"
 				>
 			</File>
 			<File

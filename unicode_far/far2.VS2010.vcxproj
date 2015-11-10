@@ -544,6 +544,7 @@ if not exist bootstrap mkdir bootstrap</Command>
     <ClCompile Include="savescr.cpp" />
     <ClCompile Include="scantree.cpp" />
     <ClCompile Include="scrbuf.cpp" />
+    <ClCompile Include="scrbufAnnotate.cpp" />
     <ClCompile Include="scrobj.cpp" />
     <ClCompile Include="scrsaver.cpp" />
     <ClCompile Include="setattr.cpp" />
@@ -1131,6 +1132,7 @@ if not exist bootstrap mkdir bootstrap</Command>
     <ClInclude Include="savescr.hpp" />
     <ClInclude Include="scantree.hpp" />
     <ClInclude Include="scrbuf.hpp" />
+    <ClInclude Include="scrbufAnnotate.hpp" />
     <ClInclude Include="scrobj.hpp" />
     <ClInclude Include="scrsaver.hpp" />
     <ClInclude Include="setattr.hpp" />

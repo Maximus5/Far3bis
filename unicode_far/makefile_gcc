@@ -130,6 +130,7 @@ SRCS = \
 	savescr.cpp \
 	scantree.cpp \
 	scrbuf.cpp \
+	scrbufAnnotate.cpp \
 	scrobj.cpp \
 	scrsaver.cpp \
 	setattr.cpp \

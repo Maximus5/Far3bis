@@ -230,6 +230,8 @@ scantree.cpp
 scantree.hpp
 scrbuf.cpp
 scrbuf.hpp
+scrbufAnnotate.cpp
+scrbufAnnotate.hpp
 scrobj.cpp
 scrobj.hpp
 scrsaver.cpp
