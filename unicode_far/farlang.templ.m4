@@ -2407,6 +2407,18 @@ MConfigPgUpChangeDisk
 "Usa [CTRL-Pag&Su] Per Cambiare Unità"
 "Використовувати Ctrl+PgUp для вибору диска"
 
+MConfigRemoteAutoLogin
+"Диалог подключения к удаленному серверу"
+"Remote server login dialog"
+upd:"&Remote server login dialog"
+upd:"Remote server login dialog"
+upd:"Remote server login dialog"
+upd:"Remote server login dialog"
+upd:"Remote server login dialog"
+upd:"Remote server login dialog"
+upd:"Remote server login dialog"
+upd:"Remote server login dialog"
+
 MConfigClearType
 "Перер&исовка с поддержкой ClearType (может быть медленной)"
 "Cl&earType friendly redraw (can be slow)"
