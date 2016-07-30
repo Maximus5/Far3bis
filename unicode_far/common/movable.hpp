@@ -1,12 +1,16 @@
-﻿#ifndef FUNCTION_TRAITS_HPP_071DD1DD_F933_40DC_A662_CB85F7BE7F00
-#define FUNCTION_TRAITS_HPP_071DD1DD_F933_40DC_A662_CB85F7BE7F00
+﻿#ifndef MOVABLE_HPP_A063CBC7_C7FC_470D_901E_620E0D6A2D51
+#define MOVABLE_HPP_A063CBC7_C7FC_470D_901E_620E0D6A2D51
 #pragma once
 
 /*
-function_traits.hpp
+movable.hpp
+
+Helper class to set variable to default value after move,
+e. g. to use default move ctor/operator=, but skip any custom logic in dtor dependent on this variable
+
 */
 /*
-Copyright © 2014 Far Group
+Copyright © 2016 Far Group
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,35 +36,32 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+template<typename T, T Default = T{}>
+class movable
+{
+public:
+	movable(T Value): m_Value(Value){}
+	auto& operator=(T Value) { m_Value = Value; return *this; }
+
+	movable(const movable& rhs) { *this = rhs; }
+	auto& operator=(const movable& rhs) { m_Value = rhs.m_Value; return *this; }
+
+	movable(movable&& rhs) { *this = std::move(rhs); }
+	auto& operator=(movable&& rhs) { m_Value = rhs.m_Value; rhs.m_Value = Default; return *this; }
+
+	auto& operator*() const { return m_Value; }
+	auto& operator*() { return m_Value; }
+
+private:
+	T m_Value;
+};
+
 namespace detail
 {
-	template<typename R>
-	using clean_type = std::remove_cv_t<std::remove_reference_t<R>>;
-
-	template <class F> struct return_type;
-
-	template <class R, class... A>
-	struct return_type<R(*)(A...)>
-	{
-		using type = clean_type<R>;
-	};
-
-	template <class R, class C, class... A>
-	struct return_type<R(C::*)(A...)>
-	{
-		using type = clean_type<R>;
-	};
-
-	template <class R, class C, class... A>
-	struct return_type<R(C::*)(A...) const>
-	{
-		using type = clean_type<R>;
-	};
+	struct nop_deleter { void operator()(void*) const {} };
 }
 
 template<class T>
-using return_type_t = typename detail::return_type<T>::type;
+using movalbe_ptr = std::unique_ptr<T, detail::nop_deleter>;
 
-#define FN_RETURN_TYPE(function_name) return_type_t<decltype(&function_name)>
-
-#endif // FUNCTION_TRAITS_HPP_071DD1DD_F933_40DC_A662_CB85F7BE7F00
+#endif // MOVABLE_HPP_A063CBC7_C7FC_470D_901E_620E0D6A2D51
