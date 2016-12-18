@@ -32,6 +32,17 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+struct error_codes
+{
+	struct ignore{};
+
+	error_codes();
+	error_codes(ignore);
+
+	DWORD Win32Error;
+	NTSTATUS NtError;
+};
+
 namespace detail
 {
 	class exception_impl
@@ -45,10 +56,12 @@ namespace detail
 
 		const auto& get_message() const noexcept { return m_Message; }
 		const auto& get_full_message() const noexcept { return m_FullMessage; }
+		const auto& get_error_codes() const noexcept { return m_ErrorCodes; }
 
 	private:
 		std::string m_Message;
 		std::string m_FullMessage;
+		error_codes m_ErrorCodes;
 	};
 }
 
