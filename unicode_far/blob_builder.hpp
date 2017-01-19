@@ -1,12 +1,13 @@
-﻿#ifndef SDK_HPP_7C458548_5D23_4CD0_B49D_F5C7AB43C26C
-#define SDK_HPP_7C458548_5D23_4CD0_B49D_F5C7AB43C26C
+﻿#ifndef BLOB_BUILDER_HPP_9C0C6EE1_CAEE_4523_BDEE_53AEE67C167C
+#define BLOB_BUILDER_HPP_9C0C6EE1_CAEE_4523_BDEE_53AEE67C167C
 #pragma once
 
 /*
-sdk.hpp
+blob_builder.hpp
+
 */
 /*
-Copyright © 2015 Far Group
+Copyright © 2017 Far Group
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,14 +33,52 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "sdk/sdk_common.h"
+class blob_builder
+{
+public:
+	NONCOPYABLE(blob_builder);
 
-#ifdef _MSC_VER
-# include "sdk/sdk_vc.h"
-#endif // _MSC_VER
+	blob_builder(uintptr_t CodePage):
+		m_CodePage(CodePage),
+		m_Signature(IsUnicodeOrUtfCodePage(m_CodePage))
+	{
+		if (m_Signature)
+		{
+			m_Data.insert(0, 1, SIGN_UNICODE);
+		}
+	}
 
-#ifdef __GNUC__
-# include "sdk/sdk_gcc.h"
-#endif // __GNUC__
+	auto& append(const string& Data)
+	{
+		m_Buffer.clear();
+		m_Data += Data;
+		return *this;
+	}
 
-#endif // SDK_HPP_7C458548_5D23_4CD0_B49D_F5C7AB43C26C
+	blob_view get() const
+	{
+		if (m_Data.empty() || (m_Signature && m_Data.size() == 1))
+		{
+			return {};
+		}
+
+		if (m_CodePage == CP_UNICODE)
+		{
+			return make_blob_view(m_Data.data(), m_Data.size());
+		}
+
+		if (m_Buffer.empty())
+		{
+			m_Buffer = encoding::get_bytes(m_CodePage, m_Data);
+		}
+		return make_blob_view(m_Buffer.data(), m_Buffer.size());
+	}
+
+private:
+	mutable std::string m_Buffer;
+	string m_Data;
+	uintptr_t m_CodePage;
+	bool m_Signature;
+};
+
+#endif // BLOB_BUILDER_HPP_9C0C6EE1_CAEE_4523_BDEE_53AEE67C167C
