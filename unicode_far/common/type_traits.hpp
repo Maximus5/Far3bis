@@ -1,12 +1,12 @@
-﻿#ifndef CONDITIONAL_HPP_18900E4A_F2F5_48B9_A92A_DEE70617591B
-#define CONDITIONAL_HPP_18900E4A_F2F5_48B9_A92A_DEE70617591B
+﻿#ifndef TYPE_TRAITS_HPP_CC9B8497_9AF0_4882_A470_81FF9CBF6D7C
+#define TYPE_TRAITS_HPP_CC9B8497_9AF0_4882_A470_81FF9CBF6D7C
 #pragma once
 
 /*
-conditional.hpp
+type_traits.hpp
 */
 /*
-Copyright © 2015 Far Group
+Copyright © 2017 Far Group
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,35 +32,13 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/*
-Usage:
+template<typename type, typename... args>
+struct is_any: std::false_type {};
 
-class object: public conditional<object>
-{
-public:
-    bool operator!() { return false; }
-};
+template<typename type, typename arg>
+struct is_any<type, arg>: std::is_same<type, arg> {};
 
-object Object;
+template<typename type, typename arg, typename... args>
+struct is_any<type, arg, args...>: std::integral_constant<bool, is_any<type, arg>::value || is_any<type, args...>::value> {};
 
-if (Object)
-    foo();
-
-if (!Object)
-    bar();
-*/
-
-template<typename T>
-class conditional
-{
-public:
-	explicit operator bool() const
-	{
-		return !!static_cast<const T&>(*this);
-	}
-
-protected:
-	conditional() { static_assert((std::is_base_of<conditional, T>::value)); }
-};
-
-#endif // CONDITIONAL_HPP_18900E4A_F2F5_48B9_A92A_DEE70617591B
+#endif // TYPE_TRAITS_HPP_CC9B8497_9AF0_4882_A470_81FF9CBF6D7C
