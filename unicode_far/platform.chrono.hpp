@@ -1,15 +1,13 @@
-﻿#ifndef PANELMIX_HPP_AF7AAF02_56C0_4E41_B1D9_D1F1A5B4025D
-#define PANELMIX_HPP_AF7AAF02_56C0_4E41_B1D9_D1F1A5B4025D
+﻿#ifndef PLATFORM_CHRONO_HPP_4942BDE7_47FB_49F8_B8F6_EE0AFF4EC61D
+#define PLATFORM_CHRONO_HPP_4942BDE7_47FB_49F8_B8F6_EE0AFF4EC61D
 #pragma once
 
 /*
-panelmix.hpp
+chrono.hpp
 
-Misc functions for processing of path names
 */
 /*
-Copyright © 1996 Eugene Roshal
-Copyright © 2000 Far Group
+Copyright © 2017 Far Group
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,22 +33,24 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "panelfwd.hpp"
+// TrivialClock with fixed period (100 ns) and epoch (1 Jan 1601)
+class nt_clock
+{
+public:
+	using rep = unsigned long long;
+	using period = std::ratio_multiply<std::ratio<100, 1>, std::nano>;
+	using duration = std::chrono::duration<rep, period>;
+	using time_point = std::chrono::time_point<nt_clock>;
+	static constexpr bool is_steady = false;
+	static time_point now() noexcept;
 
-struct column;
+	static time_t to_time_t(const time_point& Time) noexcept;
+	static time_point from_time_t(time_t Time) noexcept;
+	static FILETIME to_filetime(const time_point& Time) noexcept;
+	static time_point from_filetime(FILETIME Time) noexcept;
+};
 
-void ShellUpdatePanels(panel_ptr SrcPanel, bool NeedSetUpADir = false);
-bool CheckUpdateAnotherPanel(panel_ptr SrcPanel,const string& SelName);
+using duration = nt_clock::duration;
+using time_point = nt_clock::time_point;
 
-bool MakePath1(DWORD Key,string &strPathName, const wchar_t *Param2, bool ShortNameAsIs = true);
-
-string FormatStr_Attribute(DWORD FileAttributes, size_t Width);
-string FormatStr_DateTime(time_point FileTime, int ColumnType, unsigned long long Flags, int Width);
-string FormatStr_Size(long long Size, const string& strName,
-	DWORD FileAttributes, DWORD ShowFolderSize, DWORD ReparseTag, int ColumnType,
-	unsigned long long Flags, int Width, const wchar_t* CurDir = nullptr);
-std::vector<column> DeserialiseViewSettings(const string& ColumnTitles, const string& ColumnWidths);
-std::pair<string, string> SerialiseViewSettings(const std::vector<column>& Columns);
-int GetDefaultWidth(unsigned long long Type);
-
-#endif // PANELMIX_HPP_AF7AAF02_56C0_4E41_B1D9_D1F1A5B4025D
+#endif // PLATFORM_CHRONO_HPP_4942BDE7_47FB_49F8_B8F6_EE0AFF4EC61D

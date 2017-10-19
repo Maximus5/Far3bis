@@ -1,15 +1,12 @@
-﻿#ifndef PANELMIX_HPP_AF7AAF02_56C0_4E41_B1D9_D1F1A5B4025D
-#define PANELMIX_HPP_AF7AAF02_56C0_4E41_B1D9_D1F1A5B4025D
+﻿#ifndef CHRONO_HPP_D4A71D62_47D4_45B1_B667_84D6E1E31A14
+#define CHRONO_HPP_D4A71D62_47D4_45B1_B667_84D6E1E31A14
 #pragma once
 
 /*
-panelmix.hpp
-
-Misc functions for processing of path names
+chrono.hpp
 */
 /*
-Copyright © 1996 Eugene Roshal
-Copyright © 2000 Far Group
+Copyright © 2017 Far Group
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,22 +32,34 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "panelfwd.hpp"
+template<typename... tuple_types>
+class split_duration: public std::tuple<tuple_types...>
+{
+public:
+	template<typename duration_type>
+	split_duration(duration_type Duration)
+	{
+		split<0, duration_type, tuple_types...>(Duration);
+	}
 
-struct column;
+private:
+	template<size_t Index, typename duration_type>
+	void split(duration_type) const
+	{
+	}
 
-void ShellUpdatePanels(panel_ptr SrcPanel, bool NeedSetUpADir = false);
-bool CheckUpdateAnotherPanel(panel_ptr SrcPanel,const string& SelName);
+	template<size_t Index, typename duration_type, typename arg, typename... args>
+	void split(duration_type Duration)
+	{
+		const auto Value = std::chrono::duration_cast<arg>(Duration);
+		std::get<Index>(*this) = Value;
+		split<Index + 1, duration_type, args...>(Duration - Value);
+	}
+};
 
-bool MakePath1(DWORD Key,string &strPathName, const wchar_t *Param2, bool ShortNameAsIs = true);
+namespace chrono
+{
+	using days = std::chrono::duration<int, std::ratio_multiply<std::ratio<24>, std::chrono::hours::period>>;
+}
 
-string FormatStr_Attribute(DWORD FileAttributes, size_t Width);
-string FormatStr_DateTime(time_point FileTime, int ColumnType, unsigned long long Flags, int Width);
-string FormatStr_Size(long long Size, const string& strName,
-	DWORD FileAttributes, DWORD ShowFolderSize, DWORD ReparseTag, int ColumnType,
-	unsigned long long Flags, int Width, const wchar_t* CurDir = nullptr);
-std::vector<column> DeserialiseViewSettings(const string& ColumnTitles, const string& ColumnWidths);
-std::pair<string, string> SerialiseViewSettings(const std::vector<column>& Columns);
-int GetDefaultWidth(unsigned long long Type);
-
-#endif // PANELMIX_HPP_AF7AAF02_56C0_4E41_B1D9_D1F1A5B4025D
+#endif // CHRONO_HPP_D4A71D62_47D4_45B1_B667_84D6E1E31A14

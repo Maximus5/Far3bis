@@ -1,15 +1,9 @@
-﻿#ifndef PANELMIX_HPP_AF7AAF02_56C0_4E41_B1D9_D1F1A5B4025D
-#define PANELMIX_HPP_AF7AAF02_56C0_4E41_B1D9_D1F1A5B4025D
-#pragma once
+﻿/*
+platform.chrono.cpp
 
-/*
-panelmix.hpp
-
-Misc functions for processing of path names
 */
 /*
-Copyright © 1996 Eugene Roshal
-Copyright © 2000 Far Group
+Copyright © 2017 Far Group
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,22 +29,40 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "panelfwd.hpp"
+#include "headers.hpp"
+#pragma hdrstop
 
-struct column;
+#include "platform.chrono.hpp"
 
-void ShellUpdatePanels(panel_ptr SrcPanel, bool NeedSetUpADir = false);
-bool CheckUpdateAnotherPanel(panel_ptr SrcPanel,const string& SelName);
+nt_clock::time_point nt_clock::now() noexcept
+{
+	FILETIME Time;
+	GetSystemTimeAsFileTime(&Time);
+	return from_filetime(Time);
+}
 
-bool MakePath1(DWORD Key,string &strPathName, const wchar_t *Param2, bool ShortNameAsIs = true);
+static nt_clock::duration posix_shift()
+{
+	return std::chrono::seconds{ 11644473600 };
+}
 
-string FormatStr_Attribute(DWORD FileAttributes, size_t Width);
-string FormatStr_DateTime(time_point FileTime, int ColumnType, unsigned long long Flags, int Width);
-string FormatStr_Size(long long Size, const string& strName,
-	DWORD FileAttributes, DWORD ShowFolderSize, DWORD ReparseTag, int ColumnType,
-	unsigned long long Flags, int Width, const wchar_t* CurDir = nullptr);
-std::vector<column> DeserialiseViewSettings(const string& ColumnTitles, const string& ColumnWidths);
-std::pair<string, string> SerialiseViewSettings(const std::vector<column>& Columns);
-int GetDefaultWidth(unsigned long long Type);
+time_t nt_clock::to_time_t(const time_point& Time) noexcept
+{
+	return std::chrono::duration_cast<std::chrono::seconds>(Time.time_since_epoch() - posix_shift()).count();
+}
 
-#endif // PANELMIX_HPP_AF7AAF02_56C0_4E41_B1D9_D1F1A5B4025D
+time_point nt_clock::from_time_t(time_t Time) noexcept
+{
+	return time_point(posix_shift() + std::chrono::seconds(Time));
+}
+
+FILETIME nt_clock::to_filetime(const time_point& Time) noexcept
+{
+	const auto Count = Time.time_since_epoch().count();
+	return { static_cast<DWORD>(Count), static_cast<DWORD>(Count >> 32) };
+}
+
+time_point nt_clock::from_filetime(FILETIME Time) noexcept
+{
+	return time_point(duration(static_cast<unsigned long long>(Time.dwHighDateTime) << 32 | Time.dwLowDateTime));
+}

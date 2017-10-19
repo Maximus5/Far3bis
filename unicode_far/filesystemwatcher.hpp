@@ -51,8 +51,8 @@ private:
 	void PropagateException() const;
 
 	string m_Directory;
-	FILETIME m_PreviousLastWriteTime;
-	FILETIME m_CurrentLastWriteTime;
+	time_point m_PreviousLastWriteTime;
+	time_point m_CurrentLastWriteTime;
 	bool m_WatchSubtree;
 	mutable os::thread m_RegistrationThread;
 	os::fs::find_notification_handle m_Notification;
